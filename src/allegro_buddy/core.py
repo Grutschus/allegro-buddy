@@ -221,6 +221,18 @@ def current_groups() -> set[str]:
     return groups
 
 
+def user_accounts(user: str) -> list[dict[str, str]]:
+    """Your Slurm associations on this cluster (account, QOS, default account); [] if unknown."""
+    cluster = settings.slurm_cluster_name()
+    return run_parsable_rows(
+        ["sacctmgr", "-nP", "show", "user", user, "withassoc",
+         *([f"cluster={cluster}"] if cluster else []),
+         "format=DefaultAccount,Account,QOS"],
+        ["DefaultAccount", "Account", "QOS"],
+        check=False,
+    )  # fmt: skip
+
+
 def user_from_userid(value: str) -> str:
     return value.split("(", 1)[0]
 

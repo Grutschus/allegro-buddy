@@ -66,6 +66,7 @@ from allegro_buddy.core import (
     summarize_selected_partitions,
     truncate,
     upcoming_reservations,
+    user_accounts,
     user_can_use_reservation,
     user_from_userid,
     warn,
@@ -127,14 +128,28 @@ def _your_jobs_text(user: str) -> Text:
     return Text(' · ').join(parts)
 
 
+def _accounts_text(rows: list[dict[str, str]]) -> Text:
+    """`proj1 (default), proj2`: the accounts you can charge, default first."""
+    default = next((row['DefaultAccount'] for row in rows if row['DefaultAccount']), '')
+    accounts = sorted({row['Account'] for row in rows if row['Account']}, key=lambda a: (a != default, a))
+    if not accounts:
+        return muted()
+    parts = [Text.assemble(a, (' (default)', 'dim') if a == default else '') for a in accounts]
+    return Text(', ').join(parts)
+
+
 def _render_you() -> None:
-    """Who you are on the cluster: groups are the compute projects on some sites (Lise)."""
+    """Who you are on the cluster: Slurm bills and limits by account (on Lise, a compute project)."""
     user = current_user()
+    rows = user_accounts(user)
+    qos = sorted({q for row in rows for q in row['QOS'].split(',') if q})
     grid = Table.grid(padding=(0, 2))
     grid.add_column(style='dim', no_wrap=True)
-    grid.add_column()  # wraps aligned to itself: a hanging indent for long group lists
+    grid.add_column()  # wraps aligned to itself: a hanging indent for long lists
     grid.add_row('user', user)
-    grid.add_row('groups', ', '.join(sorted(current_groups())) or muted())
+    grid.add_row('accounts', _accounts_text(rows))
+    if qos:
+        grid.add_row('qos', ', '.join(qos))
     grid.add_row('jobs', _your_jobs_text(user))
     CONSOLE.print(Text('You', style='bold'))
     CONSOLE.print(grid, width=min(CONSOLE.width, MAX_WIDTH))

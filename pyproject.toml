@@ -1,6 +1,6 @@
 [project]
 name = "allegro-buddy"
-version = "0.1.0"
+version = "0.1.1"
 description = "A friendly Slurm helper, with presets for the Allegro cluster."
 readme = "README.md"
 requires-python = ">=3.10"

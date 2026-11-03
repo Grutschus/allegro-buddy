@@ -132,6 +132,8 @@ class FakeSlurm:
             return 0, f'ClusterName             = {self.cluster_name}\n'
         if argv[0] == 'sbatch':
             return 0, '4242\n'
+        if argv[:3] == ['sacctmgr', '-nP', 'show']:  # alice's associations
+            return 0, 'ml-lab|ml-lab|normal\nml-lab|teaching|long,normal\n'
         if joined.startswith(
             (
                 'scontrol --oneliner show reservation',
@@ -433,3 +435,10 @@ def test_inline_comments_are_not_part_of_the_value():
     )
     assert layer[('dev', 'partition')] == 'gpu'
     assert layer[('dev', 'time')] == '8:00:00'
+
+
+def test_info_shows_accounts_default_first(slurm):
+    info = invoke(['info'])
+    assert 'ml-lab (default), teaching' in info, info
+    assert 'long, normal' in info, info
+    assert 'groups' not in info, info

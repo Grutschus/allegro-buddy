@@ -1,7 +1,8 @@
 You
-user    alice
-groups  users
-jobs    none 
+user      alice                     
+accounts  ml-lab (default), teaching
+qos       long, normal              
+jobs      none                      
 
                             Resource overview                            
 Partition   Time limit   Idle nodes   Free GPUs   Free CPUs   Free memory
