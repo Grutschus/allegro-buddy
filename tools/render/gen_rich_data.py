@@ -1,4 +1,4 @@
-"""Generate src/render/data.rs and src/render/emoji_data.rs from rich==15.0.0 (+ rich-click boxes).
+"""Generate src/render/data.rs, cell_tables.rs and emoji_data.rs from rich==15.0.0 (+ rich-click boxes).
 
 Run with the reference venv: BAB_RICH_PY=/path/to/python; $BAB_RICH_PY tools/render/gen_rich_data.py
 """
@@ -33,16 +33,49 @@ def rs_str(s: str) -> str:
     return '"' + ''.join(out) + '"'
 
 
+def write_cell_tables() -> None:
+    """src/render/cell_tables.rs: the width table of every Unicode version Rich ships."""
+    from rich.cells import _SINGLE_CELL_UNICODE_RANGES
+    from rich._unicode_data._versions import VERSIONS
+
+    narrow_to_wide = load('latest').narrow_to_wide
+    out = [HEADER]
+    out.append('/// Bit 31 of a range start: the range is 2 cells wide (else 0).')
+    out.append('pub const WIDE: u32 = 1 << 31;\n')
+    out.append('/// A Unicode version (major, minor, patch).')
+    out.append('pub type Version = (u32, u32, u32);\n')
+    out.append('/// Rich `rich._unicode_data._versions.VERSIONS` (ascending) with each')
+    out.append('/// `CellTable.widths` as flat sorted `start, end` pairs (inclusive ranges; `start` has')
+    out.append('/// [`WIDE`] set for width 2, else the width is 0);')
+    out.append('/// code points outside every range are 1 cell wide.')
+    out.append('pub static TABLES: &[(Version, &[u32])] = &[')
+    for version in VERSIONS:
+        major, minor, patch = map(int, version.split('.'))
+        out.append(f'    (({major}, {minor}, {patch}), UNICODE_{major}_{minor}_{patch}),')
+    out.append('];')
+    for version in VERSIONS:
+        table = load(version)
+        assert table.unicode_version == version
+        # cells.rs relies on these: one narrow_to_wide set, widths 0/2 only, ASCII and
+        # Rich's _SINGLE_CELL_UNICODE_RANGES 1 cell wide
+        assert table.narrow_to_wide == narrow_to_wide, version
+        assert {width for _, _, width in table.widths} <= {0, 2}, version
+        for low, high in _SINGLE_CELL_UNICODE_RANGES:
+            for start, end, _ in table.widths:
+                assert end < low or start > high or (start, end) == (0, 0), (version, start)
+        major, minor, patch = map(int, version.split('.'))
+        out.append(f'\nstatic UNICODE_{major}_{minor}_{patch}: &[u32] = &[')
+        for start, end, width in table.widths:
+            assert end < 1 << 31
+            out.append(f'    0x{start | (1 << 31 if width == 2 else 0):x}, 0x{end:x},')
+        out.append('];')
+    (ROOT / 'src/render/cell_tables.rs').write_text('\n'.join(out) + '\n')
+
+
 def main() -> None:
     table = load('latest')
     assert table.unicode_version == '17.0.0'
     lines = [HEADER]
-    lines.append(f'pub const UNICODE_VERSION: &str = "{table.unicode_version}";\n')
-    lines.append('/// Rich `CellTable.widths`: sorted (start, end, width) ranges.')
-    lines.append('pub static CELL_WIDTHS: &[(u32, u32, u8)] = &[')
-    for start, end, width in table.widths:
-        lines.append(f'    (0x{start:x}, 0x{end:x}, {width}),')
-    lines.append('];\n')
     lines.append('/// Rich `CellTable.narrow_to_wide` (sorted).')
     lines.append('pub static NARROW_TO_WIDE: &[char] = &[')
     for ch in sorted(table.narrow_to_wide):
@@ -98,6 +131,7 @@ def main() -> None:
         lines.append(f'    {rs_str(frame)},')
     lines.append('];')
     (ROOT / 'src/render/data.rs').write_text('\n'.join(lines) + '\n')
+    write_cell_tables()
 
     emoji = [HEADER, '/// Rich `EMOJI` (name -> emoji), sorted by name.', 'pub static EMOJI: &[(&str, &str)] = &[']
     for name, value in sorted(EMOJI.items()):
