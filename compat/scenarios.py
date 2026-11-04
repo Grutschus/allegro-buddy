@@ -1346,7 +1346,7 @@ NASTY_NAMES = {
     '70104': 'データ処理-🚀-run',
     '70120': '[red]train[/] \\[x]',
     '70121': 'eval:smile:-1080',
-    '70122': 'back\\slash [link=x]y[/link]',
+    '70122': 'back\\slash [i]y[/i]',  # not [link]: Rich gives it a random id
     '70130': 'wide-名前-is-long-and-gets-truncated',
 }
 

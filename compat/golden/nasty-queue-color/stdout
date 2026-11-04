@@ -4,5 +4,5 @@
 [36m70110[0m   ab-dev         [1;32mRUNNING[0m   [1;32mgpu      [0m     1h25m       6h35m              [32mgpu101                  [0m
 [36m70120[0m   [31mtrain[0m [x]      [1;33mPENDING[0m   [1;32mgpu      [0m                    1d   in 2h10m   [33mGPU-bound · max 3/4 free[0m
 [36m70121[0m   eval😄-1080    [1;33mPENDING[0m   [1;32mgpusmall [0m                    4h   [2m-       [0m   [33mGPU-bound · max 0/1 free[0m
-[36m70122[0m   back\slash ]8;id=11807787;x\y]8;;\   [1;33mPENDING[0m   [1;32mgpu      [0m                   12h   [2m-       [0m   [33mstarts now w/ mem ≤ 73G [0m
+[36m70122[0m   back\slash [3my[0m   [1;33mPENDING[0m   [1;32mgpu      [0m                   12h   [2m-       [0m   [33mstarts now w/ mem ≤ 73G [0m
 [2mⓘ `bab why` shows what is short and what would start now[0m
