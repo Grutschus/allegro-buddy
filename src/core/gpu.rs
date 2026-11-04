@@ -69,20 +69,28 @@ fn unicode_digit(c: char) -> Option<u32> {
 /// `canonical_gpu_type(gpu_type)`: normalize; empty -> `generic`; then settings aliases,
 /// then [`GPU_TYPE_SYNONYMS`], else the normalized name. Reads settings.
 pub fn canonical_gpu_type(gpu_type: Option<&str>) -> String {
+    try_canonical_gpu_type(gpu_type)
+        .unwrap_or_else(|e| panic!("settings::get() before a successful load: {e}"))
+}
+
+/// [`canonical_gpu_type`] that reports a broken config (Python's `settings.load()` raising
+/// `ConfigError`) instead of assuming settings were loaded; e.g. for click callbacks run
+/// during completion.
+pub fn try_canonical_gpu_type(gpu_type: Option<&str>) -> Result<String, settings::ConfigError> {
     let normalized = settings::normalize_gpu_type(gpu_type.unwrap_or(""));
     if normalized.is_empty() {
-        return "generic".to_owned();
+        return Ok("generic".to_owned());
     }
-    if let Some(alias) = settings::get()
+    if let Some(alias) = settings::load()?
         .gpu_alias(&normalized)
         .filter(|a| !a.is_empty())
     {
-        return alias.to_owned();
+        return Ok(alias.to_owned());
     }
-    GPU_TYPE_SYNONYMS
+    Ok(GPU_TYPE_SYNONYMS
         .iter()
         .find(|(from, _)| *from == normalized)
-        .map_or(normalized, |(_, to)| (*to).to_owned())
+        .map_or(normalized, |(_, to)| (*to).to_owned()))
 }
 
 /// `gpu_type_label(gpu_type)`: settings label, [`GPU_TYPE_LABELS`], else

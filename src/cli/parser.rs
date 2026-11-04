@@ -901,7 +901,12 @@ fn process_value(
     }
     let value = match (param.callback, value) {
         (Some(Callback::NormalizeGpuType), Some(Value::Str(s))) => {
-            Some(Value::Str(crate::core::gpu::canonical_gpu_type(Some(&s))))
+            match crate::core::gpu::try_canonical_gpu_type(Some(&s)) {
+                Ok(canonical) => Some(Value::Str(canonical)),
+                // click: a callback raising during resilient parsing (completion) -> None
+                Err(_) if ctx.resilient => Some(Value::None),
+                Err(err) => return Err(AbError::Click(err.0)),
+            }
         }
         (Some(Callback::NormalizeGpuType), _) => Some(Value::None),
         (None, value) => value,
