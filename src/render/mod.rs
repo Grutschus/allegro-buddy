@@ -27,9 +27,9 @@
 //!
 //! # Testing against Rich
 //!
-//! The renderer was checked byte-for-byte against Rich on thousands of generated tables
-//! and texts; that harness lives at the git tag `equivalence-harness`
-//! (`tests/render_diff.rs`, `tools/render/`).
+//! The renderer was checked byte-for-byte against Rich on generated tables and texts
+//! (plus a seeded random set for one-off checks); that harness lives at the git tag
+//! `equivalence-harness` (`tests/render_diff.rs`, `tools/render/`).
 //!
 //! # Known divergences
 //!

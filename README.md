@@ -1,6 +1,17 @@
 # better-allegro-buddy
 
-**[allegro-buddy](https://github.com/Grutschus/allegro-buddy), rewritten in Rust.** Yes, really.
+**[allegro-buddy](https://github.com/Grutschus/allegro-buddy), rewritten in Rust™.** Yes, really.
+
+<p align="center">
+  <picture align="center">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/hero-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/hero-light.svg">
+    <img alt="Bar chart: running all 12 read-only commands once takes 0.88 s with bab and 2.96 s with ab." src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/hero-light.svg">
+  </picture>
+</p>
+<p align="center">
+  <i>Running all 12 read-only commands once, live on the Allegro cluster. Same output, byte for byte.</i>
+</p>
 
 `bab` is a byte-for-byte compatible Rust rewrite of `ab`, the Python CLI
 allegro-buddy 2.7 by [Grutschus](https://github.com/Grutschus): a small Slurm
@@ -14,17 +25,6 @@ we did it as a joke and gave it the most modest name we could think of. Then the
 got a differential test harness, a benchmark suite and a CI pipeline. Now it is
 **3.4× faster** (median, live on Allegro). Same commands, flags, config and output, down
 to the last ANSI escape code. Only the name changed, and it got one more `b`.
-
-<p align="center">
-  <picture align="center">
-    <source media="(prefers-color-scheme: dark)" srcset="bench/plots/hero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="bench/plots/hero-light.svg">
-    <img alt="Bar chart: running all 12 read-only commands once takes 0.88 s with bab and 2.96 s with ab." src="bench/plots/hero-light.svg">
-  </picture>
-</p>
-<p align="center">
-  <i>Running all 12 read-only commands once, live on the Allegro cluster. Same output, byte for byte.</i>
-</p>
 
 ## Install
 
@@ -129,27 +129,34 @@ Values come from, highest first: command-line flags, your user file, a site file
 
 ## Is it really identical?
 
-"Byte-identical" is easy to say, so we tested it. A lot.
+"Byte-identical" is easy to say, so we tested it. A lot. Before `bab` replaced anything,
+it had to pass:
 
-- **[`compat/`](compat/README.md)** runs **846 scenarios** (40 of them on a PTY)
-  against `bab` and the pinned Python reference (allegro-buddy 2.7 from PyPI, exact
-  click/rich/rich-click versions, renamed to `bab`), both on the same fake Slurm.
-  Required to match: stdout and stderr (bytes, ANSI included), exit code, files written
-  and Slurm calls (mutating ones in order). Covered: every `-h`, parsing errors,
-  colours, widths, themes, `why --fix` prompts (yes, no, EOF), dev start/login/stop,
-  `--watch` with Ctrl-C, completion, config layers, and job names full of Rich markup,
-  emoji and wide characters.
-- **Replay parity** ([`bench/`](bench/README.md)): real Allegro Slurm answers (Slurm
-  24.11.5), recorded read-only, anonymised and replayed. 532 of 532 cases match: every
-  recorded command × `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`, with stdout, stderr,
-  exit code and Slurm calls compared.
-- **CI** runs `cargo fmt`, `clippy`, `cargo test` and the full compat suite on pushes
-  and pull requests.
+- **A differential harness: 846 of 846 scenarios identical** (40 of them on a PTY).
+  `bab` and the pinned Python reference (allegro-buddy 2.7 from PyPI with its exact
+  click/rich/rich-click versions, renamed to `bab`) ran against the same fake Slurm.
+  Compared: stdout and stderr (bytes, ANSI included), exit code, files written and Slurm
+  calls (mutating ones in order). Covered: every `-h`, parsing errors, colours, widths,
+  themes, `why --fix` prompts (yes, no, EOF), dev start/login/stop, `--watch` with
+  Ctrl-C, completion, config layers, and job names full of Rich markup, emoji and wide
+  characters.
+- **Replay parity: 532 of 532 cases identical** on real Allegro Slurm answers (Slurm
+  24.11.5), recorded read-only, anonymised and replayed: every recorded command ×
+  `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`.
+- Component checks against the reference: 538 CLI parsing/help cases vs click and
+  rich-click, 85 rendering cases vs Rich, and live spot checks on the cluster.
+
+That harness (and the benchmark data) was heavier than the tool, so it now lives at the
+git tag [`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness), with instructions to rerun it. The branch keeps
+a small test suite in the spirit of the original: unit tests and the original's 23
+whole-command snapshots (`tests/snapshots/`, byte-exact reference output) against a tiny
+fake Slurm.
 
 That includes the quirks. `bab --version` says `2.7`, not `2.7.0`. A job named
-`[bold]x[/bold]` renders bold, because Rich would. The one thing we did not port is
-Python's tracebacks: inputs that crash the original (e.g. `q -w nan`) are left out of
-the tests on purpose.
+`[bold]x[/bold]` renders bold, because Rich would. Deliberate differences, all where the
+original falls over: inputs that crash it with a Python traceback are rejected cleanly
+(`q -w nan` is a usage error), and `bab` ignores `UNICODE_VERSION` (Rich would switch to
+an older character-width table).
 
 ## Performance
 
@@ -171,12 +178,8 @@ Against an instant fake Slurm (pure tool overhead) the median is **19×**: `ab` 
 85–222 ms per command, `bab` 0.6–15 ms.
 
 <p align="center">
-  <img src="bench/plots/live.svg" alt="bab vs ab, live on Allegro: wall time per command" width="600">
+  <img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/live.png" alt="bab vs ab, live on Allegro: wall time per command" width="600">
 </p>
-
-| | |
-| --- | --- |
-| <img src="bench/plots/speedup.svg" alt="speedup in all three settings" width="400"> | <img src="bench/plots/local-nodelay.svg" alt="local, instant fake Slurm" width="400"> |
 
 Where it comes from: no interpreter start-up and imports (~145 ms of rich, rich-click
 and click on Allegro's login node), parsing only the 28 job fields it actually reads,
@@ -187,33 +190,31 @@ Where it stops, honestly:
 - **Slurm is the floor.** Rust doesn't make slurmctld answer any faster. `why` has to
   wait ~140 ms for `scontrol --json show job` and then ~50 ms for the nodes. The second
   call depends on the first one's result, and running both at once would change which
-  calls happen when things fail (compat checks that too). So `why` "only" gets 1.7×.
+  calls happen when things fail (the harness checked that too). So `why` "only" gets 1.7×.
 - These numbers come from a quiet evening. Under daytime load Slurm takes longer; the
   absolute savings stay, but the ratios of Slurm-bound commands shrink.
 - At ~0.2 s saved per call, the rewrite pays for itself after a few million `bab q`s.
   We're working on it.
 
-Full tables, methodology and local replay numbers: [`bench/RESULTS.md`](bench/RESULTS.md).
-The optimisation pass (what was tried, kept and rejected): [`bench/PERF.md`](bench/PERF.md).
+Full tables, methodology, local replay numbers and the optimisation pass:
+[`bench/RESULTS.md`](https://github.com/plainerman/better-allegro-buddy/blob/main/bench/RESULTS.md). Raw data and scripts: tag
+[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness/bench).
 
 ## Development
 
-Stable Rust ≥ 1.88 (edition 2024). The differential tests need
-[uv](https://docs.astral.sh/uv/), which fetches the Python reference.
+Stable Rust ≥ 1.88 (edition 2024).
 
 ```bash
-cargo test                                   # unit + integration tests (enables test-hooks)
+cargo fmt --check
 cargo clippy --all-targets -- -D warnings
-
-# compat: bab vs the Python reference; needs the BAB_TEST_* hooks (frozen clock, groups, host)
-cargo build --release --features test-hooks
-uv run --project compat compat/run.py check --bin target/release/bab
-BAB_BIN=target/release/bab uv run --project compat pytest compat -q -n auto   # as in CI
+cargo test
 ```
 
-A normal build never reads the `BAB_TEST_*` variables; ship that one. Replay parity,
-recording on a cluster, benchmarks and plots (`uv run bench/plot.py`): see
-[`bench/README.md`](bench/README.md).
+`cargo test` builds `bab` with the `test-hooks` feature (frozen clock, groups and host
+name via `BAB_TEST_*` variables) for the snapshot test; a normal build never reads them,
+ship that one. `UPDATE_SNAPSHOTS=1 cargo test --test snapshots` rewrites
+`tests/snapshots/`. The full differential harness: tag
+[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness).
 
 ### Releasing
 
