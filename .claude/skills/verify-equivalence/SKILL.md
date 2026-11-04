@@ -42,8 +42,12 @@ done
 
 - The reference decides. Read the Python code (`AGENTS.md`, "The invariant") and match
   it; never "fix" a golden or snapshot by regenerating it from `bab`.
-- Both fake Slurms fail closed: an unexpected call is logged and exits 1. Read-only
-  calls must be the same multiset as Python's, mutating calls the same sequence.
+- Both fake Slurms fail closed: an unexpected call is logged and exits 1. Mutating
+  calls must be the same sequence as Python's. Read-only differences are expected only
+  where bab asks cheaper forms (`src/core/fast.rs`: `scontrol --version`,
+  `scontrol --oneliner --details show node`, `squeue --json --state=PD [--user=U]`,
+  `squeue -h --user=U --format=%i|%T|%S|%e`) or
+  prefetches; the harness's fake must answer those forms from the same world.
 - New query form or code path that Python also has: add a scenario to
   `compat/scenarios.py` (and a world in `compat/worlds.py` if needed) in the tag
   worktree, `compat/run.py golden -k <name>` writes its golden from the reference, then

@@ -8,8 +8,10 @@ pointer-style.
 ## The invariant
 
 Everything observable must stay identical to allegro-buddy 2.7: stdout/stderr bytes
-(ANSI included), exit codes, files written, and the Slurm calls made (read-only ones as
-a set, mutating ones in order). Only the program name differs (`ab` -> `bab`). The few
+(ANSI included), exit codes, files written, and the mutating Slurm calls (in order).
+Read-only queries may start early or be replaced by cheaper ones carrying the same
+information (`src/core/fast.rs`, version-gated; bab's only extra file is its
+`slurm-version.<host>` cache). Only the program name differs (`ab` -> `bab`). The few
 deliberate deviations are listed in the README ("Is it really identical?"); don't add
 new ones unless asked. Performance work is welcome only under this rule.
 
@@ -65,12 +67,13 @@ pushes to and PRs into `main`, and skips docs-only changes. Run them locally.
 - Table cells: `Cell::Text` is an already styled Rich `Text` and renders as is;
   `Cell::Str` is a Python `str` that Rich parses as markup (so a job named
   `[bold]x[/bold]` renders bold). Use the variant matching what the Python code passes.
-- Slurm only through `src/core/slurm.rs`. Run queries concurrently only if they are
-  read-only and Python makes them unconditionally in the same invocation; never
-  mutations (`sbatch`, `scancel`, `scontrol update`, `ssh`/`srun`) or fallbacks.
-  Errors are reported in Python's order.
+- Slurm only through `src/core/slurm.rs`. Read-only queries the command is about to
+  make may start at once (`slurm::prefetch`; one left unused when an earlier call dies
+  is fine); results are evaluated, and errors reported, in Python's order. Never add,
+  reorder or parallelize mutations (`sbatch`, `scancel`, `scontrol update`,
+  `ssh`/`srun`); don't add calls to the common path unless they are much cheaper.
 - The fake Slurms (`tests/fake-slurm/`, the harness's) fail closed: a new call form
-  needs a fixture, and is only right if Python makes the same call.
+  needs a fixture whose data matches what the fake answers to Python's query.
 
 ## Real clusters (Allegro or any Slurm)
 
