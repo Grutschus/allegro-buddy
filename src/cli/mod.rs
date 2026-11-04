@@ -9,8 +9,11 @@
 //!   answers completion requests (`_BAB_COMPLETE`), parses argv against
 //!   [`commands::MAIN`], runs the handler via [`dispatch`], and turns an
 //!   [`AbError`] into output + exit code (see [`crate::error`]).
-//! * Program name: always [`crate::core::CLI_NAME`] (`bab`), independent of argv[0]
-//!   (the Python reference is patched to `bab` the same way).
+//! * Program name: always [`crate::core::CLI_NAME`] (`bab`) in usage lines, independent
+//!   of argv[0] (the Python reference is patched to `bab` the same way). The completion
+//!   env var follows click: `_{BASENAME(argv[0])}_COMPLETE`, so `--prog` scripts work.
+//! * `BAB_TEST_STUB_HANDLERS=1` (test hook) prints the handler call instead of running
+//!   it, see tests/cli_ref.rs.
 //! * `ctx.default_map`: built by [`load_default_map`] from the merged config `[dev]`
 //!   section (`settings::DEV_START_KEYS` maps config keys to `dev start` params) at the
 //!   moment click runs the main group callback; a `ConfigError` becomes
@@ -19,11 +22,15 @@
 //!   [`watch::run_watched`].
 //! * [`echo`] is `click.echo` (plain write + newline to stdout, no Rich).
 
+#![warn(unused, dead_code)]
+
 pub mod commands;
 pub mod completion;
 pub mod help;
 pub mod parser;
 pub mod prompt;
+pub mod rich;
+pub mod themes;
 pub mod watch;
 
 use crate::error::{AbError, Result};
@@ -35,7 +42,11 @@ use std::ffi::OsString;
 /// Entry point: returns the exit code (only `main.rs` exits).
 pub fn main(argv: Vec<OsString>) -> i32 {
     crate::signals::install();
-    if let Some(code) = completion::handle_env_request(crate::core::CLI_NAME) {
+    let prog_name = argv
+        .first()
+        .map(|a| program_name(&a.to_string_lossy()))
+        .unwrap_or_else(|| crate::core::CLI_NAME.to_owned());
+    if let Some(code) = completion::handle_env_request(&prog_name) {
         return code;
     }
     let args: Vec<String> = argv
@@ -43,20 +54,69 @@ pub fn main(argv: Vec<OsString>) -> i32 {
         .skip(1)
         .map(|a| a.to_string_lossy().into_owned())
         .collect();
-    match run(&args) {
+    let result = run(&args).and_then(|()| crate::signals::check());
+    match result {
         Ok(()) => 0,
         Err(err) => report(err),
+    }
+}
+
+/// click's `_detect_program_name`: the basename of argv[0].
+fn program_name(argv0: &str) -> String {
+    let name = argv0.rsplit('/').next().unwrap_or(argv0);
+    if name.is_empty() {
+        crate::core::CLI_NAME.to_owned()
+    } else {
+        name.to_owned()
     }
 }
 
 /// Parse and run (no exit-code mapping).
 pub fn run(argv: &[String]) -> Result<()> {
     match parser::parse(argv, &load_default_map)? {
-        Parsed::Done => Ok(()),
-        Parsed::Run { command, args, .. } => match command.action {
-            Some(action) => dispatch(action, &args),
-            None => unreachable!("parser only returns runnable commands"),
-        },
+        Parsed::Help {
+            path,
+            default_map,
+            code,
+        } => {
+            help::print_help(&path, default_map.as_deref());
+            if code == 0 {
+                Ok(())
+            } else {
+                Err(AbError::Exit(code))
+            }
+        }
+        Parsed::Version => {
+            echo(&format!(
+                "{}, version {}",
+                crate::core::CLI_NAME,
+                crate::VERSION_DISPLAY
+            ));
+            Ok(())
+        }
+        Parsed::Run {
+            path,
+            command,
+            args,
+        } => {
+            let action = command
+                .action
+                .expect("parser only returns runnable commands");
+            let result = if stub_handlers() {
+                stub_dispatch(action, &args)
+            } else {
+                dispatch(action, &args)
+            };
+            result.map_err(|err| match err {
+                AbError::Usage(mut usage)
+                    if usage.command_path.is_empty() && usage.show_help_hint =>
+                {
+                    usage.command_path = path;
+                    AbError::Usage(usage)
+                }
+                other => other,
+            })
+        }
     }
 }
 
@@ -66,7 +126,11 @@ pub fn report(err: AbError) -> i32 {
         AbError::Exit(_) => {}
         AbError::Usage(usage) => help::print_usage_error(usage),
         AbError::Click(message) => help::print_click_exception(message),
-        AbError::Abort | AbError::Interrupted => help::print_aborted(),
+        AbError::Abort => help::print_aborted(),
+        AbError::Interrupted => {
+            write_stream(&mut std::io::stderr(), "\n");
+            help::print_aborted();
+        }
     }
     err.exit_code()
 }
@@ -88,7 +152,13 @@ pub fn load_default_map() -> Result<DefaultMap> {
 
 /// `click.echo(text)`: plain stdout write plus newline.
 pub fn echo(text: &str) {
-    todo!()
+    write_stream(&mut std::io::stdout(), &format!("{text}\n"));
+}
+
+/// Write and flush, ignoring errors (a closed pipe ends the process via SIGPIPE).
+pub(crate) fn write_stream(stream: &mut dyn std::io::Write, text: &str) {
+    let _ = stream.write_all(text.as_bytes());
+    let _ = stream.flush();
 }
 
 /// Run the handler for `action` with typed arguments (Python's `*_command` functions).
@@ -170,4 +240,110 @@ pub fn dispatch(action: Action, args: &Args) -> Result<()> {
         Action::DevStop => dev::cmd_dev_stop(args.opt_str("jobid")),
         Action::ConfigShow => handlers::config::cmd_config_show(),
     }
+}
+
+/// `BAB_TEST_STUB_HANDLERS=1`: print the handler call instead of running it (the
+/// reference does the same with `BAB_REF_STUB=1`, see tests/cli_ref), and answer dynamic
+/// completions from fixed job lists. Lets parsing/dispatch be compared without Slurm.
+pub(crate) fn stub_handlers() -> bool {
+    std::env::var_os("BAB_TEST_STUB_HANDLERS").is_some_and(|v| v == "1")
+}
+
+fn py_repr(value: &parser::Value) -> String {
+    match value {
+        parser::Value::None => "None".to_owned(),
+        parser::Value::Bool(true) => "True".to_owned(),
+        parser::Value::Bool(false) => "False".to_owned(),
+        parser::Value::Str(s) => crate::pyfmt::repr_str(s),
+        parser::Value::Int(i) => i.to_string(),
+        parser::Value::Float(f) => parser::py_float_repr(*f),
+    }
+}
+
+fn stub_dispatch(action: Action, args: &Args) -> Result<()> {
+    let call = |name: &str, kwargs: &[(&str, &str)]| {
+        let rendered: Vec<String> = kwargs
+            .iter()
+            .map(|(kw, dest)| format!("{kw}={}", py_repr(args.get(dest))))
+            .collect();
+        echo(&format!("{name}({})", rendered.join(", ")));
+    };
+    let watched = || echo(&format!("watch={}", py_repr(args.get("watch"))));
+    match action {
+        Action::Info => call("cmd_info", &[("all_partitions", "all_partitions")]),
+        Action::Queue => {
+            watched();
+            call(
+                "cmd_queue",
+                &[
+                    ("all_users", "all_users"),
+                    ("user", "user"),
+                    ("partition", "partition"),
+                ],
+            );
+        }
+        Action::Why => call(
+            "cmd_why",
+            &[
+                ("jobid", "jobid"),
+                ("show_nodes", "show_nodes"),
+                ("fix", "fix"),
+                ("assume_yes", "assume_yes"),
+            ],
+        ),
+        Action::Completion => return dispatch(action, args),
+        Action::Free => {
+            watched();
+            call(
+                "cmd_free",
+                &[
+                    ("kind", "kind"),
+                    ("show_nodes", "nodes"),
+                    ("partition_filter", "partition"),
+                    ("gpu_type", "gpu_type"),
+                ],
+            );
+        }
+        Action::Node | Action::Gpualloc => call("cmd_node", &[("node", "node")]),
+        Action::JobHistory => call("cmd_job_history", &[("limit", "limit")]),
+        Action::JobOutput => call(
+            "cmd_job_output",
+            &[("jobid", "jobid"), ("stderr", "stderr")],
+        ),
+        Action::DevStart => call(
+            "cmd_dev_start",
+            &[
+                ("partition", "partition"),
+                ("time_limit", "time_limit"),
+                ("gpu", "gpu"),
+                ("gpu_type", "gpu_type"),
+                ("cpus", "cpus"),
+                ("mem", "mem"),
+                ("account", "account"),
+                ("constraint", "constraint"),
+                ("exclude", "exclude"),
+                ("node", "node"),
+                ("replace", "replace"),
+                ("no_wait", "no_wait"),
+                ("login", "login"),
+                ("timeout", "timeout"),
+                ("poll_interval", "poll_interval"),
+            ],
+        ),
+        Action::DevStatus => call("cmd_dev_status", &[("jobid", "jobid")]),
+        Action::DevLogin => call(
+            "cmd_dev_login",
+            &[
+                ("jobid", "jobid"),
+                ("wait", "wait"),
+                ("timeout", "timeout"),
+                ("poll_interval", "poll_interval"),
+                ("srun", "srun"),
+                ("command", "command"),
+            ],
+        ),
+        Action::DevStop => call("cmd_dev_stop", &[("jobid", "jobid")]),
+        Action::ConfigShow => call("cmd_config_show", &[]),
+    }
+    Ok(())
 }

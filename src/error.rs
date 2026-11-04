@@ -10,8 +10,8 @@
 //! | bare `raise SystemExit(1)`               | `Err(AbError::Exit(1))`       | 1    |
 //! | `click.UsageError` / `BadParameter` ...  | `Err(AbError::Usage(..))`, printed by cli in rich-click style | 2 |
 //! | `click.ClickException(msg)`              | `Err(AbError::Click(msg))`, printed by cli (rich-click "Error: msg" panel) | 1 |
-//! | `click.Abort` (prompt EOF/Ctrl-C)        | `Err(AbError::Abort)`, cli prints "Aborted!" | 1 |
-//! | `KeyboardInterrupt` in a handler         | `Err(AbError::Interrupted)`; `run_watched` turns it into `Ok(())`, `dev start` prints "Detached; ..." and re-raises; cli main treats it like click (Abort -> "Aborted!", exit 1) | 1 |
+//! | `click.Abort` (prompt EOF/Ctrl-C)        | `Err(AbError::Abort)`, cli prints rich-click's "Aborted." (red) | 1 |
+//! | `KeyboardInterrupt` in a handler         | `Err(AbError::Interrupted)`; `run_watched` turns it into `Ok(())`, `dev start` prints "Detached; ..." and re-raises; cli main treats it like rich-click (newline + "Aborted.", exit 1) | 1 |
 //!
 //! `--watch` (cli::watch::run_watched) suppresses `Exit(_)` (Python suppresses
 //! `SystemExit`) after the message has been captured, and retries next round.
@@ -32,7 +32,7 @@ pub enum AbError {
     /// `click.ClickException(message)` (exit 1), e.g. a config error raised while building
     /// the default map. Rendered by the cli layer.
     Click(String),
-    /// `click.Abort`: prompt aborted (EOF / Ctrl-C). cli prints `Aborted!` to stderr, exit 1.
+    /// `click.Abort`: prompt aborted (EOF / Ctrl-C). cli prints `Aborted.` to stderr, exit 1.
     Abort,
     /// Ctrl-C (SIGINT) noticed by an interruptible wait ([`crate::signals`]).
     Interrupted,
@@ -44,10 +44,13 @@ pub struct UsageError {
     /// Full message as click formats it, e.g. `No such option: --foo` or
     /// `Invalid value for '-w' / '--watch': 5.0 is not in the range x>=10.`
     pub message: String,
-    /// Command path whose usage line is shown, e.g. `["bab", "dev", "start"]`. Empty means
-    /// "the command currently being parsed" (filled in by the parser).
+    /// Command path whose usage line is shown, e.g. `["bab", "dev", "start"]`. Empty with
+    /// `show_help_hint` means "the invoked command" (filled in by `cli::run` for errors a
+    /// handler returns); empty without it means click had no context (no usage line and
+    /// no hint, e.g. `Option '--user' requires an argument.`).
     pub command_path: Vec<String>,
-    /// Whether click would print the `Try 'bab ... -h' for help.` hint (ctx available).
+    /// Whether rich-click prints the usage line and `Try 'bab ... -h' for help` (click
+    /// attached a context to the error).
     pub show_help_hint: bool,
 }
 
@@ -68,7 +71,7 @@ impl std::fmt::Display for AbError {
             AbError::Exit(code) => write!(f, "exit {code}"),
             AbError::Usage(u) => write!(f, "usage error: {}", u.message),
             AbError::Click(msg) => write!(f, "{msg}"),
-            AbError::Abort => write!(f, "Aborted!"),
+            AbError::Abort => write!(f, "Aborted."),
             AbError::Interrupted => write!(f, "interrupted"),
         }
     }
