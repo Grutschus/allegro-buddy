@@ -23,7 +23,7 @@ new ones unless asked. Performance work is welcome only under this rule.
   rich-click 1.9.9.
 - Checking it: `cargo test` (byte-exact snapshots), and for any change to output,
   parsing or Slurm calls the full differential harness at the git tag
-  `equivalence-harness` (skill `verify-equivalence`).
+  `equivalence-harness-2` (skill `verify-equivalence`).
 
 ## Where to start reading
 
@@ -69,9 +69,10 @@ pushes to and PRs into `main`, and skips docs-only changes. Run them locally.
   `[bold]x[/bold]` renders bold). Use the variant matching what the Python code passes.
 - Slurm only through `src/core/slurm.rs`. Read-only queries the command is about to
   make may start at once (`slurm::prefetch`; one left unused when an earlier call dies
-  is fine); results are evaluated, and errors reported, in Python's order. Never add,
-  reorder or parallelize mutations (`sbatch`, `scancel`, `scontrol update`,
-  `ssh`/`srun`); don't add calls to the common path unless they are much cheaper.
+  or the data turns out not to need it is fine); results are evaluated, and errors
+  reported, in Python's order. Never add, reorder or parallelize mutations (`sbatch`,
+  `scancel`, `scontrol update`, `ssh`/`srun`); don't add calls to the common path
+  unless they are much cheaper.
 - The fake Slurms (`tests/fake-slurm/`, the harness's) fail closed: a new call form
   needs a fixture whose data matches what the fake answers to Python's query.
 
@@ -91,7 +92,7 @@ pushes to and PRs into `main`, and skips docs-only changes. Run them locally.
 - Benchmarks and plots: `bench/RESULTS.md` ("Updating the numbers"); skill
   `update-benchmarks`.
 - Releases and PyPI: README "Releasing", `.github/workflows/release.yml`; skill `release`.
-- Differential harness, replay data, perf tooling: `git tag -n99 equivalence-harness`;
+- Differential harness, replay data, perf tooling: `git tag -n99 equivalence-harness-2`;
   skill `verify-equivalence`.
 - Skills live in `.claude/skills/` (Claude Code and Copilot read them); `CLAUDE.md` only
   imports this file. If a pointer here breaks, fix it here.

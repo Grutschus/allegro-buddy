@@ -1,14 +1,16 @@
 ---
 name: verify-equivalence
-description: Check that bab still behaves exactly like the Python reference allegro-buddy 2.7, using the differential harness and real-cluster replay at the git tag equivalence-harness. Use after changing output, argument parsing, settings, Slurm calls or performance-sensitive code, before benchmarking, or when adding new Slurm query forms or scenarios.
+description: Check that bab still behaves exactly like the Python reference allegro-buddy 2.7, using the differential harness and real-cluster replay at the git tag equivalence-harness-2. Use after changing output, argument parsing, settings, Slurm calls or performance-sensitive code, before benchmarking, or when adding new Slurm query forms or scenarios.
 ---
 
 # Verifying equivalence with the Python reference
 
 `cargo test` covers a few whole-command snapshots. The full proof lives at the git tag
-`equivalence-harness` (removed from the branch to keep it small). Its message says what
-it contains and how to run it: `git tag -n99 equivalence-harness`. Details:
-`compat/README.md` and `bench/README.md` at the tag.
+`equivalence-harness-2` (removed from the branch to keep it small; it is the original
+`equivalence-harness` plus a fake Slurm and call comparison that know bab's cheaper
+queries). Its message says what it contains and how to run it:
+`git tag -n99 equivalence-harness-2`. Details: `compat/README.md` and `bench/README.md`
+at the tag.
 
 ## Run it against the current code
 
@@ -20,9 +22,10 @@ cargo build --release --locked --features test-hooks
 BIN=$(realpath "${CARGO_TARGET_DIR:-target}/release/bab")
 
 # once: the harness in its own worktree, next to (not inside) yours
-git worktree add --detach ../bab-eq equivalence-harness
+git worktree add --detach ../bab-eq equivalence-harness-2
 cd ../bab-eq
 uv run --project compat compat/run.py check --bin "$BIN"         # vs committed goldens
+uv run --project compat compat/run.py check --bin compat/ref-bab --exact-calls  # self-check
 uv run --project compat compat/run.py diff --bin "$BIN" -k why   # vs the live reference
 for d in bench/data/allegro/*/; do                                # real-cluster replay
   uv run --project compat python3 bench/replay/parity.py --data "$d" --bin "$BIN"
@@ -47,11 +50,16 @@ done
   where bab asks cheaper forms (`src/core/fast.rs`: `scontrol --version`,
   `scontrol --oneliner --details show node`, `squeue --json --state=PD [--user=U]`,
   `squeue -h --user=U --format=%i|%T|%S|%e`) or
-  prefetches; the harness's fake must answer those forms from the same world.
+  prefetches; the harness's fake must answer those forms from the same world. `run.py`
+  accepts exactly that (`_readonly_problems`): a query of ab's may be missing only if
+  the form standing in for it succeeded, an extra one only if the reference makes it
+  for the same subcommand elsewhere; `--exact-calls` turns this off. A new cheaper form
+  needs both: an answer in `compat/fake_slurm/fake_slurm.py` and an entry in run.py.
 - New query form or code path that Python also has: add a scenario to
   `compat/scenarios.py` (and a world in `compat/worlds.py` if needed) in the tag
   worktree, `compat/run.py golden -k <name>` writes its golden from the reference, then
   `check`. For the branch's own tests, add a fixture line to `tests/fake-slurm/index`
   and a case to `tests/snapshots.rs`, with the expected output taken from the reference.
-- The tag is a fixed record: commit harness extensions on a new branch from it, and ask
-  the maintainer before moving the tag.
+- The tags are fixed records: commit harness extensions on a detached HEAD or a new
+  branch from `equivalence-harness-2`, tag the result anew (`equivalence-harness-3`,
+  annotated: what changed, how to run, results), and never move or delete a tag.

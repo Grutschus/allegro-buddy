@@ -51,7 +51,7 @@ Update each with the new values, keeping the current wording and rounding:
     speedup under "Where it stops".
 - Local replay numbers (README "instant fake Slurm" sentence, RESULTS "Local replay"
   table and bullets) are not produced by `live.sh`. Rerun them with the tooling at the
-  `equivalence-harness` tag (`bench/run_local.sh`, `bench/README.md` there) or leave
+  `equivalence-harness-2` tag (`bench/run_local.sh`, `bench/README.md` there) or leave
   them as they are; never mix numbers from different builds in one table.
 
 ## Verify

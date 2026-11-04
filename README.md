@@ -141,7 +141,7 @@ it had to pass:
   Ctrl-C, completion, config layers, and job names full of Rich markup, emoji and wide
   characters. Since the second performance pass `bab` asks Slurm for cheaper forms of
   the same data, so its read-only calls differ; rechecked 846/846 with the fake taught
-  to answer those forms from the same world.
+  to answer those forms from the same world (tag `equivalence-harness-2`).
 - **Replay parity: 532 of 532 cases identical** on real Allegro Slurm answers (Slurm
   24.11.5), recorded read-only, anonymised and replayed: every recorded command ×
   `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`.
@@ -149,7 +149,7 @@ it had to pass:
   rich-click, 85 rendering cases vs Rich, and live spot checks on the cluster.
 
 That harness (and the benchmark data) was heavier than the tool, so it now lives at the
-git tag [`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness), with instructions to rerun it. The branch keeps
+git tag [`equivalence-harness-2`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-2), with instructions to rerun it. The branch keeps
 a small test suite in the spirit of the original: unit tests and the original's 23
 whole-command snapshots (`tests/snapshots/`, byte-exact reference output) against a tiny
 fake Slurm.
@@ -222,7 +222,7 @@ cargo test
 name via `BAB_TEST_*` variables) for the snapshot test; a normal build never reads them,
 ship that one. `UPDATE_SNAPSHOTS=1 cargo test --test snapshots` rewrites
 `tests/snapshots/`. The full differential harness: tag
-[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness).
+[`equivalence-harness-2`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-2).
 To rerun the live benchmark and redraw the plots, see
 [`bench/RESULTS.md`](bench/RESULTS.md#updating-the-numbers).
 Notes for coding agents (conventions, cluster rules, task skills in `.claude/skills/`):

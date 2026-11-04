@@ -4,7 +4,7 @@
 //! With the cargo feature `test-hooks` (`tests/snapshots.rs`; never in a normal build) each
 //! hook reads a `BAB_TEST_*` environment variable; when it is unset the real value is used,
 //! exactly as Python gets it. Without the feature the variables are never read. The
-//! differential harness (git tag `equivalence-harness`) patched the Python reference the
+//! differential harness (git tag `equivalence-harness-2`) patched the Python reference the
 //! same way, so both sides saw the same clock, groups and host.
 //!
 //! | hook            | env var                | real behaviour (Python)                          |

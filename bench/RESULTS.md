@@ -6,7 +6,7 @@ read-only command. The live numbers, the README plots and this file's live table
 plotted by `bench/plot.py`; see [Updating the numbers](#updating-the-numbers). The local
 replay (anonymised Allegro recordings, replay fake, raw hyperfine exports) is kept at the
 git tag
-[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness/bench).
+[`equivalence-harness-2`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-2/bench).
 
 ## Summary
 
@@ -180,4 +180,4 @@ in ms, plus the run's `env.txt`), redraws `bench/plots/live.png` and
 `live.json` and the plots, not the raw run (`bench/.work/` is ignored); update the numbers
 quoted above and in the README (header chart alt text, intro, the `-h` time under
 Commands, Performance). The local replay numbers do not come from this run (see the
-`equivalence-harness` tag).
+`equivalence-harness-2` tag).
