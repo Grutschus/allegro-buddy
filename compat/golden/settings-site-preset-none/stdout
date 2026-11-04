@@ -1,0 +1,15 @@
+Preset: none (disabled by [cluster] preset)
+Site file: @TMP@___________________________________/site/config.ini
+User file: @TMP@___________________________________/config/allegro-buddy/config.ini (not present)
+
+              Settings              
+Setting            Value   Source   
+────────────────────────────────────
+[cluster] preset   none    site file
+
+                      Detected from Slurm                       
+Setting             Value                                       
+────────────────────────────────────────────────────────────────
+GPU partitions      gpumicro, gpushort, gpusmall, gpu           
+GPU types           GTX1080TI (gtx_1080ti), RTXA5000 (rtx_a5000)
+Default partition   small                                       

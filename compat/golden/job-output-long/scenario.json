@@ -1,0 +1,24 @@
+{
+ "name": "job-output-long",
+ "category": "job",
+ "argv": [
+  "job",
+  "output",
+  "70090"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "demo/slurm-70090.out"
+ ],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

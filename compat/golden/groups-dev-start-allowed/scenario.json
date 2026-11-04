@@ -1,0 +1,27 @@
+{
+ "name": "groups-dev-start-allowed",
+ "category": "groups",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "-p",
+  "big",
+  "-g",
+  "0"
+ ],
+ "then": [],
+ "world": "groups",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "BAB_TEST_GROUPS": "hpc"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

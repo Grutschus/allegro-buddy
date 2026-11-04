@@ -1,0 +1,8 @@
+                   Free CPUs                    
+Partition   Idle nodes   Free CPUs   Free memory
+────────────────────────────────────────────────
+all                1/3      37/128      341/590G
+                                                
+small              1/3      37/128      341/590G
+empty                -           -             -
+free/total

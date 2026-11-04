@@ -1,0 +1,1 @@
+{"argv": ["squeue", "-h", "--format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R"], "exit": 0}

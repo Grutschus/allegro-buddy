@@ -1,0 +1,22 @@
+{
+ "name": "job-history-sacct-localhost-slurm-conf",
+ "category": "job",
+ "argv": [
+  "job",
+  "history"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120",
+  "SLURM_CONF": "/etc/slurm/slurm.conf"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

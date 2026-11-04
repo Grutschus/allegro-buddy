@@ -1,0 +1,4 @@
+                              Queue · all users                               
+JobID   User   Name    State     Partition   Elapsed   Time left   Node/Reason
+──────────────────────────────────────────────────────────────────────────────
+64612   bob    train   RUNNING   gpu            1h2m       6h57m   gpu081     

@@ -1,0 +1,12 @@
+d cache
+d cache/allegro-buddy
+f cache/allegro-buddy/cluster-name.login1
+d config
+d demo
+f demo/slurm-70090.out
+d home
+d home/.config
+d home/.config/fish
+d home/.config/fish/completions
+f home/.config/fish/completions/bab.fish
+d site

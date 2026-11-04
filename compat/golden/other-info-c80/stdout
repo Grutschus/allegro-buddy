@@ -1,0 +1,15 @@
+You
+user      alice                     
+accounts  ml-lab (default), teaching
+qos       long, normal              
+jobs      none                      
+
+                            Resource overview                            
+Partition   Time limit   Idle nodes   Free GPUs   Free CPUs   Free memory
+─────────────────────────────────────────────────────────────────────────
+all         -                   1/2         3/4       32/32      180/180G
+                                                                         
+a100        2d                  0/1         3/4       16/16        90/90G
+                                                                         
+cpu         1d                  1/1           -       16/16        90/90G
+free/total

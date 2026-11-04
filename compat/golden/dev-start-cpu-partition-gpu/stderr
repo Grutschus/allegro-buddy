@@ -1,0 +1,1 @@
+error: partition small has no GPU nodes; drop --gpu or choose a GPU partition

@@ -1,0 +1,20 @@
+{
+ "name": "pty-queue-winsize",
+ "category": "color",
+ "argv": [
+  "queue"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": null
+ },
+ "stdin": null,
+ "tty": "pty",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

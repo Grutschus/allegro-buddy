@@ -1,0 +1,21 @@
+{
+ "name": "noslurm-dev-stop",
+ "category": "errors",
+ "argv": [
+  "dev",
+  "stop"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": true,
+ "normalize": []
+}

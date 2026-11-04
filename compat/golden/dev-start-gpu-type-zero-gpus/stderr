@@ -1,0 +1,1 @@
+error: --gpu-type requires `--gpu` to be at least 1

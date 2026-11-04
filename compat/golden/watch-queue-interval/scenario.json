@@ -1,0 +1,24 @@
+{
+ "name": "watch-queue-interval",
+ "category": "watch",
+ "argv": [
+  "q",
+  "-w",
+  "10",
+  "-p",
+  "gpusmall"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": 3.0,
+ "path_without_slurm": false,
+ "normalize": []
+}

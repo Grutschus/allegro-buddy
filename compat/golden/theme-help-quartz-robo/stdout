@@ -1,0 +1,24 @@
+[1mUsage:[0m [94mbab[0m [2;35m[[0m[35mOPTIONS[0m[2;35m] [0m[35mCOMMAND[0m[2;35m [[0m[35mARGS[0m[2;35m]...[0m                                                              
+                                                                                                    
+[1mAllegro Buddy: a friendly Slurm helper.[0m                                                             
+                                                                                                    
+[2;35m┌─[0m[2;35m  [0m[35mOptions[0m[2;35m  [0m[2;35m─────────────────────────────────────────────────────────────────────────────────────[0m[2;35m─┐[0m
+[2;35m│[0m                                                                                                  [2;35m│[0m
+[2;35m│[0m  [1;35m--version [0m  [39mShow the version and exit.[0m                                                          [2;35m│[0m
+[2;35m│[0m  [1;35m-h[0m[39m, [0m[1;35m--help[0m  [39mShow this message and exit.[0m                                                         [2;35m│[0m
+[2;35m│[0m                                                                                                  [2;35m│[0m
+[2;35m└──────────────────────────────────────────────────────────────────────────────────────────────────┘[0m
+[2;34m┌─[0m[2;34m  [0m[34mCommands[0m[2;34m  [0m[2;34m────────────────────────────────────────────────────────────────────────────────────[0m[2;34m─┐[0m
+[2;34m│[0m                                                                                                  [2;34m│[0m
+[2;34m│[0m  [1;34mcompletion      [0m[1;34m [0m [39mgenerate or install shell completion                                        [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mconfig          [0m[1;34m [0m [39mshow where settings come from                                               [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mdev             [0m[1;34m [0m [39mstart, join and stop a dev job                                              [0m  [2;34m│[0m
+[2;34m│[0m  [1;34ml               [0m[1;34m [0m [39mjoin a running dev job (short for bab dev login)                            [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mfree            [0m[1;34m [0m [39mshow free GPUs and cluster resources                                        [0m  [2;34m│[0m
+[2;34m│[0m  [1;34minfo            [0m[1;34m [0m [39mshow your partitions and a cluster summary                                  [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mjob             [0m[1;34m [0m [39mshow finished jobs and their output                                         [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mnode            [0m[1;34m [0m [39mshow which jobs use a node's GPUs, CPUs and memory                          [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mqueue[0m[39m, [0m[1;34mq[0m[1;34m        [0m[1;34m [0m [39mshow your jobs in the queue                                                 [0m  [2;34m│[0m
+[2;34m│[0m  [1;34mwhy             [0m[1;34m [0m [39mexplain what a pending job is waiting for                                   [0m  [2;34m│[0m
+[2;34m│[0m                                                                                                  [2;34m│[0m
+[2;34m└──────────────────────────────────────────────────────────────────────────────────────────────────┘[0m

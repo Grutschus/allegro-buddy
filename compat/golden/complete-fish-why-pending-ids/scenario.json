@@ -1,0 +1,21 @@
+{
+ "name": "complete-fish-why-pending-ids",
+ "category": "completion",
+ "argv": [],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "_BAB_COMPLETE": "fish_complete",
+  "COMP_WORDS": "bab why 70",
+  "COMP_CWORD": "70"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

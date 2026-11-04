@@ -1,0 +1,6 @@
+[1m                                                   Queue · all users                                                    [0m
+[1mJobID[0m[1m [0m [1m [0m[1mUser [0m[1m [0m [1m [0m[1mName                    [0m[1m [0m [1m [0m[1mState  [0m[1m [0m [1m [0m[1mPartition[0m[1m [0m [1m [0m[1mElapsed[0m[1m [0m [1m [0m[1mTime left[0m[1m [0m [1m [0m[1mStart[0m[1m [0m [1m [0m[1mNode/Reason              [0m
+────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[36m64612[0m   bob     an-extremely-long-job-n…   [1;32mRUNNING[0m   [1mgpu      [0m      1h2m       6h57m           [34mgpu[081-089,101-109,201-…[0m
+[36m64614[0m   carol   post                       [1;33mPENDING[0m   [1mgpu      [0m                    8h   [2m-    [0m   [33mReqNodeNotAvail,         [0m
+                                                                                               [33mUnavailableNod…          [0m

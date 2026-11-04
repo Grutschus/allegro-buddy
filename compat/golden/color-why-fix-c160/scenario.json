@@ -1,0 +1,22 @@
+{
+ "name": "color-why-fix-c160",
+ "category": "color",
+ "argv": [
+  "why",
+  "70122"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "FORCE_COLOR": "1"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

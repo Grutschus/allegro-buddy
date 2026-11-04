@@ -1,0 +1,13 @@
+                                                                                                    
+  Usage: bab config [OPTIONS] COMMAND [ARGS]...                                                     
+                                                                                                    
+  Options                                                                                           
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  -h   --help   Show this message and exit.                                                         
+                                                                                                    
+                                                                                                    
+  Commands                                                                                          
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  show           list every setting and its source                                                  
+                                                                                                    
+                                                                                                    

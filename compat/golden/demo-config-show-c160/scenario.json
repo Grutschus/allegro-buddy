@@ -1,0 +1,21 @@
+{
+ "name": "demo-config-show-c160",
+ "category": "demo",
+ "argv": [
+  "config",
+  "show"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

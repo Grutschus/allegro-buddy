@@ -1,0 +1,22 @@
+{
+ "name": "why-detail-required",
+ "category": "why",
+ "argv": [
+  "why",
+  "65177",
+  "--nodes"
+ ],
+ "then": [],
+ "world": "custom",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

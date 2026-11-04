@@ -1,0 +1,24 @@
+{
+ "name": "settings-cache-xdg-unset",
+ "category": "settings",
+ "argv": [
+  "config",
+  "show"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "XDG_CACHE_HOME": null,
+  "XDG_CONFIG_HOME": null,
+  "AB_SITE_CONFIG": null
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

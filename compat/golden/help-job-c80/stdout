@@ -1,0 +1,14 @@
+                                                                                
+  Usage: bab job [OPTIONS] COMMAND [ARGS]...                                    
+                                                                                
+  Options                                                                       
+  ────────────────────────────────────────────────────────────────────────────  
+  -h   --help   Show this message and exit.                                     
+                                                                                
+                                                                                
+  Commands                                                                      
+  ────────────────────────────────────────────────────────────────────────────  
+  history        list your finished jobs (last 30 days)                         
+  output         show the end of a job's output                                 
+                                                                                
+                                                                                

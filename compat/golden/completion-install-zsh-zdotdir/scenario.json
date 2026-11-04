@@ -1,0 +1,27 @@
+{
+ "name": "completion-install-zsh-zdotdir",
+ "category": "completion",
+ "argv": [
+  "completion",
+  "zsh",
+  "--install"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "ZDOTDIR": "@TMP@/zdot"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [
+  "zdot/.zshrc",
+  "home/.zshrc",
+  "home/.local/share/allegro-buddy/completion-bab.zsh"
+ ],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

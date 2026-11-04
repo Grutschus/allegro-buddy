@@ -1,0 +1,1 @@
+{"argv": ["sacct", "--parsable2", "--noheader", "-X", "--user=alice", "--starttime=now-2days", "--format=JobIDRaw,JobID,JobName,State,ExitCode,End,Reason"], "exit": 0}

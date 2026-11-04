@@ -1,0 +1,22 @@
+{
+ "name": "pty-error-unknown-job-no-color",
+ "category": "color",
+ "argv": [
+  "why",
+  "999999"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "NO_COLOR": "1"
+ },
+ "stdin": null,
+ "tty": "pty",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

@@ -1,0 +1,20 @@
+{
+ "name": "empty-node-guess",
+ "category": "errors",
+ "argv": [
+  "node"
+ ],
+ "then": [],
+ "world": "empty",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

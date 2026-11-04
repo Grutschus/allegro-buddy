@@ -1,0 +1,10 @@
+plain,completion	generate or install shell completion
+plain,config	show where settings come from
+plain,dev	start, join and stop a dev job
+plain,l	join a running dev job (short for bab dev login)
+plain,free	show free GPUs and cluster resources
+plain,info	show your partitions and a cluster summary
+plain,job	show finished jobs and their output
+plain,node	show which jobs use a node's GPUs, CPUs and memory
+plain,queue	show your jobs in the queue
+plain,why	explain what a pending job is waiting for

@@ -1,0 +1,24 @@
+{
+ "name": "help-dev-start-invalid-config",
+ "category": "help",
+ "argv": [
+  "dev",
+  "start",
+  "-h"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "config/allegro-buddy/config.ini"
+ ],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

@@ -1,0 +1,25 @@
+{
+ "name": "completion-install-fish-no-xdg",
+ "category": "completion",
+ "argv": [
+  "completion",
+  "fish",
+  "--install"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "XDG_CONFIG_HOME": null
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [
+  "home/.config/fish/completions/bab.fish"
+ ],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

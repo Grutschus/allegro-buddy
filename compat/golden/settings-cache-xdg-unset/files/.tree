@@ -1,0 +1,9 @@
+d cache
+d config
+d demo
+f demo/slurm-70090.out
+d home
+d home/.cache
+d home/.cache/allegro-buddy
+f home/.cache/allegro-buddy/cluster-name.login1
+d site

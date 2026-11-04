@@ -1,0 +1,20 @@
+You
+user      alice                     
+accounts  ml-lab (default), teaching
+qos       long, normal              
+jobs      none                      
+
+                                 Resource overview                                 
+Partition             Time limit   Idle nodes   Free GPUs   Free CPUs   Free memory
+───────────────────────────────────────────────────────────────────────────────────
+all                   -                   0/7       44/44   1296/1296      630/630G
+                                                                                   
+gpu-a100:test         1h                  0/1         4/4     144/144        90/90G
+gpu-a100              1d                  0/1         4/4     144/144        90/90G
+gpu-a100:shared:mig   1d                  0/1       28/28     144/144        90/90G
+gpu-h200              1d                  0/1         4/4     256/256        90/90G
+gpu-pvc               1d                  0/1         4/4     224/224        90/90G
+                                                                                   
+cpu-clx:test          1h                  0/1           -     192/192        90/90G
+cpu-clx               12h                 0/1           -     192/192        90/90G
+free/total

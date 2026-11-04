@@ -1,0 +1,22 @@
+{
+ "name": "help-job-history-c80",
+ "category": "help",
+ "argv": [
+  "job",
+  "history",
+  "-h"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "80"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

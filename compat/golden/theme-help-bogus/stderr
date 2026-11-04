@@ -1,0 +1,2 @@
+/srv/public/plainer/bab-wt/compat/compat/.venv/lib/python3.12/site-packages/rich_click/rich_help_configuration.py:437: UserWarning: RichClickTheme 'bogus' not found.
+  theme_styles = get_theme(theme, raise_key_error=raise_key_error).styles

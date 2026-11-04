@@ -1,0 +1,11 @@
+65177_[0-11]  gpu  4x A5000 · 16 CPU · 40G  (12 tasks)
+  waiting for GPUs, CPUs and memory to free up · start due (Wed 22:26) on gpu127
+  no single change starts it now
+64267_[50-142]  big  4 CPU · 56G  (93 tasks)
+  waiting for memory to free up
+  starts now with --mem 56G → 32G
+  ⓘ `bab why 64267 --fix` changes the job so it starts now
+65160  gpu  1x A5000 · 4 CPU · 12G
+  waiting for GPUs, CPUs and memory to free up
+  starts now with --mem 12G → 9G
+  ⓘ `bab why 65160 --fix` changes the job so it starts now
