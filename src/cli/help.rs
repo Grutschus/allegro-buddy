@@ -75,11 +75,12 @@ fn find(table: &'static [ThemeDef], name: &str) -> Option<&'static ThemeDef> {
 /// `RichClickTheme.combine`: color + format, then both post-combine callbacks.
 fn combine(color: &ThemeDef, format: &ThemeDef) -> Styles {
     let mut styles: Styles = Vec::new();
-    let mut set = |styles: &mut Styles, key: &'static str, value: CV| {
-        match styles.iter_mut().find(|(k, _)| *k == key) {
-            Some(entry) => entry.1 = value,
-            None => styles.push((key, value)),
-        }
+    let mut set = |styles: &mut Styles, key: &'static str, value: CV| match styles
+        .iter_mut()
+        .find(|(k, _)| *k == key)
+    {
+        Some(entry) => entry.1 = value,
+        None => styles.push((key, value)),
     };
     for (k, v) in color.styles.iter().chain(format.styles) {
         set(&mut styles, k, CV::from(*v));
@@ -91,7 +92,10 @@ fn combine(color: &ThemeDef, format: &ThemeDef) -> Styles {
                 set(&mut styles, "delimiter_slash", CV::Str(" / ".into()));
             }
             PostCombine::NotDimTitle => {
-                for key in ["style_options_panel_title_style", "style_commands_panel_title_style"] {
+                for key in [
+                    "style_options_panel_title_style",
+                    "style_commands_panel_title_style",
+                ] {
                     let update = match styles.iter().find(|(k, _)| *k == key) {
                         Some((_, CV::Str(v))) if !v.split(' ').any(|w| w == "dim") => {
                             Some(format!("{v} not dim").trim().to_owned())
@@ -110,7 +114,10 @@ fn combine(color: &ThemeDef, format: &ThemeDef) -> Styles {
 
 /// `get_theme(theme, raise_key_error=False)` (an unknown name falls back like Python).
 fn get_theme(name: &str) -> Styles {
-    let (default, boxed) = (find(COLORS, "default").unwrap(), find(FORMATS, "box").unwrap());
+    let (default, boxed) = (
+        find(COLORS, "default").unwrap(),
+        find(FORMATS, "box").unwrap(),
+    );
     if !name.contains('-') {
         if let Some(color) = find(COLORS, name) {
             return combine(color, boxed);
@@ -185,7 +192,10 @@ impl Config {
         let mut values: HashMap<String, CV> = HashMap::new();
         values.insert(
             "commands_table_column_types".into(),
-            CV::List(vec![CV::Str("name_with_aliases".into()), CV::Str("help".into())]),
+            CV::List(vec![
+                CV::Str("name_with_aliases".into()),
+                CV::Str("help".into()),
+            ]),
         );
         values.insert("max_width".into(), CV::Int(100));
         let width = std::env::var("TERMINAL_WIDTH")
@@ -357,10 +367,14 @@ static USAGE_HIGHLIGHT: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"(?P<argument>\w+)").expect("usage highlighter"));
 
 static METAVAR_HIGHLIGHTS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
-    [r"(^|\s)(?P<metavar_sep>(\[|<))", r"(?P<metavar_sep>\|)", r"(?P<metavar_sep>(\]|>)$)"]
-        .iter()
-        .map(|p| Regex::new(p).expect("metavar highlighter"))
-        .collect()
+    [
+        r"(^|\s)(?P<metavar_sep>(\[|<))",
+        r"(?P<metavar_sep>\|)",
+        r"(?P<metavar_sep>(\]|>)$)",
+    ]
+    .iter()
+    .map(|p| Regex::new(p).expect("metavar highlighter"))
+    .collect()
 });
 
 /// `inspect.cleandoc`.
@@ -424,7 +438,15 @@ fn splitlines(s: &str) -> Vec<&str> {
     while let Some((i, ch)) = chars.next() {
         let is_break = matches!(
             ch,
-            '\n' | '\r' | '\x0b' | '\x0c' | '\x1c' | '\x1d' | '\x1e' | '\u{85}' | '\u{2028}' | '\u{2029}'
+            '\n' | '\r'
+                | '\x0b'
+                | '\x0c'
+                | '\x1c'
+                | '\x1d'
+                | '\x1e'
+                | '\u{85}'
+                | '\u{2028}'
+                | '\u{2029}'
         );
         if is_break {
             lines.push(&s[start..i]);
@@ -495,7 +517,9 @@ impl Formatter {
     }
 
     fn opt_style(&self, key: &str) -> Option<Style> {
-        self.config.str(key).map(|d| self.theme.get_style_or_null(&d))
+        self.config
+            .str(key)
+            .map(|d| self.theme.get_style_or_null(&d))
     }
 
     fn write(&self, renderable: &dyn Renderable, style: Option<Style>) {
@@ -520,7 +544,7 @@ impl Formatter {
     }
 
     /// `Text.from_markup(markup, style=style)`.
-    fn from_markup(&self, markup: &str, style: Style) -> Text {
+    fn markup(&self, markup: &str, style: Style) -> Text {
         crate::render::markup::render_with(markup, style, &self.theme, true)
             .unwrap_or_else(|_| Text::with_style(markup, style))
     }
@@ -596,7 +620,10 @@ fn usage_pieces(command: &'static Command) -> String {
 }
 
 /// Python `str(default)` for a parameter default.
-fn default_display(param: &Param, default_map: Option<&[(&'static str, String)]>) -> Option<String> {
+fn default_display(
+    param: &Param,
+    default_map: Option<&[(&'static str, String)]>,
+) -> Option<String> {
     if let Some((_, raw)) = default_map.and_then(|m| m.iter().find(|(d, _)| *d == param.dest)) {
         return Some(raw.clone());
     }
@@ -612,7 +639,11 @@ fn default_display(param: &Param, default_map: Option<&[(&'static str, String)]>
 
 impl Formatter {
     /// The `help` column of an option row (`get_help_parameter`).
-    fn parameter_help(&self, param: &Param, default_map: Option<&[(&'static str, String)]>) -> Node {
+    fn parameter_help(
+        &self,
+        param: &Param,
+        default_map: Option<&[(&'static str, String)]>,
+    ) -> Node {
         let mut sections: Vec<Text> = Vec::new();
         for section in self.config.list("options_table_help_sections") {
             match section.as_str() {
@@ -632,7 +663,7 @@ impl Formatter {
                         sections.push(self.rich_text(text.trim(), self.style("style_option_help")));
                     }
                 }
-                "required" if param.required => sections.push(self.from_markup(
+                "required" if param.required => sections.push(self.markup(
                     &self.config.text("required_long_string"),
                     self.style("style_required_long"),
                 )),
@@ -651,7 +682,7 @@ impl Formatter {
                             .config
                             .text("default_string")
                             .replace("{}", &shown.replace('[', "\\["));
-                        sections.push(self.from_markup(&markup, self.style("style_option_default")));
+                        sections.push(self.markup(&markup, self.style("style_option_default")));
                     }
                 }
                 "range" => {
@@ -663,7 +694,7 @@ impl Formatter {
                         let style = self
                             .opt_style("style_range_append")
                             .unwrap_or_else(|| self.style("style_metavar_append"));
-                        sections.push(self.from_markup(&markup, style));
+                        sections.push(self.markup(&markup, style));
                     }
                 }
                 "metavar" | "metavar_short" => {
@@ -694,13 +725,16 @@ impl Formatter {
                 metavar.push_str(&format!(" x>={min}"));
             }
         }
-        let markup = self.config.text("append_metavars_help_string").replace("{}", &metavar);
+        let markup = self
+            .config
+            .text("append_metavars_help_string")
+            .replace("{}", &metavar);
         let style = if append {
             self.style("style_metavar_append")
         } else {
             self.style("style_metavar")
         };
-        let mut text = self.from_markup(&markup, style);
+        let mut text = self.markup(&markup, style);
         text.overflow = Some(Overflow::Fold);
         Some(text)
     }
@@ -718,7 +752,12 @@ impl Formatter {
         if let ParamType::FloatRange { min } = param.ty {
             if show_range {
                 plain.push(' ');
-                plain.push_str(&self.config.text("range_string").replace("{}", &format!("x>={min}")));
+                plain.push_str(
+                    &self
+                        .config
+                        .text("range_string")
+                        .replace("{}", &format!("x>={min}")),
+                );
             }
         }
         if plain.is_empty() {
@@ -731,7 +770,10 @@ impl Formatter {
 
     /// `_get_parameter_help_opt`: (primary, secondary, long, short, all).
     fn opt_names(&self, param: &Param) -> [Option<Text>; 5] {
-        let comma = Text::with_style(self.config.text("delimiter_comma"), self.style("style_option_help"));
+        let comma = Text::with_style(
+            self.config.text("delimiter_comma"),
+            self.style("style_option_help"),
+        );
         let (mut short, mut long): (Vec<&str>, Vec<&str>) = (Vec::new(), Vec::new());
         for decl in param.decls {
             if param.kind == ParamKind::Argument || decl.contains("--") {
@@ -780,7 +822,11 @@ impl Formatter {
     }
 
     /// `get_parameter_rich_table_row`.
-    fn option_row(&self, param: &Param, default_map: Option<&[(&'static str, String)]>) -> Vec<Option<Cell>> {
+    fn option_row(
+        &self,
+        param: &Param,
+        default_map: Option<&[(&'static str, String)]>,
+    ) -> Vec<Option<Cell>> {
         let [primary, secondary, long, short, all] = self.opt_names(param);
         let column_types = self.config.list("options_table_column_types");
         let metavar_padded = if column_types
@@ -796,7 +842,8 @@ impl Formatter {
                 (_, None) => opt.clone(),
                 (None, Some(m)) => Some(m.clone()),
                 (Some(o), Some(m)) => Some(
-                    Text::with_style(" ", self.style("style_option_help")).join([o.clone(), m.clone()]),
+                    Text::with_style(" ", self.style("style_option_help"))
+                        .join([o.clone(), m.clone()]),
                 ),
             }
         };
@@ -842,20 +889,28 @@ impl Formatter {
 
     fn command_row(&self, command: &'static Command) -> Vec<Option<Cell>> {
         let name = Text::with_style(command.name, self.style("style_command"));
-        let comma = Text::with_style(self.config.text("delimiter_comma"), self.style("style_command_help"));
+        let comma = Text::with_style(
+            self.config.text("delimiter_comma"),
+            self.style("style_command_help"),
+        );
         let mut aliases: Vec<Text> = Vec::new();
         for (i, alias) in command.aliases.iter().enumerate() {
             if i > 0 {
                 aliases.push(comma.clone());
             }
-            aliases.push(Text::with_style(*alias, self.style("style_command_aliases")));
+            aliases.push(Text::with_style(
+                *alias,
+                self.style("style_command_aliases"),
+            ));
         }
         self.config
             .list("commands_table_column_types")
             .iter()
             .map(|column| match column.as_str() {
                 "name" => Some(Cell::Text(name.clone())),
-                "aliases" => (!aliases.is_empty()).then(|| Cell::Text(Text::new("").join(aliases.clone()))),
+                "aliases" => {
+                    (!aliases.is_empty()).then(|| Cell::Text(Text::new("").join(aliases.clone())))
+                }
                 "name_with_aliases" => Some(Cell::Text(if aliases.is_empty() {
                     name.clone()
                 } else {
@@ -922,7 +977,10 @@ impl Formatter {
 
     fn panel(&self, kind: &str, name_key: &str, table: Table) -> Panel {
         let key = |suffix: &str| format!("style_{kind}_panel_{suffix}");
-        let title = self.config.text("panel_title_string").replace("{}", &self.config.text(name_key));
+        let title = self
+            .config
+            .text("panel_title_string")
+            .replace("{}", &self.config.text(name_key));
         let title = Text::with_style(title, self.style(&key("title_style")));
         let box_key = key("box");
         let (box_style, blank_top) = match self.config.get(&box_key) {
@@ -948,17 +1006,27 @@ impl Formatter {
     }
 
     /// `RichCommand.format_help` into this formatter.
-    fn format_help(&self, path: &[String], command: &'static Command, default_map: Option<&[(&'static str, String)]>) {
+    fn format_help(
+        &self,
+        path: &[String],
+        command: &'static Command,
+        default_map: Option<&[(&'static str, String)]>,
+    ) {
         self.write(&self.usage(&path.join(" "), &usage_pieces(command)), None);
         self.write_help_text(command);
         let options: Vec<&Param> = parser::params_of(command)
             .filter(|p| p.kind == ParamKind::Option && !p.hidden)
             .collect();
-        let option_rows: Vec<Vec<Option<Cell>>> =
-            options.iter().map(|p| self.option_row(p, default_map)).collect();
+        let option_rows: Vec<Vec<Option<Cell>>> = options
+            .iter()
+            .map(|p| self.option_row(p, default_map))
+            .collect();
         let options_table = self.panel_table("options", Vec::new(), option_rows);
         if !options_table.rows.is_empty() {
-            self.write(&self.panel("options", "options_panel_title", options_table), None);
+            self.write(
+                &self.panel("options", "options_panel_title", options_table),
+                None,
+            );
         }
         if command.is_group {
             let columns = vec![
@@ -1052,7 +1120,7 @@ impl Formatter {
                 .config
                 .text("helptext_aliases_string")
                 .replace("{}", &command.aliases.join(", "));
-            items.push(Rc::new(self.from_markup(&markup, style)));
+            items.push(Rc::new(self.markup(&markup, style)));
         }
         let block = Padded::new(
             Rc::new(AlignLeft(Rc::new(Group(items)))),
@@ -1066,14 +1134,20 @@ impl Formatter {
     fn format_error(&self, message: &str, usage: Option<&UsageError>) {
         if let Some(usage) = usage {
             let command = parser::command_at(&usage.command_path);
-            self.write(&self.usage(&usage.command_path.join(" "), &usage_pieces(command)), None);
+            self.write(
+                &self.usage(&usage.command_path.join(" "), &usage_pieces(command)),
+                None,
+            );
             if usage.show_help_hint {
                 let command_style = self
                     .opt_style("style_errors_suggestion_command")
                     .unwrap_or_else(|| self.style("style_option"));
                 let hint = Text::new(" ").join([
                     Text::new("Try"),
-                    Text::with_style(format!("'{} -h'", usage.command_path.join(" ")), command_style),
+                    Text::with_style(
+                        format!("'{} -h'", usage.command_path.join(" ")),
+                        command_style,
+                    ),
                     Text::new("for help"),
                 ]);
                 let style = self
@@ -1088,11 +1162,20 @@ impl Formatter {
             }
         }
         let body = self.highlight(Text::new(message), &OPTION_HIGHLIGHTS);
-        let box_name = self.config.str("style_errors_panel_box").unwrap_or_else(|| "ROUNDED".to_owned());
+        let box_name = self
+            .config
+            .str("style_errors_panel_box")
+            .unwrap_or_else(|| "ROUNDED".to_owned());
         let panel = Panel {
             renderable: Rc::new(body),
-            box_style: rich_click_box(if box_name.is_empty() { "ROUNDED" } else { &box_name }),
-            title: Some(Panel::rich_title(self.from_markup(&self.config.text("errors_panel_title"), Style::NULL))),
+            box_style: rich_click_box(if box_name.is_empty() {
+                "ROUNDED"
+            } else {
+                &box_name
+            }),
+            title: Some(Panel::rich_title(
+                self.markup(&self.config.text("errors_panel_title"), Style::NULL),
+            )),
             title_align: self.config.text("align_errors_panel"),
             expand: true,
             style: Style::NULL,

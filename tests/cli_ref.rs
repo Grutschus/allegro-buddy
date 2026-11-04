@@ -42,7 +42,10 @@ struct Outcome {
 
 fn run_case(case: &Value, index: usize) -> Outcome {
     let base = format!("{}/cli-ref/{index}", env!("CARGO_TARGET_TMPDIR"));
-    assert!(base.len() < ROOT_LEN, "target dir path too long for the fixtures");
+    assert!(
+        base.len() < ROOT_LEN,
+        "target dir path too long for the fixtures"
+    );
     let root = PathBuf::from(format!("{base}{}", "_".repeat(ROOT_LEN - base.len())));
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(root.join("home")).unwrap();
@@ -101,7 +104,9 @@ fn run_case(case: &Value, index: usize) -> Outcome {
         .unwrap()
         .keys()
         .map(|rel| {
-            let content = std::fs::read_to_string(root.join(rel)).ok().map(|c| clean(c.as_bytes()));
+            let content = std::fs::read_to_string(root.join(rel))
+                .ok()
+                .map(|c| clean(c.as_bytes()));
             (rel.clone(), content)
         })
         .collect();
@@ -138,17 +143,25 @@ fn cli_matches_python_reference() {
             ("stderr", &got.stderr, case["stderr"].as_str().unwrap()),
         ] {
             if actual != expected {
-                problems.push(format!("{label}:\n--- expected\n{expected:?}\n+++ got\n{actual:?}"));
+                problems.push(format!(
+                    "{label}:\n--- expected\n{expected:?}\n+++ got\n{actual:?}"
+                ));
             }
         }
         for (rel, content) in &got.files {
             let expected = case["files"][rel].as_str();
             if content.as_deref() != expected {
-                problems.push(format!("file {rel}: expected {expected:?}, got {content:?}"));
+                problems.push(format!(
+                    "file {rel}: expected {expected:?}, got {content:?}"
+                ));
             }
         }
         if !problems.is_empty() {
-            failures.push(format!("[{name}] argv={}\n{}", case["argv"], problems.join("\n")));
+            failures.push(format!(
+                "[{name}] argv={}\n{}",
+                case["argv"],
+                problems.join("\n")
+            ));
         }
     }
     if !failures.is_empty() {

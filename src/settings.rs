@@ -172,14 +172,21 @@ impl Settings {
             );
         }
         for (gpu_type, label) in settings.section("gpu-labels") {
-            insert_ordered(&mut settings.gpu_labels, normalize_gpu_type(&gpu_type), label);
+            insert_ordered(
+                &mut settings.gpu_labels,
+                normalize_gpu_type(&gpu_type),
+                label,
+            );
         }
         settings
     }
 }
 
 fn lookup<'a>(pairs: &'a [(String, String)], key: &str) -> Option<&'a str> {
-    pairs.iter().find(|(k, _)| k == key).map(|(_, v)| v.as_str())
+    pairs
+        .iter()
+        .find(|(k, _)| k == key)
+        .map(|(_, v)| v.as_str())
 }
 
 /// `dict[key] = value`: a new key goes last, an existing one keeps its place.
@@ -245,7 +252,8 @@ fn user_config_path_with_env(env: Env<'_>) -> PathBuf {
 
 fn site_config_path_with_env(env: Env<'_>) -> PathBuf {
     PathBuf::from(
-        non_empty(env, "AB_SITE_CONFIG").unwrap_or_else(|| "/etc/allegro-buddy/config.ini".to_owned()),
+        non_empty(env, "AB_SITE_CONFIG")
+            .unwrap_or_else(|| "/etc/allegro-buddy/config.ini".to_owned()),
     )
 }
 
@@ -397,7 +405,10 @@ fn inline_comment_start(line: &str) -> Option<usize> {
             };
             let index = from + offset;
             next.push((*prefix, Some(index)));
-            let after_space = line[..index].chars().next_back().is_some_and(pyfmt::is_space);
+            let after_space = line[..index]
+                .chars()
+                .next_back()
+                .is_some_and(pyfmt::is_space);
             if index == 0 || after_space {
                 best = Some(best.map_or(index, |b| b.min(index)));
             }
@@ -436,9 +447,13 @@ fn read_ini(text: &str, source: &str) -> Result<Ini, String> {
             comment_start = Some(0);
         }
         let value = pyfmt::strip(&line[..comment_start.unwrap_or(line.len())]);
-        let slot = |values: &[(Target, String, Vec<String>)], target: Option<Target>, name: Option<&str>| {
+        let slot = |values: &[(Target, String, Vec<String>)],
+                    target: Option<Target>,
+                    name: Option<&str>| {
             let (target, name) = (target?, name.filter(|n| !n.is_empty())?);
-            values.iter().position(|(t, n, _)| *t == target && n == name)
+            values
+                .iter()
+                .position(|(t, n, _)| *t == target && n == name)
         };
         if value.is_empty() {
             if comment_start.is_none() {
@@ -459,9 +474,11 @@ fn read_ini(text: &str, source: &str) -> Result<Ini, String> {
             continue;
         }
         indent_level = cur_indent_level;
-        let header = value
-            .strip_prefix('[')
-            .and_then(|rest| rest.rfind(']').filter(|&end| end > 0).map(|end| &rest[..end]));
+        let header = value.strip_prefix('[').and_then(|rest| {
+            rest.rfind(']')
+                .filter(|&end| end > 0)
+                .map(|end| &rest[..end])
+        });
         if let Some(header) = header {
             if let Some(position) = ini.sections.iter().position(|(name, _)| name == header) {
                 if added_sections.iter().any(|s| s == header) {
@@ -499,7 +516,10 @@ fn read_ini(text: &str, source: &str) -> Result<Ini, String> {
         }
         let name = option.to_lowercase();
         let section = sectname.clone().unwrap_or_default();
-        if added_options.iter().any(|(s, o)| *s == section && *o == name) {
+        if added_options
+            .iter()
+            .any(|(s, o)| *s == section && *o == name)
+        {
             return Err(format!(
                 "While reading from {source_repr} [line {lineno:2}]: option {} in section {} already exists",
                 pyfmt::repr_str(&name),
@@ -508,7 +528,10 @@ fn read_ini(text: &str, source: &str) -> Result<Ini, String> {
         }
         added_options.push((section, name.clone()));
         let optval = pyfmt::strip(&value[delimiter + 1..]).to_owned();
-        match values.iter_mut().find(|(t, n, _)| *t == target && *n == name) {
+        match values
+            .iter_mut()
+            .find(|(t, n, _)| *t == target && *n == name)
+        {
             Some(slot) => slot.2 = vec![optval],
             None => values.push((target, name.clone(), vec![optval])),
         }
@@ -531,7 +554,8 @@ fn read_ini(text: &str, source: &str) -> Result<Ini, String> {
 
 /// `parse_layer(text, source)`.
 pub fn parse_layer(text: &str, source: &str) -> Result<Layer, ConfigError> {
-    let ini = read_ini(text, source).map_err(|e| ConfigError(format!("cannot parse {source}: {e}")))?;
+    let ini =
+        read_ini(text, source).map_err(|e| ConfigError(format!("cannot parse {source}: {e}")))?;
     let mut sorted_sections: Vec<&str> = SECTIONS.iter().map(|(name, _)| *name).collect();
     sorted_sections.sort_unstable();
     let mut values = Layer::new();
@@ -555,7 +579,11 @@ pub fn parse_layer(text: &str, source: &str) -> Result<Layer, ConfigError> {
                     )));
                 }
             }
-            insert_ordered(&mut values, (section.clone(), key), pyfmt::strip(&value).to_owned());
+            insert_ordered(
+                &mut values,
+                (section.clone(), key),
+                pyfmt::strip(&value).to_owned(),
+            );
         }
     }
     Ok(values)
@@ -587,7 +615,10 @@ fn pick_preset_with_env(
     file_choice: Option<&str>,
 ) -> Result<(Option<String>, String), ConfigError> {
     let env_choice = env("AB_CLUSTER");
-    for (choice, why) in [(env_choice.as_deref(), "$AB_CLUSTER"), (file_choice, "[cluster] preset")] {
+    for (choice, why) in [
+        (env_choice.as_deref(), "$AB_CLUSTER"),
+        (file_choice, "[cluster] preset"),
+    ] {
         let Some(choice) = choice.filter(|c| !c.is_empty()) else {
             continue;
         };
@@ -609,7 +640,10 @@ fn pick_preset_with_env(
             let reason = format!("Slurm ClusterName is {cluster}");
             (Some(cluster), reason)
         }
-        Some(cluster) => (None, format!("no preset ships for Slurm ClusterName {cluster}")),
+        Some(cluster) => (
+            None,
+            format!("no preset ships for Slurm ClusterName {cluster}"),
+        ),
     })
 }
 
@@ -619,7 +653,12 @@ pub fn pick_preset(file_choice: Option<&str>) -> Result<(Option<String>, String)
 }
 
 /// Merge the layers (preset < site < user) like `load()`'s dict comprehension.
-fn merge(preset: Option<String>, reason: String, site: Layer, user: Layer) -> Result<Settings, ConfigError> {
+fn merge(
+    preset: Option<String>,
+    reason: String,
+    site: Layer,
+    user: Layer,
+) -> Result<Settings, ConfigError> {
     let mut layers: Vec<(String, Layer)> = Vec::new();
     if let Some(name) = &preset {
         let source = format!("preset {name}");
@@ -631,7 +670,10 @@ fn merge(preset: Option<String>, reason: String, site: Layer, user: Layer) -> Re
     let mut values: Vec<Entry> = Vec::new();
     for (source, layer) in layers {
         for ((section, key), value) in layer {
-            match values.iter_mut().find(|e| e.section == section && e.key == key) {
+            match values
+                .iter_mut()
+                .find(|e| e.section == section && e.key == key)
+            {
                 Some(entry) => {
                     entry.value = value;
                     entry.source = source.clone();
@@ -729,9 +771,18 @@ mod tests {
     /// The conftest isolation: config, cache and site file under `dir`, AB_CLUSTER=allegro.
     fn isolated(dir: &Path, extra: &[(&str, Option<&str>)]) -> HashMap<String, String> {
         let mut env = HashMap::from([
-            ("XDG_CONFIG_HOME".to_owned(), dir.join("config").display().to_string()),
-            ("XDG_CACHE_HOME".to_owned(), dir.join("cache").display().to_string()),
-            ("AB_SITE_CONFIG".to_owned(), dir.join("site/config.ini").display().to_string()),
+            (
+                "XDG_CONFIG_HOME".to_owned(),
+                dir.join("config").display().to_string(),
+            ),
+            (
+                "XDG_CACHE_HOME".to_owned(),
+                dir.join("cache").display().to_string(),
+            ),
+            (
+                "AB_SITE_CONFIG".to_owned(),
+                dir.join("site/config.ini").display().to_string(),
+            ),
             ("AB_CLUSTER".to_owned(), "allegro".to_owned()),
             ("HOME".to_owned(), dir.join("home").display().to_string()),
         ]);
@@ -765,7 +816,10 @@ mod tests {
     #[test]
     fn config_presets_dev_start() {
         let dir = scratch("dev-start");
-        write_user_config(&dir, "[dev]\ngpu = 2\ngpu-type = RTX_A5000\nmem = 32G\ntime = 04:00:00\n");
+        write_user_config(
+            &dir,
+            "[dev]\ngpu = 2\ngpu-type = RTX_A5000\nmem = 32G\ntime = 04:00:00\n",
+        );
         let settings = load_in(&isolated(&dir, &[])).unwrap();
         assert_eq!(settings.get("dev", "gpu"), Some("2"));
         assert_eq!(settings.get("dev", "gpu_type"), Some("RTX_A5000"));
@@ -800,18 +854,39 @@ mod tests {
     #[test]
     fn invalid_configs_are_rejected() {
         let cases = [
-            ("[dev]\ngpus = 2\n", "unknown key 'gpus' in [dev] of {user}; choose from ['account', 'constraint', 'cpus', 'exclude', 'gpu', 'gpu_type', 'log_dir', 'max_allocations', 'mem', 'partition', 'time']"),
-            ("[cluster]\nnode-login = mosh\n", "[cluster] node-login must be one of ['ssh', 'srun'], got 'mosh'"),
-            ("[dev]\nmax-allocations = 0\n", "[dev] max-allocations must be a whole number >= 1, got '0'"),
-            ("[cluster]\npreset = nowhere\n", "unknown cluster preset 'nowhere' from [cluster] preset; choose from ['allegro', 'bhlrn4'] or none"),
-            ("[Dev]\ngpu = 1\n", "unknown section [Dev] in {user}; choose from ['cluster', 'dev', 'gpu-aliases', 'gpu-labels']"),
+            (
+                "[dev]\ngpus = 2\n",
+                "unknown key 'gpus' in [dev] of {user}; choose from ['account', 'constraint', 'cpus', 'exclude', 'gpu', 'gpu_type', 'log_dir', 'max_allocations', 'mem', 'partition', 'time']",
+            ),
+            (
+                "[cluster]\nnode-login = mosh\n",
+                "[cluster] node-login must be one of ['ssh', 'srun'], got 'mosh'",
+            ),
+            (
+                "[dev]\nmax-allocations = 0\n",
+                "[dev] max-allocations must be a whole number >= 1, got '0'",
+            ),
+            (
+                "[cluster]\npreset = nowhere\n",
+                "unknown cluster preset 'nowhere' from [cluster] preset; choose from ['allegro', 'bhlrn4'] or none",
+            ),
+            (
+                "[Dev]\ngpu = 1\n",
+                "unknown section [Dev] in {user}; choose from ['cluster', 'dev', 'gpu-aliases', 'gpu-labels']",
+            ),
         ];
         let dir = scratch("invalid");
-        let user = dir.join("config/allegro-buddy/config.ini").display().to_string();
+        let user = dir
+            .join("config/allegro-buddy/config.ini")
+            .display()
+            .to_string();
         for (text, message) in cases {
             write_user_config(&dir, text);
             let env = isolated(&dir, &[("AB_CLUSTER", None)]);
-            let ctx = Ctx::default().hostname("login1").slurm(FakeSlurm::always(fail(1, ""))).install();
+            let ctx = Ctx::default()
+                .hostname("login1")
+                .slurm(FakeSlurm::always(fail(1, "")))
+                .install();
             let err = load_in(&env).unwrap_err();
             drop(ctx);
             assert_eq!(err.0, message.replace("{user}", &user), "{text}");
@@ -823,9 +898,15 @@ mod tests {
     fn unreadable_config_file() {
         let dir = scratch("unreadable");
         std::fs::create_dir_all(dir.join("config/allegro-buddy/config.ini")).unwrap();
-        let path = dir.join("config/allegro-buddy/config.ini").display().to_string();
+        let path = dir
+            .join("config/allegro-buddy/config.ini")
+            .display()
+            .to_string();
         let err = load_in(&isolated(&dir, &[])).unwrap_err();
-        assert_eq!(err.0, format!("cannot read {path}: [Errno 21] Is a directory: '{path}'"));
+        assert_eq!(
+            err.0,
+            format!("cannot read {path}: [Errno 21] Is a directory: '{path}'")
+        );
         std::fs::remove_dir_all(dir).unwrap();
     }
 
@@ -835,7 +916,10 @@ mod tests {
         let env = isolated(&dir, &[("AB_CLUSTER", None)]);
         let lookup = |name: &str| env.get(name).cloned();
         let fake = FakeSlurm::always(ok("Foo = 1\nClusterName  = bhlrn4\n"));
-        let _ctx = Ctx::default().hostname("login1").slurm(fake.clone()).install();
+        let _ctx = Ctx::default()
+            .hostname("login1")
+            .slurm(fake.clone())
+            .install();
         let settings = load_with_env(&lookup).unwrap();
         assert_eq!(settings.preset.as_deref(), Some("bhlrn4"));
         assert_eq!(settings.preset_reason, "Slurm ClusterName is bhlrn4");
@@ -849,7 +933,10 @@ mod tests {
         std::fs::write(&cache, "other\n").unwrap();
         let settings = load_with_env(&lookup).unwrap();
         assert_eq!(settings.preset, None);
-        assert_eq!(settings.preset_reason, "no preset ships for Slurm ClusterName other");
+        assert_eq!(
+            settings.preset_reason,
+            "no preset ships for Slurm ClusterName other"
+        );
         assert_eq!(fake.calls().len(), 1);
         std::fs::remove_dir_all(dir).unwrap();
     }
@@ -870,14 +957,24 @@ mod tests {
 
     #[test]
     fn preset_choice_order() {
-        let env = |value: Option<&'static str>| move |name: &str| (name == "AB_CLUSTER").then(|| value).flatten().map(str::to_owned);
+        let env = |value: Option<&'static str>| {
+            move |name: &str| {
+                (name == "AB_CLUSTER")
+                    .then(|| value)
+                    .flatten()
+                    .map(str::to_owned)
+            }
+        };
         assert_eq!(
             pick_preset_with_env(&env(Some("none")), Some("allegro")).unwrap(),
             (None, "disabled by $AB_CLUSTER".to_owned())
         );
         assert_eq!(
             pick_preset_with_env(&env(Some("")), Some("bhlrn4")).unwrap(),
-            (Some("bhlrn4".to_owned()), "set by [cluster] preset".to_owned())
+            (
+                Some("bhlrn4".to_owned()),
+                "set by [cluster] preset".to_owned()
+            )
         );
         assert_eq!(
             pick_preset_with_env(&env(Some("x'y")), None).unwrap_err().0,
@@ -899,18 +996,37 @@ mod tests {
         );
         let defaults = "[DEFAULT]\ncpus = 4\n[dev]\ngpu = 1\ncpus = 8\n[cluster]\n";
         let err = parse_layer(defaults, "f").unwrap_err();
-        assert!(err.0.starts_with("unknown key 'cpus' in [cluster] of f;"), "{}", err.0);
+        assert!(
+            err.0.starts_with("unknown key 'cpus' in [cluster] of f;"),
+            "{}",
+            err.0
+        );
         let layer_ok = parse_layer("[DEFAULT]\ncpus = 4\n[dev]\ngpu = 1\n", "f").unwrap();
-        assert_eq!(layer_ok, layer(&[("dev", "cpus", "4"), ("dev", "gpu", "1")]));
+        assert_eq!(
+            layer_ok,
+            layer(&[("dev", "cpus", "4"), ("dev", "gpu", "1")])
+        );
     }
 
     #[test]
     fn configparser_errors() {
         let cases = [
-            ("gpu = 1\n", "cannot parse f: File contains no section headers.\nfile: 'f', line: 1\n'gpu = 1\\n'"),
-            ("[dev]\n[dev]\n", "cannot parse f: While reading from 'f' [line  2]: section 'dev' already exists"),
-            ("[dev]\ngpu=1\nGPU=2\n", "cannot parse f: While reading from 'f' [line  3]: option 'gpu' in section 'dev' already exists"),
-            ("[dev]\njunk\n= x\ngpu = 1\n\tmore", "cannot parse f: Source contains parsing errors: 'f'\n\t[line  2]: 'junk\\n'\n\t[line  3]: '= x\\n'"),
+            (
+                "gpu = 1\n",
+                "cannot parse f: File contains no section headers.\nfile: 'f', line: 1\n'gpu = 1\\n'",
+            ),
+            (
+                "[dev]\n[dev]\n",
+                "cannot parse f: While reading from 'f' [line  2]: section 'dev' already exists",
+            ),
+            (
+                "[dev]\ngpu=1\nGPU=2\n",
+                "cannot parse f: While reading from 'f' [line  3]: option 'gpu' in section 'dev' already exists",
+            ),
+            (
+                "[dev]\njunk\n= x\ngpu = 1\n\tmore",
+                "cannot parse f: Source contains parsing errors: 'f'\n\t[line  2]: 'junk\\n'\n\t[line  3]: '= x\\n'",
+            ),
         ];
         for (text, message) in cases {
             assert_eq!(parse_layer(text, "f").unwrap_err().0, message, "{text:?}");
@@ -930,20 +1046,43 @@ mod tests {
     fn gpu_tables_and_lists() {
         let settings = testing::with_preset(
             "bhlrn4",
-            &["[gpu-aliases]", "A-100 = NVIDIA A100", "[gpu-labels]", "h200 = Hopper", "MI-250 = MI250", "[cluster]", "gpu-partitions = a, b,,c "],
+            &[
+                "[gpu-aliases]",
+                "A-100 = NVIDIA A100",
+                "[gpu-labels]",
+                "h200 = Hopper",
+                "MI-250 = MI250",
+                "[cluster]",
+                "gpu-partitions = a, b,,c ",
+            ],
         );
         assert_eq!(settings.gpu_alias("a_100"), Some("nvidia_a100"));
-        let labels: Vec<&str> = settings.gpu_labels.iter().map(|(k, _)| k.as_str()).collect();
+        let labels: Vec<&str> = settings
+            .gpu_labels
+            .iter()
+            .map(|(k, _)| k.as_str())
+            .collect();
         assert_eq!(labels, ["a100", "1g_10gb", "h200", "intel", "mi_250"]);
         assert_eq!(settings.gpu_label("h200"), Some("Hopper"));
-        assert_eq!(settings.get_list("cluster", "gpu_partitions"), ["a", "b", "c"]);
+        assert_eq!(
+            settings.get_list("cluster", "gpu_partitions"),
+            ["a", "b", "c"]
+        );
         assert!(settings.get_list("cluster", "missing").is_empty());
         assert_eq!(settings.section("dev").len(), 5);
     }
 
     #[test]
     fn max_allocations_validation() {
-        for (value, ok) in [("1", true), ("0001", true), ("12", true), ("0", false), ("-1", false), ("1.5", false), ("x", false)] {
+        for (value, ok) in [
+            ("1", true),
+            ("0001", true),
+            ("12", true),
+            ("0", false),
+            ("-1", false),
+            ("1.5", false),
+            ("x", false),
+        ] {
             let settings = testing::with_preset("allegro", &[]);
             let mut settings = settings.clone();
             settings.values.push(Entry {

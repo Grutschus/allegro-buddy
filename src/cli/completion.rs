@@ -111,12 +111,10 @@ const SHELLS: [&str; 3] = ["bash", "zsh", "fish"];
 /// Handle a completion request if the completion env var for `prog_name` is set.
 /// Returns `Some(exit_code)` when it was a completion invocation.
 pub fn handle_env_request(prog_name: &str) -> Option<i32> {
-    let complete_var = format!(
-        "_{}_COMPLETE",
-        prog_name.replace(['-', '.'], "_")
-    )
-    .to_uppercase();
-    let instruction = std::env::var(&complete_var).ok().filter(|v| !v.is_empty())?;
+    let complete_var = format!("_{}_COMPLETE", prog_name.replace(['-', '.'], "_")).to_uppercase();
+    let instruction = std::env::var(&complete_var)
+        .ok()
+        .filter(|v| !v.is_empty())?;
     let (shell, instruction) = instruction.split_once('_').unwrap_or((&instruction, ""));
     if !SHELLS.contains(&shell) {
         return Some(1);
@@ -251,7 +249,9 @@ pub struct Item {
 /// Python list slicing/indexing helpers for `cwords[1:cword]` / `cwords[cword]`.
 fn py_index(len: usize, index: i64) -> Option<usize> {
     let resolved = if index < 0 { len as i64 + index } else { index };
-    (0..len as i64).contains(&resolved).then_some(resolved as usize)
+    (0..len as i64)
+        .contains(&resolved)
+        .then_some(resolved as usize)
 }
 
 fn py_slice_end(len: usize, end: i64) -> usize {
@@ -267,7 +267,10 @@ fn complete(shell: &str) -> Option<String> {
         let incomplete = if cword.is_empty() {
             String::new()
         } else {
-            split_arg_string(&cword).into_iter().next().unwrap_or_default()
+            split_arg_string(&cword)
+                .into_iter()
+                .next()
+                .unwrap_or_default()
         };
         let mut args: Vec<String> = words.iter().skip(1).cloned().collect();
         if !incomplete.is_empty() && args.last() == Some(&incomplete) {
@@ -332,7 +335,8 @@ pub fn get_completions(mut args: Vec<String>, incomplete: &str) -> Vec<Item> {
         }
     }
     for param in &params {
-        if param.kind == ParamKind::Argument && ctx.source(param.dest) != Some(Source::CommandLine) {
+        if param.kind == ParamKind::Argument && ctx.source(param.dest) != Some(Source::CommandLine)
+        {
             return param_completions(param, &incomplete);
         }
     }
@@ -352,7 +356,11 @@ fn command_completions(ctx: &Ctx, incomplete: &str) -> Vec<Item> {
             }
         }
     }
-    if incomplete.chars().next().is_some_and(|c| !c.is_alphanumeric()) {
+    if incomplete
+        .chars()
+        .next()
+        .is_some_and(|c| !c.is_alphanumeric())
+    {
         for param in parser::params_of(ctx.command) {
             if param.kind != ParamKind::Option
                 || param.hidden
@@ -489,7 +497,11 @@ pub fn split_arg_string(input: &str) -> Vec<String> {
                     token.push('\\');
                 }
                 token.push(ch);
-                state = if prev == 'a' { State::Word } else { State::Quote(prev) };
+                state = if prev == 'a' {
+                    State::Word
+                } else {
+                    State::Quote(prev)
+                };
             }
             State::Word => {
                 if is_space(ch) {
@@ -526,9 +538,16 @@ fn py_path(s: &str) -> String {
     } else {
         ""
     };
-    let parts: Vec<&str> = s.split('/').filter(|p| !p.is_empty() && *p != ".").collect();
+    let parts: Vec<&str> = s
+        .split('/')
+        .filter(|p| !p.is_empty() && *p != ".")
+        .collect();
     let joined = format!("{root}{}", parts.join("/"));
-    if joined.is_empty() { ".".to_owned() } else { joined }
+    if joined.is_empty() {
+        ".".to_owned()
+    } else {
+        joined
+    }
 }
 
 fn py_join(base: &str, rest: &str) -> String {
@@ -570,7 +589,10 @@ fn env_or(name: &str, fallback: impl FnOnce() -> String) -> String {
 fn completion_destinations(shell: &str, prog: &str) -> (String, Option<String>) {
     if shell == "fish" {
         let config = env_or("XDG_CONFIG_HOME", || py_join(&home(), ".config"));
-        return (py_join(&config, &format!("fish/completions/{prog}.fish")), None);
+        return (
+            py_join(&config, &format!("fish/completions/{prog}.fish")),
+            None,
+        );
     }
     let data = env_or("XDG_DATA_HOME", || py_join(&home(), ".local/share"));
     let script = py_join(&data, &format!("allegro-buddy/completion-{prog}.{shell}"));
@@ -608,7 +630,11 @@ fn install_completion(shell: &str, prog: &str, source: &str) -> Result<()> {
         if existing.contains(&line) {
             note = format!("; {startup} already sources it");
         } else {
-            let separator = if existing.is_empty() || existing.ends_with('\n') { "" } else { "\n" };
+            let separator = if existing.is_empty() || existing.ends_with('\n') {
+                ""
+            } else {
+                "\n"
+            };
             use std::io::Write;
             let mut rc = std::fs::OpenOptions::new()
                 .append(true)
@@ -639,7 +665,11 @@ pub fn cmd_completion(shell: Option<&str>, prog: &str, install: bool) -> Result<
                 .unwrap_or("")
                 .to_owned();
             if !SHELLS.contains(&name.as_str()) {
-                let shown = if name.is_empty() { "unset" } else { name.as_str() };
+                let shown = if name.is_empty() {
+                    "unset"
+                } else {
+                    name.as_str()
+                };
                 return Err(AbError::Usage(UsageError {
                     message: format!(
                         "cannot detect a supported shell from $SHELL ({}); pass one of bash, zsh, fish",

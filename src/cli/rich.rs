@@ -13,7 +13,11 @@ use std::rc::Rc;
 pub type Node = Rc<dyn Renderable>;
 
 /// Rich `measure_renderables`.
-fn measure_all(console: &Console, options: &RenderOptions, items: &[&dyn Renderable]) -> Measurement {
+fn measure_all(
+    console: &Console,
+    options: &RenderOptions,
+    items: &[&dyn Renderable],
+) -> Measurement {
     if items.is_empty() {
         return Measurement::new(0, 0);
     }
@@ -181,7 +185,11 @@ impl Panel {
             return text;
         }
         let fill = |n: usize| {
-            let fill = if self.blank_top { String::new() } else { character.to_string().repeat(n) };
+            let fill = if self.blank_top {
+                String::new()
+            } else {
+                character.to_string().repeat(n)
+            };
             TextPart::Styled(fill, self.border_style)
         };
         let mut out = match self.title_align.as_str() {
@@ -219,11 +227,16 @@ impl Renderable for Panel {
         let mut child_width = if self.expand {
             width as isize - 2
         } else {
-            Measurement::get(console, &options.update_width(width as isize - 2), renderable).maximum
-                as isize
+            Measurement::get(
+                console,
+                &options.update_width(width as isize - 2),
+                renderable,
+            )
+            .maximum as isize
         };
         if let Some(title) = &title {
-            child_width = (options.max_width as isize - 2).min(child_width.max(title.cell_len() as isize + 2));
+            child_width = (options.max_width as isize - 2)
+                .min(child_width.max(title.cell_len() as isize + 2));
         }
         let width = child_width + 2;
         let child_options = options
@@ -295,16 +308,17 @@ impl Renderable for Columns {
             let mut widths: Vec<usize> = Vec::new();
             let mut column_no = 0;
             let mut shrunk = false;
-            let padded = widths_of
-                .iter()
-                .copied()
-                .chain(std::iter::repeat_n(0, (column_count - count % column_count) % column_count));
+            let padded = widths_of.iter().copied().chain(std::iter::repeat_n(
+                0,
+                (column_count - count % column_count) % column_count,
+            ));
             for width in padded {
                 if widths.len() <= column_no {
                     widths.push(0);
                 }
                 widths[column_no] = widths[column_no].max(width);
-                let total: usize = widths.iter().sum::<usize>() + width_padding * (widths.len() - 1);
+                let total: usize =
+                    widths.iter().sum::<usize>() + width_padding * (widths.len() - 1);
                 if total > max_width {
                     column_count = widths.len() - 1;
                     shrunk = true;

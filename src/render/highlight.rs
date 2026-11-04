@@ -20,9 +20,15 @@ pub struct RegexHighlighter {
 
 impl RegexHighlighter {
     /// Compile `patterns` (Python `re` syntax that `fancy_regex` understands).
-    pub fn new(base_style: &str, patterns: &[&str]) -> Result<RegexHighlighter, fancy_regex::Error> {
+    pub fn new(
+        base_style: &str,
+        patterns: &[&str],
+    ) -> Result<RegexHighlighter, fancy_regex::Error> {
         Ok(RegexHighlighter {
-            highlights: patterns.iter().map(|p| Regex::new(p)).collect::<Result<_, _>>()?,
+            highlights: patterns
+                .iter()
+                .map(|p| Regex::new(p))
+                .collect::<Result<_, _>>()?,
             base_style: base_style.to_owned(),
         })
     }
@@ -84,7 +90,12 @@ mod tests {
         highlight_repr(&mut t);
         t.spans()
             .iter()
-            .map(|sp| (s.chars().skip(sp.start).take(sp.end - sp.start).collect(), sp.style))
+            .map(|sp| {
+                (
+                    s.chars().skip(sp.start).take(sp.end - sp.start).collect(),
+                    sp.style,
+                )
+            })
             .collect()
     }
 

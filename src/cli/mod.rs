@@ -34,7 +34,6 @@ use commands::Action;
 use parser::{Args, DefaultMap, Parsed};
 use std::ffi::OsString;
 
-
 /// Entry point: returns the exit code (only `main.rs` exits).
 pub fn main(argv: Vec<OsString>) -> i32 {
     crate::signals::install();
@@ -95,14 +94,18 @@ pub fn run(argv: &[String]) -> Result<()> {
             command,
             args,
         } => {
-            let action = command.action.expect("parser only returns runnable commands");
+            let action = command
+                .action
+                .expect("parser only returns runnable commands");
             let result = if stub_handlers() {
                 stub_dispatch(action, &args)
             } else {
                 dispatch(action, &args)
             };
             result.map_err(|err| match err {
-                AbError::Usage(mut usage) if usage.command_path.is_empty() && usage.show_help_hint => {
+                AbError::Usage(mut usage)
+                    if usage.command_path.is_empty() && usage.show_help_hint =>
+                {
                     usage.command_path = path;
                     AbError::Usage(usage)
                 }
@@ -267,7 +270,11 @@ fn stub_dispatch(action: Action, args: &Args) -> Result<()> {
             watched();
             call(
                 "cmd_queue",
-                &[("all_users", "all_users"), ("user", "user"), ("partition", "partition")],
+                &[
+                    ("all_users", "all_users"),
+                    ("user", "user"),
+                    ("partition", "partition"),
+                ],
             );
         }
         Action::Why => call(
@@ -294,7 +301,10 @@ fn stub_dispatch(action: Action, args: &Args) -> Result<()> {
         }
         Action::Node | Action::Gpualloc => call("cmd_node", &[("node", "node")]),
         Action::JobHistory => call("cmd_job_history", &[("limit", "limit")]),
-        Action::JobOutput => call("cmd_job_output", &[("jobid", "jobid"), ("stderr", "stderr")]),
+        Action::JobOutput => call(
+            "cmd_job_output",
+            &[("jobid", "jobid"), ("stderr", "stderr")],
+        ),
         Action::DevStart => call(
             "cmd_dev_start",
             &[

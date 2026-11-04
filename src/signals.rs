@@ -46,8 +46,14 @@ fn set_handler(signal: libc::c_int, handler: libc::sighandler_t) {
 /// Install the flag-setting SIGINT handler and the SIGPIPE handler (idempotent).
 pub fn install() {
     INSTALL.call_once(|| {
-        set_handler(libc::SIGINT, on_sigint as extern "C" fn(libc::c_int) as libc::sighandler_t);
-        set_handler(libc::SIGPIPE, on_sigpipe as extern "C" fn(libc::c_int) as libc::sighandler_t);
+        set_handler(
+            libc::SIGINT,
+            on_sigint as extern "C" fn(libc::c_int) as libc::sighandler_t,
+        );
+        set_handler(
+            libc::SIGPIPE,
+            on_sigpipe as extern "C" fn(libc::c_int) as libc::sighandler_t,
+        );
     });
 }
 

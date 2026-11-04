@@ -253,7 +253,10 @@ impl Ctx {
     }
 
     pub fn source(&self, dest: &str) -> Option<Source> {
-        self.sources.iter().find(|(d, _)| *d == dest).map(|(_, s)| *s)
+        self.sources
+            .iter()
+            .find(|(d, _)| *d == dest)
+            .map(|(_, s)| *s)
     }
 
     pub fn value(&self, dest: &str) -> Option<&Value> {
@@ -322,7 +325,10 @@ enum Raw {
 }
 
 enum TokError {
-    NoSuchOption { name: String, possibilities: Vec<String> },
+    NoSuchOption {
+        name: String,
+        possibilities: Vec<String>,
+    },
     Other(String),
 }
 
@@ -410,7 +416,7 @@ impl OptionParser {
         &self,
         args: &[String],
         resilient: bool,
-    ) -> std::result::Result<TokState, (TokState, TokError)> {
+    ) -> std::result::Result<TokState, TokError> {
         let mut state = TokState {
             opts: Vec::new(),
             largs: Vec::new(),
@@ -421,14 +427,15 @@ impl OptionParser {
             if resilient {
                 return Ok(state);
             }
-            return Err((state, err));
+            return Err(err);
         }
         self.process_args_for_args(&mut state);
         Ok(state)
     }
 
     fn process_args_for_args(&self, state: &mut TokState) {
-        let mut rest: VecDeque<String> = state.largs.drain(..).chain(state.rargs.drain(..)).collect();
+        let mut rest: VecDeque<String> =
+            state.largs.drain(..).chain(state.rargs.drain(..)).collect();
         for param in &self.arguments {
             match rest.pop_front() {
                 Some(value) => state.store(param.dest, Raw::Str(value)),
@@ -497,7 +504,11 @@ impl OptionParser {
         Ok(())
     }
 
-    fn match_short_opt(&self, arg: &str, state: &mut TokState) -> std::result::Result<(), TokError> {
+    fn match_short_opt(
+        &self,
+        arg: &str,
+        state: &mut TokState,
+    ) -> std::result::Result<(), TokError> {
         let chars: Vec<char> = arg.chars().collect();
         let prefix = chars[0];
         let mut i = 1;
@@ -627,7 +638,12 @@ pub fn py_float_repr(value: f64) -> String {
         return if value > 0.0 { "inf" } else { "-inf" }.to_owned();
     }
     if value == 0.0 {
-        return if value.is_sign_negative() { "-0.0" } else { "0.0" }.to_owned();
+        return if value.is_sign_negative() {
+            "-0.0"
+        } else {
+            "0.0"
+        }
+        .to_owned();
     }
     let sci = format!("{value:e}");
     let (mantissa, exp) = sci.split_once('e').unwrap();
@@ -644,7 +660,11 @@ pub fn py_float_repr(value: f64) -> String {
         } else if point as usize >= digits.len() {
             format!("{digits}{}.0", "0".repeat(point as usize - digits.len()))
         } else {
-            format!("{}.{}", &digits[..point as usize], &digits[point as usize..])
+            format!(
+                "{}.{}",
+                &digits[..point as usize],
+                &digits[point as usize..]
+            )
         };
         format!("{sign}{body}")
     } else {
@@ -818,7 +838,11 @@ fn convert_const(param: &Param, value: Const) -> std::result::Result<Value, Stri
 }
 
 /// `Parameter.consume_value` (+ `Option.consume_value`).
-fn consume_value(ctx: &Ctx, param: &'static Param, opts: &[(&'static str, Raw)]) -> (Pending, Source) {
+fn consume_value(
+    ctx: &Ctx,
+    param: &'static Param,
+    opts: &[(&'static str, Raw)],
+) -> (Pending, Source) {
     if let Some((_, raw)) = opts.iter().find(|(d, _)| *d == param.dest) {
         let value = match raw {
             Raw::Str(s) => Pending::Raw(s.clone()),
@@ -876,9 +900,9 @@ fn process_value(
         return Err(ctx.usage_error(message));
     }
     let value = match (param.callback, value) {
-        (Some(Callback::NormalizeGpuType), Some(Value::Str(s))) => Some(Value::Str(
-            crate::core::gpu::canonical_gpu_type(Some(&s)),
-        )),
+        (Some(Callback::NormalizeGpuType), Some(Value::Str(s))) => {
+            Some(Value::Str(crate::core::gpu::canonical_gpu_type(Some(&s))))
+        }
         (Some(Callback::NormalizeGpuType), _) => Some(Value::None),
         (None, value) => value,
     };
@@ -897,15 +921,17 @@ fn parse_command_args(ctx: &mut Ctx, args: &[String]) -> std::result::Result<(),
         return Err(Stop::Help(Box::new(ctx.clone()), 2));
     }
     let parser = OptionParser::new(command);
-    let state = parser.parse_args(args, ctx.resilient).map_err(|(_, err)| match err {
-        // click raises BadOptionUsage without a context: no usage line, no hint.
-        TokError::Other(message) => AbError::Usage(UsageError {
-            message,
-            command_path: Vec::new(),
-            show_help_hint: false,
-        }),
-        no_such => ctx.usage_error(no_such.message()),
-    })?;
+    let state = parser
+        .parse_args(args, ctx.resilient)
+        .map_err(|err| match err {
+            // click raises BadOptionUsage without a context: no usage line, no hint.
+            TokError::Other(message) => AbError::Usage(UsageError {
+                message,
+                command_path: Vec::new(),
+                show_help_hint: false,
+            }),
+            no_such => ctx.usage_error(no_such.message()),
+        })?;
     let mut params: Vec<&'static Param> = params_of(command).collect();
     // iter_params_for_processing: eager first, then by first invocation, then declaration.
     params.sort_by_key(|p| {
@@ -936,7 +962,11 @@ fn parse_command_args(ctx: &mut Ctx, args: &[String]) -> std::result::Result<(),
     }
     let rest = state.largs;
     if !rest.is_empty() && !command.is_group && !ctx.resilient {
-        let noun = if rest.len() == 1 { "argument" } else { "arguments" };
+        let noun = if rest.len() == 1 {
+            "argument"
+        } else {
+            "arguments"
+        };
         return Err(ctx
             .usage_error(format!("Got unexpected extra {noun} ({})", rest.join(" ")))
             .into());
@@ -964,9 +994,7 @@ fn make_context(
             let name = path.last().map(String::as_str);
             match (parent.path.len(), name) {
                 (1, Some("dev")) => (None, parent.carried_map.clone()),
-                (2, Some("start")) if parent.path[1] == "dev" => {
-                    (parent.carried_map.clone(), None)
-                }
+                (2, Some("start")) if parent.path[1] == "dev" => (parent.carried_map.clone(), None),
                 _ => (None, None),
             }
         }
@@ -1078,7 +1106,12 @@ pub fn resolve_context(args: &[String]) -> Ctx {
     let Some(mut ctx) = resilient(make_context(&MAIN, root_path.clone(), args, None, true)) else {
         return Ctx::new(&MAIN, root_path, None, None, true);
     };
-    let mut args: Vec<String> = ctx.protected_args.iter().chain(&ctx.args).cloned().collect();
+    let mut args: Vec<String> = ctx
+        .protected_args
+        .iter()
+        .chain(&ctx.args)
+        .cloned()
+        .collect();
     while !args.is_empty() {
         if !ctx.command.is_group {
             break;
@@ -1092,13 +1125,21 @@ pub fn resolve_context(args: &[String]) -> Ctx {
             Some(sub) => ctx = sub,
             None => return ctx,
         }
-        args = ctx.protected_args.iter().chain(&ctx.args).cloned().collect();
+        args = ctx
+            .protected_args
+            .iter()
+            .chain(&ctx.args)
+            .cloned()
+            .collect();
     }
     ctx
 }
 
 /// `difflib.get_close_matches(word, possibilities)` (n=3, cutoff=0.6).
-pub fn get_close_matches<'a>(word: &str, possibilities: impl Iterator<Item = &'a str>) -> Vec<String> {
+pub fn get_close_matches<'a>(
+    word: &str,
+    possibilities: impl Iterator<Item = &'a str>,
+) -> Vec<String> {
     let b: Vec<char> = word.chars().collect();
     let mut scored: Vec<(f64, &str)> = possibilities
         .filter_map(|x| {
@@ -1109,7 +1150,11 @@ pub fn get_close_matches<'a>(word: &str, possibilities: impl Iterator<Item = &'a
         .collect();
     // heapq.nlargest(3, (score, x)): by score, then x, descending.
     scored.sort_by(|l, r| r.0.total_cmp(&l.0).then_with(|| r.1.cmp(l.1)));
-    scored.into_iter().take(3).map(|(_, x)| x.to_owned()).collect()
+    scored
+        .into_iter()
+        .take(3)
+        .map(|(_, x)| x.to_owned())
+        .collect()
 }
 
 /// `SequenceMatcher(None, a, b).ratio()`.
@@ -1154,9 +1199,9 @@ fn find_longest_match(
 ) -> (usize, usize, usize) {
     let (mut besti, mut bestj, mut bestsize) = (alo, blo, 0);
     let mut j2len: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();
-    for i in alo..ahi {
+    for (i, ch) in a.iter().enumerate().take(ahi).skip(alo) {
         let mut new: std::collections::HashMap<usize, usize> = std::collections::HashMap::new();
-        if let Some(js) = b2j.get(&a[i]) {
+        if let Some(js) = b2j.get(ch) {
             for &j in js {
                 if j < blo {
                     continue;
@@ -1164,7 +1209,12 @@ fn find_longest_match(
                 if j >= bhi {
                     break;
                 }
-                let k = j.checked_sub(1).and_then(|p| j2len.get(&p)).copied().unwrap_or(0) + 1;
+                let k = j
+                    .checked_sub(1)
+                    .and_then(|p| j2len.get(&p))
+                    .copied()
+                    .unwrap_or(0)
+                    + 1;
                 new.insert(j, k);
                 if k > bestsize {
                     besti = i + 1 - k;
@@ -1180,8 +1230,263 @@ fn find_longest_match(
         bestj -= 1;
         bestsize += 1;
     }
-    while besti + bestsize < ahi && bestj + bestsize < bhi && a[besti + bestsize] == b[bestj + bestsize] {
+    while besti + bestsize < ahi
+        && bestj + bestsize < bhi
+        && a[besti + bestsize] == b[bestj + bestsize]
+    {
         bestsize += 1;
     }
     (besti, bestj, bestsize)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn no_map() -> Result<DefaultMap> {
+        Ok(Vec::new())
+    }
+
+    fn parse_ok(argv: &[&str]) -> (Vec<String>, Args) {
+        parse_with(argv, &no_map)
+    }
+
+    fn parse_with(argv: &[&str], map: &dyn Fn() -> Result<DefaultMap>) -> (Vec<String>, Args) {
+        let argv: Vec<String> = argv.iter().map(|s| (*s).to_owned()).collect();
+        match parse(&argv, map).expect("parses") {
+            Parsed::Run { path, args, .. } => (path, args),
+            other => panic!("not a run: {other:?}"),
+        }
+    }
+
+    fn usage_error(argv: &[&str]) -> UsageError {
+        let argv: Vec<String> = argv.iter().map(|s| (*s).to_owned()).collect();
+        match parse(&argv, &no_map) {
+            Err(AbError::Usage(err)) => err,
+            other => panic!("expected a usage error, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn bare_invocation_runs_info() {
+        let (path, args) = parse_ok(&[]);
+        assert_eq!(path, ["bab", "info"]);
+        assert!(!args.flag("all_partitions"));
+        assert!(
+            parse_ok(&["info", "--all-partitions"])
+                .1
+                .flag("all_partitions")
+        );
+    }
+
+    #[test]
+    fn queue_options_and_alias() {
+        let (path, args) = parse_ok(&["q", "--user", "alice", "-pgpusmall", "--all"]);
+        assert_eq!(path, ["bab", "q"]);
+        assert_eq!(args.opt_str("user"), Some("alice"));
+        assert_eq!(args.opt_str("partition"), Some("gpusmall"));
+        assert!(args.flag("all_users"));
+        assert_eq!(args.opt_float("watch"), None);
+        assert_eq!(
+            parse_ok(&["q", "-p", "a", "-p", "b"])
+                .1
+                .opt_str("partition"),
+            Some("b")
+        );
+        assert_eq!(
+            parse_ok(&["q", "--partition=x"]).1.opt_str("partition"),
+            Some("x")
+        );
+    }
+
+    #[test]
+    fn watch_takes_an_optional_value() {
+        assert_eq!(parse_ok(&["q", "-w"]).1.opt_float("watch"), Some(10.0));
+        assert_eq!(
+            parse_ok(&["q", "-w", "15"]).1.opt_float("watch"),
+            Some(15.0)
+        );
+        assert_eq!(parse_ok(&["q", "-w15"]).1.opt_float("watch"), Some(15.0));
+        assert_eq!(
+            parse_ok(&["q", "--watch=30"]).1.opt_float("watch"),
+            Some(30.0)
+        );
+        let (_, args) = parse_ok(&["q", "-w", "-p", "gpusmall"]);
+        assert_eq!(args.opt_float("watch"), Some(10.0));
+        assert_eq!(args.opt_str("partition"), Some("gpusmall"));
+        assert_eq!(
+            usage_error(&["q", "--watch", "5"]).message,
+            "Invalid value for '-w' / '--watch': 5.0 is not in the range x>=10."
+        );
+        assert_eq!(
+            usage_error(&["q", "--watch", "abc"]).message,
+            "Invalid value for '-w' / '--watch': 'abc' is not a valid float range."
+        );
+    }
+
+    #[test]
+    fn why_fix_flag_value_and_choices() {
+        let (_, args) = parse_ok(&["why", "65177", "--fix"]);
+        assert_eq!(args.opt_str("fix"), Some("auto"));
+        assert_eq!(args.opt_str("jobid"), Some("65177"));
+        let (_, args) = parse_ok(&["why", "65177", "--nodes", "--fix", "cpus", "-y"]);
+        assert_eq!(args.opt_str("fix"), Some("cpus"));
+        assert!(args.flag("show_nodes") && args.flag("assume_yes"));
+        assert_eq!(
+            usage_error(&["why", "65177", "--fix", "disk"]).message,
+            "Invalid value for '--fix': 'disk' is not one of 'auto', 'mem', 'cpus', 'gpus'."
+        );
+        assert_eq!(parse_ok(&["why"]).1.opt_str("jobid"), None);
+    }
+
+    #[test]
+    fn jobs_and_dev_defaults() {
+        assert_eq!(parse_ok(&["job", "history"]).1.int("limit"), 50);
+        assert_eq!(
+            parse_ok(&["job", "history", "--limit", "100"])
+                .1
+                .int("limit"),
+            100
+        );
+        let (_, args) = parse_ok(&["job", "output", "--stderr", "12345"]);
+        assert_eq!((args.str("jobid"), args.flag("stderr")), ("12345", true));
+        let err = usage_error(&["job", "output"]);
+        assert_eq!(err.message, "Missing argument 'JOBID'.");
+        assert_eq!(err.command_path, ["bab", "job", "output"]);
+        let (_, args) = parse_ok(&["dev", "start", "-g", "2", "-c4"]);
+        assert_eq!(args.str("partition"), "auto");
+        assert_eq!(args.str("time_limit"), "08:00:00");
+        assert_eq!((args.opt_int("gpu"), args.int("cpus")), (Some(2), 4));
+        assert_eq!(args.float("poll_interval"), 5.0);
+        let (path, args) = parse_ok(&["l", "--command", "nvidia-smi"]);
+        assert_eq!(path, ["bab", "l"]);
+        assert_eq!(args.opt_str("command"), Some("nvidia-smi"));
+        assert!(!args.flag("srun"));
+        assert_eq!(
+            usage_error(&["l", "--poll-interval", "0"]).command_path,
+            ["bab", "l"]
+        );
+    }
+
+    #[test]
+    fn default_map_applies_to_dev_start_only() {
+        let map = || Ok(vec![("gpu", "3".to_owned()), ("mem", "32G".to_owned())]);
+        let (_, args) = parse_with(&["dev", "start", "-g", "1"], &map);
+        assert_eq!((args.opt_int("gpu"), args.str("mem")), (Some(1), "32G"));
+        let bad = || Ok(vec![("cpus", "abc".to_owned())]);
+        let argv = vec!["dev".to_owned(), "start".to_owned()];
+        match parse(&argv, &bad) {
+            Err(AbError::Usage(err)) => assert_eq!(
+                err.message,
+                "Invalid value for '-c' / '--cpus': 'abc' is not a valid integer."
+            ),
+            other => panic!("{other:?}"),
+        }
+        let failing = || Err(AbError::Click("broken".to_owned()));
+        let argv = vec!["info".to_owned(), "-h".to_owned()];
+        assert_eq!(
+            parse(&argv, &failing),
+            Err(AbError::Click("broken".to_owned()))
+        );
+        let argv = vec!["-h".to_owned()];
+        assert!(matches!(
+            parse(&argv, &failing),
+            Ok(Parsed::Help { code: 0, .. })
+        ));
+    }
+
+    #[test]
+    fn unknown_options_and_commands() {
+        assert_eq!(
+            usage_error(&["q", "--al"]).message,
+            "No such option: --al (Possible options: --all, --help)"
+        );
+        assert_eq!(
+            usage_error(&["info", "--all-partition"]).message,
+            "No such option: --all-partition Did you mean --all-partitions?"
+        );
+        assert_eq!(usage_error(&["q", "-x"]).message, "No such option: -x");
+        assert_eq!(usage_error(&["foo"]).message, "No such command 'foo'.");
+        assert_eq!(
+            usage_error(&["q", "a", "b"]).message,
+            "Got unexpected extra arguments (a b)"
+        );
+        let err = usage_error(&["q", "--user"]);
+        assert_eq!(err.message, "Option '--user' requires an argument.");
+        assert!(err.command_path.is_empty() && !err.show_help_hint);
+    }
+
+    #[test]
+    fn help_version_and_groups() {
+        let parse_raw = |argv: &[&str]| {
+            let argv: Vec<String> = argv.iter().map(|s| (*s).to_owned()).collect();
+            parse(&argv, &no_map).unwrap()
+        };
+        assert_eq!(parse_raw(&["--version", "-h"]), Parsed::Version);
+        assert!(matches!(parse_raw(&["dev"]), Parsed::Help { code: 2, .. }));
+        match parse_raw(&["q", "--watch", "5", "-h"]) {
+            Parsed::Help { path, code, .. } => {
+                assert_eq!((path, code), (vec!["bab".into(), "q".into()], 0))
+            }
+            other => panic!("{other:?}"),
+        }
+        assert_eq!(usage_error(&["dev", "--"]).message, "Missing command.");
+    }
+
+    #[test]
+    fn gpualloc_is_hidden_and_l_follows_dev() {
+        let names: Vec<&str> = list_commands(&MAIN).iter().map(|c| c.name).collect();
+        assert_eq!(
+            names,
+            [
+                "completion",
+                "config",
+                "dev",
+                "l",
+                "free",
+                "gpualloc",
+                "info",
+                "job",
+                "node",
+                "queue",
+                "why"
+            ]
+        );
+        assert!(get_command(&MAIN, "gpualloc").unwrap().hidden);
+        assert_eq!(
+            parse_ok(&["gpualloc", "gpu042"]).1.opt_str("node"),
+            Some("gpu042")
+        );
+    }
+
+    #[test]
+    fn python_number_formats() {
+        assert_eq!(py_float_repr(5.0), "5.0");
+        assert_eq!(py_float_repr(1e-5), "1e-05");
+        assert_eq!(py_float_repr(1e16), "1e+16");
+        assert_eq!(py_float_repr(123456.789), "123456.789");
+        assert_eq!(py_float_repr(0.0001), "0.0001");
+        assert_eq!(py_int(" -5 "), Some(-5));
+        assert_eq!(py_int("1_000"), Some(1000));
+        assert_eq!(py_int("1__0"), None);
+        assert_eq!(py_float("1_0.5"), Some(10.5));
+        assert_eq!(py_float("5."), Some(5.0));
+        assert_eq!(py_float(".5e1"), Some(5.0));
+        assert!(py_float("Infinity").unwrap().is_infinite());
+        assert_eq!(py_float("e5"), None);
+    }
+
+    #[test]
+    fn close_matches_like_difflib() {
+        let options = ["--all", "--user", "--partition", "--watch", "--help"];
+        assert_eq!(
+            get_close_matches("--al", options.iter().copied()),
+            ["--all", "--help"]
+        );
+        assert_eq!(
+            get_close_matches("--wat", options.iter().copied()),
+            ["--watch", "--all"]
+        );
+        assert!(get_close_matches("--zzzzzz", options.iter().copied()).is_empty());
+    }
 }

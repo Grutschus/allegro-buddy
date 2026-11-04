@@ -62,7 +62,10 @@ pub fn parse_job_detail_line(line: &str) -> Record {
 pub fn job_on_node(job: &Record, node: &str) -> Record {
     for block in job.get_str("NodeBlocks").split(" Nodes=") {
         let props = parse_prop_line(&format!("Nodes={block}"));
-        if expand_nodelist(props.get_str("Nodes")).iter().any(|n| n == node) {
+        if expand_nodelist(props.get_str("Nodes"))
+            .iter()
+            .any(|n| n == node)
+        {
             return props;
         }
     }
@@ -91,7 +94,9 @@ fn parse_job_details(output: &slurm::Output) -> Vec<Record> {
     if !output.success() {
         return Vec::new();
     }
-    data_lines(&output.stdout).map(parse_job_detail_line).collect()
+    data_lines(&output.stdout)
+        .map(parse_job_detail_line)
+        .collect()
 }
 
 /// `load_job_details(job_id)`: `scontrol --oneliner --details show job [id]`, checked only
@@ -282,13 +287,21 @@ pub fn load_job_history(user: Option<&str>, strict: bool, since: &str) -> Result
     let mut history: Vec<Record> = Vec::new();
     for row in parse_pipe_rows(&output.stdout, &SACCT_HISTORY_HEADERS) {
         let raw = row.get_str("JobIDRaw");
-        let id = pyfmt::strip(if raw.is_empty() { row.get_str("JobID") } else { raw }).to_owned();
+        let id = pyfmt::strip(if raw.is_empty() {
+            row.get_str("JobID")
+        } else {
+            raw
+        })
+        .to_owned();
         if id.is_empty() {
             continue;
         }
         let mut normalized = row.clone();
         normalized.insert("JobId".to_owned(), id);
-        normalized.insert("StateToken".to_owned(), normalize_sacct_state(row.get_str("State")));
+        normalized.insert(
+            "StateToken".to_owned(),
+            normalize_sacct_state(row.get_str("State")),
+        );
         normalized.insert("HistorySource".to_owned(), "sacct".to_owned());
         history.push(normalized);
     }
@@ -322,7 +335,11 @@ pub fn job_history_completion_ids(incomplete: &str, user: Option<&str>) -> Vec<S
             continue;
         }
         let root = base_job_id(job_id);
-        let candidates = if root != job_id { vec![job_id, root] } else { vec![job_id] };
+        let candidates = if root != job_id {
+            vec![job_id, root]
+        } else {
+            vec![job_id]
+        };
         for candidate in candidates {
             if candidate.is_empty() || matches.iter().any(|m| m == candidate) {
                 continue;
@@ -387,13 +404,20 @@ fn posix_parts(path: &str) -> (&'static str, Vec<&str>) {
     } else {
         ""
     };
-    let parts = path.split('/').filter(|p| !p.is_empty() && *p != ".").collect();
+    let parts = path
+        .split('/')
+        .filter(|p| !p.is_empty() && *p != ".")
+        .collect();
     (root, parts)
 }
 
 fn join_posix(root: &str, parts: &[&str]) -> String {
     let joined = format!("{root}{}", parts.join("/"));
-    if joined.is_empty() { ".".to_owned() } else { joined }
+    if joined.is_empty() {
+        ".".to_owned()
+    } else {
+        joined
+    }
 }
 
 /// `os.path.expanduser` of a single `~` / `~user` component.
@@ -408,7 +432,11 @@ fn expand_tilde(part: &str) -> Option<String> {
         crate::hooks::home_of(Some(user))?
     };
     let trimmed = home.trim_end_matches('/');
-    Some(if trimmed.is_empty() { "/".to_owned() } else { trimmed.to_owned() })
+    Some(if trimmed.is_empty() {
+        "/".to_owned()
+    } else {
+        trimmed.to_owned()
+    })
 }
 
 /// `Path(path).expanduser()` as a string.
@@ -443,8 +471,20 @@ pub fn resolve_slurm_output_path(
     let task = job_id.split_once('_').map_or("0", |(_, task)| task);
     let value_of = |key: char| -> Option<&str> {
         Some(match key {
-            'J' => if raw_id.is_empty() { job_id } else { raw_id },
-            'j' => if raw_id.is_empty() { base_id } else { raw_id },
+            'J' => {
+                if raw_id.is_empty() {
+                    job_id
+                } else {
+                    raw_id
+                }
+            }
+            'j' => {
+                if raw_id.is_empty() {
+                    base_id
+                } else {
+                    raw_id
+                }
+            }
             'A' => base_id,
             'a' => task,
             'x' => name,
@@ -485,7 +525,9 @@ pub fn resolve_slurm_output_path(
             match value_of(key) {
                 None => resolved.extend(&chars[i..=key_at]),
                 Some(value) if width.is_empty() => resolved.push_str(value),
-                Some(value) => resolved.push_str(&pyfmt::zfill(value, width.parse().unwrap_or(usize::MAX))),
+                Some(value) => {
+                    resolved.push_str(&pyfmt::zfill(value, width.parse().unwrap_or(usize::MAX)))
+                }
             }
         }
         i = key_at + 1;
@@ -525,11 +567,18 @@ pub fn resolve_job_output_path(
     let mut detail = get_job_detail(job_id)?;
     if detail.is_none() {
         let argv = [
-            "sacct", "-X", "-n", "-P", "-j", job_id,
+            "sacct",
+            "-X",
+            "-n",
+            "-P",
+            "-j",
+            job_id,
             "--format=User,StdOut,StdErr,JobIDRaw,JobName,JobID",
         ];
         let headers = ["UserId", "StdOut", "StdErr", "JobIDRaw", "JobName", "JobID"];
-        detail = slurm::run_parsable_rows(&argv, &headers, false)?.into_iter().next();
+        detail = slurm::run_parsable_rows(&argv, &headers, false)?
+            .into_iter()
+            .next();
     }
     let Some(detail) = detail else {
         return Ok(None);
@@ -541,10 +590,18 @@ pub fn resolve_job_output_path(
     let display_id = detail.get_str("JobID");
     Ok(resolve_slurm_output_path(
         detail.get_str(field),
-        if display_id.is_empty() { job_id } else { display_id },
+        if display_id.is_empty() {
+            job_id
+        } else {
+            display_id
+        },
         detail.get_str("JobIDRaw"),
         detail.get_str("JobName"),
-        if owner.is_empty() { &expected_user } else { owner },
+        if owner.is_empty() {
+            &expected_user
+        } else {
+            owner
+        },
     ))
 }
 
@@ -617,7 +674,8 @@ fn filter_dev_jobs(jobs: Vec<Record>, job_id: Option<&str>) -> Vec<Record> {
                 && ACTIVE_STATES.contains(&state)
                 && state != "COMPLETING"
                 && job_id.is_none_or(|id| {
-                    job.get_opt("JobId") == Some(id) || base_job_id(job.get_str("JobId")) == base_job_id(id)
+                    job.get_opt("JobId") == Some(id)
+                        || base_job_id(job.get_str("JobId")) == base_job_id(id)
                 })
         })
         .collect();
@@ -642,7 +700,10 @@ mod tests {
     use crate::hooks::testing::Ctx;
 
     fn rec(pairs: &[(&str, &str)]) -> Record {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     const SACCT_HISTORY_OUTPUT: &str = "12345|12345|training|COMPLETED|0:0|2024-05-01T10:00:00|None\n\
@@ -657,10 +718,38 @@ mod tests {
 
     #[test]
     fn display_ids() {
-        assert_eq!(display_job_id(&rec(&[("JobId", "12345"), ("ArrayJobId", "N/A"), ("ArrayTaskId", "N/A")])), "12345");
-        assert_eq!(display_job_id(&rec(&[("JobId", "12345_3"), ("ArrayJobId", "12345"), ("ArrayTaskId", "3")])), "12345_3");
-        assert_eq!(display_job_id(&rec(&[("JobId", "12345"), ("ArrayJobId", "12345"), ("ArrayTaskId", "(null)")])), "12345");
-        assert_eq!(display_job_id(&rec(&[("JobId", "12345"), ("ArrayJobId", "12345"), ("ArrayTaskId", "N/A")])), "12345");
+        assert_eq!(
+            display_job_id(&rec(&[
+                ("JobId", "12345"),
+                ("ArrayJobId", "N/A"),
+                ("ArrayTaskId", "N/A")
+            ])),
+            "12345"
+        );
+        assert_eq!(
+            display_job_id(&rec(&[
+                ("JobId", "12345_3"),
+                ("ArrayJobId", "12345"),
+                ("ArrayTaskId", "3")
+            ])),
+            "12345_3"
+        );
+        assert_eq!(
+            display_job_id(&rec(&[
+                ("JobId", "12345"),
+                ("ArrayJobId", "12345"),
+                ("ArrayTaskId", "(null)")
+            ])),
+            "12345"
+        );
+        assert_eq!(
+            display_job_id(&rec(&[
+                ("JobId", "12345"),
+                ("ArrayJobId", "12345"),
+                ("ArrayTaskId", "N/A")
+            ])),
+            "12345"
+        );
     }
 
     #[test]
@@ -672,17 +761,27 @@ mod tests {
         let cancelled = rows.iter().find(|j| j["JobId"] == "12347").unwrap();
         assert_eq!(cancelled["StateToken"], "CANCELLED");
         assert!(rows.iter().all(|j| j["HistorySource"] == "sacct"));
-        let duplicated = format!("{SACCT_HISTORY_OUTPUT}12345|12345|training|COMPLETED|0:0|2024-05-01T10:00:00|None\n");
+        let duplicated = format!(
+            "{SACCT_HISTORY_OUTPUT}12345|12345|training|COMPLETED|0:0|2024-05-01T10:00:00|None\n"
+        );
         let rows = history(ok(&duplicated));
         assert_eq!(rows.iter().filter(|j| j["JobId"] == "12345").count(), 1);
         assert!(history(ok("")).is_empty());
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(fail(1, ""))).install();
-        assert!(load_job_history(Some("alice"), false, "now-30days").unwrap().is_empty());
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(fail(1, "")))
+            .install();
+        assert!(
+            load_job_history(Some("alice"), false, "now-30days")
+                .unwrap()
+                .is_empty()
+        );
     }
 
     #[test]
     fn history_window_and_unknown_end_times() {
-        let fake = FakeSlurm::always(ok("7|7|a|RUNNING|0:0|Unknown|None\n8|8|b|COMPLETED|0:0|2024-05-01T10:00:00|None\n9_1|9_1|c|COMPLETED|0:0|2024-05-01T10:00:00|None\n|10|d|X|0:0||\n|  |e|X|0:0||\n"));
+        let fake = FakeSlurm::always(ok(
+            "7|7|a|RUNNING|0:0|Unknown|None\n8|8|b|COMPLETED|0:0|2024-05-01T10:00:00|None\n9_1|9_1|c|COMPLETED|0:0|2024-05-01T10:00:00|None\n|10|d|X|0:0||\n|  |e|X|0:0||\n",
+        ));
         let _ctx = Ctx::default().slurm(fake.clone()).install();
         let rows = load_job_history(Some("alice"), true, "now-30days").unwrap();
         let ids: Vec<&str> = rows.iter().map(|j| j.get_str("JobId")).collect();
@@ -690,36 +789,61 @@ mod tests {
         assert_eq!(
             fake.calls()[0],
             [
-                "sacct", "--parsable2", "--noheader", "-X", "--user=alice",
-                "--starttime=now-30days", "--format=JobIDRaw,JobID,JobName,State,ExitCode,End,Reason"
+                "sacct",
+                "--parsable2",
+                "--noheader",
+                "-X",
+                "--user=alice",
+                "--starttime=now-30days",
+                "--format=JobIDRaw,JobID,JobName,State,ExitCode,End,Reason"
             ]
         );
     }
 
     #[test]
     fn completion_ids_from_two_days_of_history() {
-        let fake = FakeSlurm::always(ok("130|123_7|t|COMPLETED|0:0|2024-05-03T10:00:00|None\n123_6|123_6|t|COMPLETED|0:0|2024-05-02T10:00:00|None\n99|99|ab-dev|COMPLETED|0:0|2024-05-04T10:00:00|None\n"));
+        let fake = FakeSlurm::always(ok(
+            "130|123_7|t|COMPLETED|0:0|2024-05-03T10:00:00|None\n123_6|123_6|t|COMPLETED|0:0|2024-05-02T10:00:00|None\n99|99|ab-dev|COMPLETED|0:0|2024-05-04T10:00:00|None\n",
+        ));
         let _ctx = Ctx::default().slurm(fake.clone()).install();
-        assert_eq!(job_history_completion_ids("", Some("alice")), ["130", "123_6", "123"]);
-        assert_eq!(job_history_completion_ids("12", Some("alice")), ["123_6", "123"]);
+        assert_eq!(
+            job_history_completion_ids("", Some("alice")),
+            ["130", "123_6", "123"]
+        );
+        assert_eq!(
+            job_history_completion_ids("12", Some("alice")),
+            ["123_6", "123"]
+        );
         assert!(fake.calls()[0].contains(&"--starttime=now-2days".to_owned()));
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(fail(1, "down"))).install();
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(fail(1, "down")))
+            .install();
         assert!(job_history_completion_ids("", Some("alice")).is_empty());
     }
 
     #[test]
     fn job_records() {
-        let fake = FakeSlurm::always(ok(r#"{"jobs": [{"job_id": 65177, "job_state": ["PENDING"]}]}"#));
+        let fake = FakeSlurm::always(ok(
+            r#"{"jobs": [{"job_id": 65177, "job_state": ["PENDING"]}]}"#,
+        ));
         let _ctx = Ctx::default().slurm(fake.clone()).install();
         let records = load_job_records(None, true).unwrap();
-        assert_eq!(records, [serde_json::json!({"job_id": 65177, "job_state": ["PENDING"]})]);
+        assert_eq!(
+            records,
+            [serde_json::json!({"job_id": 65177, "job_state": ["PENDING"]})]
+        );
         assert_eq!(fake.calls()[0], ["scontrol", "--json", "show", "job"]);
         let fake = FakeSlurm::always(fail(1, ""));
         let _ctx = Ctx::default().slurm(fake.clone()).install();
         assert!(load_job_records(Some("999999"), true).unwrap().is_empty());
-        assert_eq!(fake.calls()[0], ["scontrol", "--json", "show", "job", "999999"]);
+        assert_eq!(
+            fake.calls()[0],
+            ["scontrol", "--json", "show", "job", "999999"]
+        );
         assert!(load_job_records(None, false).unwrap().is_empty());
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(ok("not json"))).install();
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(ok("not json")))
+            .install();
         assert!(load_job_records(None, false).unwrap().is_empty());
     }
 
@@ -730,18 +854,27 @@ MinCPUsNode=1";
 
     #[test]
     fn gres_per_node_block() {
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(ok(&format!("{MULTI_NODE_LINE}\n")))).install();
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(ok(&format!("{MULTI_NODE_LINE}\n"))))
+            .install();
         let jobs = load_job_details(None).unwrap();
         assert_eq!(jobs.len(), 1);
         assert_eq!(job_gres_on_node(&jobs[0], "gpu081"), "gpu:a100:2(IDX:0-1)");
         assert_eq!(job_gres_on_node(&jobs[0], "gpu082"), "gpu:a100:2(IDX:2-3)");
         assert_eq!(job_on_node(&jobs[0], "gpu082")["Mem"], "1000");
-        assert_eq!(job_gres_on_node(&rec(&[("GRES", "gpu:1(IDX:0)")]), "gpu001"), "gpu:1(IDX:0)");
+        assert_eq!(
+            job_gres_on_node(&rec(&[("GRES", "gpu:1(IDX:0)")]), "gpu001"),
+            "gpu:1(IDX:0)"
+        );
     }
 
     fn sacct_fallback(sacct_stdout: &'static str) -> crate::hooks::testing::Guard {
         let fake = FakeSlurm::new(move |argv| {
-            Some(if argv[0] == "scontrol" { fail(1, "") } else { ok(sacct_stdout) })
+            Some(if argv[0] == "scontrol" {
+                fail(1, "")
+            } else {
+                ok(sacct_stdout)
+            })
         });
         Ctx::default().slurm(fake).install()
     }
@@ -757,9 +890,15 @@ MinCPUsNode=1";
         let _ctx = sacct_fallback("alice|/home/alice/out-%j.txt|/home/alice/err-%j.txt\n");
         assert_eq!(output_path("42").as_deref(), Some("/home/alice/out-42.txt"));
         let _ctx = sacct_fallback("alice|/logs/out-%j.log||71512|train\n");
-        assert_eq!(output_path("71485_0").as_deref(), Some("/logs/out-71512.log"));
+        assert_eq!(
+            output_path("71485_0").as_deref(),
+            Some("/logs/out-71512.log")
+        );
         let _ctx = sacct_fallback("alice|/logs/%u/%x-%j.out||42|train\n");
-        assert_eq!(output_path("42").as_deref(), Some("/logs/alice/train-42.out"));
+        assert_eq!(
+            output_path("42").as_deref(),
+            Some("/logs/alice/train-42.out")
+        );
         let _ctx = sacct_fallback("alice|/h/%x-%A_%a.out||130|train|123_7\n");
         assert_eq!(output_path("130").as_deref(), Some("/h/train-123_7.out"));
         let _ctx = sacct_fallback("bob|/home/bob/out.txt|\n");
@@ -787,23 +926,49 @@ MinCPUsNode=1";
 
     #[test]
     fn output_path_templates() {
-        let r = |t: &str, id: &str| resolve_slurm_output_path(t, id, "", "", "").map(|p| p.display().to_string());
-        assert_eq!(r("/home/user/output.txt", "12345").as_deref(), Some("/home/user/output.txt"));
-        assert_eq!(r("/home/user/job-%J.out", "12345").as_deref(), Some("/home/user/job-12345.out"));
-        assert_eq!(r("/home/user/job-%j.out", "12345_3").as_deref(), Some("/home/user/job-12345.out"));
-        assert_eq!(r("/home/user/job-%A_%a.out", "12345_3").as_deref(), Some("/home/user/job-12345_3.out"));
+        let r = |t: &str, id: &str| {
+            resolve_slurm_output_path(t, id, "", "", "").map(|p| p.display().to_string())
+        };
+        assert_eq!(
+            r("/home/user/output.txt", "12345").as_deref(),
+            Some("/home/user/output.txt")
+        );
+        assert_eq!(
+            r("/home/user/job-%J.out", "12345").as_deref(),
+            Some("/home/user/job-12345.out")
+        );
+        assert_eq!(
+            r("/home/user/job-%j.out", "12345_3").as_deref(),
+            Some("/home/user/job-12345.out")
+        );
+        assert_eq!(
+            r("/home/user/job-%A_%a.out", "12345_3").as_deref(),
+            Some("/home/user/job-12345_3.out")
+        );
         assert_eq!(r("(null)", "12345"), None);
         assert_eq!(r("", "12345"), None);
-        assert_eq!(r("/out/100%%-%4a-%N.out", "7_3").as_deref(), Some("/out/100%-0003-%N.out"));
-        assert_eq!(r("/out/%A_%a.out", "12345").as_deref(), Some("/out/12345_0.out"));
+        assert_eq!(
+            r("/out/100%%-%4a-%N.out", "7_3").as_deref(),
+            Some("/out/100%-0003-%N.out")
+        );
+        assert_eq!(
+            r("/out/%A_%a.out", "12345").as_deref(),
+            Some("/out/12345_0.out")
+        );
         assert_eq!(r("/out//./x/%5", "1").as_deref(), Some("/out/x/%5"));
         assert_eq!(r("rel/%", "1").as_deref(), Some("rel/%"));
-        assert_eq!(r("/a/${BAB_SURELY_UNSET}/$BAB_SURELY_UNSET/x", "1").as_deref(), Some("/a/${BAB_SURELY_UNSET}/$BAB_SURELY_UNSET/x"));
+        assert_eq!(
+            r("/a/${BAB_SURELY_UNSET}/$BAB_SURELY_UNSET/x", "1").as_deref(),
+            Some("/a/${BAB_SURELY_UNSET}/$BAB_SURELY_UNSET/x")
+        );
         let home = std::env::var("HOME").unwrap_or_default();
         let tilde = r("~/slurm-output/job-%j.out", "12345").unwrap();
         assert!(tilde.starts_with(home.trim_end_matches('/')), "{tilde}");
         assert!(tilde.ends_with("/slurm-output/job-12345.out"));
-        assert_eq!(r("~nosuchuser-bab/x", "1").as_deref(), Some("~nosuchuser-bab/x"));
+        assert_eq!(
+            r("~nosuchuser-bab/x", "1").as_deref(),
+            Some("~nosuchuser-bab/x")
+        );
     }
 
     #[test]
@@ -812,7 +977,10 @@ MinCPUsNode=1";
             Some(if argv[0] == "squeue" {
                 ok("71485\n71485\n42\n")
             } else {
-                ok(&format!("JobId={} UserId=alice(1) JobState=RUNNING\n", argv.last().unwrap()))
+                ok(&format!(
+                    "JobId={} UserId=alice(1) JobState=RUNNING\n",
+                    argv.last().unwrap()
+                ))
             })
         });
         let _ctx = Ctx::default().slurm(fake.clone()).install();
@@ -820,7 +988,11 @@ MinCPUsNode=1";
         let ids: Vec<&str> = jobs.iter().map(|j| j.get_str("JobId")).collect();
         assert_eq!(ids, ["71485", "42"]);
         let calls = fake.calls();
-        assert!(!calls.iter().any(|c| c == &["scontrol", "--oneliner", "--details", "show", "job"]));
+        assert!(
+            !calls
+                .iter()
+                .any(|c| c == &["scontrol", "--oneliner", "--details", "show", "job"])
+        );
         assert!(calls[0].contains(&"--user=alice".to_owned()));
         assert_eq!(calls.len(), 3);
     }
@@ -828,7 +1000,11 @@ MinCPUsNode=1";
     #[test]
     fn job_that_ended_meanwhile_is_skipped() {
         let fake = FakeSlurm::new(|argv| {
-            Some(if argv[0] == "squeue" { ok("42\n") } else { fail(1, "Invalid job id specified") })
+            Some(if argv[0] == "squeue" {
+                ok("42\n")
+            } else {
+                fail(1, "Invalid job id specified")
+            })
         });
         let _ctx = Ctx::default().slurm(fake).install();
         assert!(get_user_jobs(Some("alice"), None).unwrap().is_empty());
@@ -841,7 +1017,9 @@ MinCPUsNode=1";
             Some(if argv[0] == "squeue" {
                 ok(&ids)
             } else {
-                ok("JobId=1 UserId=alice(1) JobName=ab-dev\nJobId=2 UserId=bob(2) JobName=ab-dev\nJobId=3 UserId=alice(1) JobName=x\n")
+                ok(
+                    "JobId=1 UserId=alice(1) JobName=ab-dev\nJobId=2 UserId=bob(2) JobName=ab-dev\nJobId=3 UserId=alice(1) JobName=x\n",
+                )
             })
         });
         let _ctx = Ctx::default().slurm(fake.clone()).install();
@@ -851,7 +1029,13 @@ MinCPUsNode=1";
         assert_eq!(
             fake.calls(),
             [
-                vec!["squeue", "-h", "--user=alice", "--format=%F", "--name=ab-dev"],
+                vec![
+                    "squeue",
+                    "-h",
+                    "--user=alice",
+                    "--format=%F",
+                    "--name=ab-dev"
+                ],
                 vec!["scontrol", "--oneliner", "--details", "show", "job"],
             ]
         );
@@ -880,7 +1064,9 @@ MinCPUsNode=1";
     #[test]
     fn completing_dev_job_no_longer_counts() {
         let running = rec(&[
-            ("JobId", "111"), ("JobName", "ab-dev"), ("JobState", "RUNNING"),
+            ("JobId", "111"),
+            ("JobName", "ab-dev"),
+            ("JobState", "RUNNING"),
             ("SubmitTime", "2030-01-01T08:00:00"),
         ]);
         let mut completing = running.clone();
@@ -897,7 +1083,12 @@ MinCPUsNode=1";
     #[test]
     fn dev_jobs_order_and_filter() {
         let job = |id: &str, state: &str, submit: &str| {
-            rec(&[("JobId", id), ("JobName", "ab-dev"), ("JobState", state), ("SubmitTime", submit)])
+            rec(&[
+                ("JobId", id),
+                ("JobName", "ab-dev"),
+                ("JobState", state),
+                ("SubmitTime", submit),
+            ])
         };
         let jobs = vec![
             job("1", "PENDING", "2030-01-01T09:00:00"),
@@ -907,13 +1098,22 @@ MinCPUsNode=1";
             job("5", "SUSPENDED", "2030-01-01T10:00:00"),
         ];
         let ids = |jobs: Vec<Record>| jobs.iter().map(|j| j["JobId"].clone()).collect::<Vec<_>>();
-        assert_eq!(ids(filter_dev_jobs(jobs.clone(), None)), ["3", "2", "1", "4_1"]);
+        assert_eq!(
+            ids(filter_dev_jobs(jobs.clone(), None)),
+            ["3", "2", "1", "4_1"]
+        );
         assert_eq!(ids(filter_dev_jobs(jobs, Some("4_7"))), ["4_1"]);
     }
 
     #[test]
     fn log_tails() {
-        let dir = std::env::current_exe().unwrap().parent().unwrap().parent().unwrap().join(format!("bab-test-scratch/logs-{}", std::process::id()));
+        let dir = std::env::current_exe()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join(format!("bab-test-scratch/logs-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let path = dir.join("out.log");
         std::fs::write(&path, b"a\r\nb\rc\nd\xff\ne").unwrap();

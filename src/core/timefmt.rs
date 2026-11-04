@@ -37,11 +37,19 @@ pub fn parse_slurm_time(value: &str) -> Option<i64> {
         }
         2 => {
             let v = ints()?;
-            if with_days { (v[0], v[1], 0) } else { (0, v[0], v[1]) }
+            if with_days {
+                (v[0], v[1], 0)
+            } else {
+                (0, v[0], v[1])
+            }
         }
         1 => {
             let v = ints()?;
-            if with_days { (v[0], 0, 0) } else { (0, v[0], 0) }
+            if with_days {
+                (v[0], 0, 0)
+            } else {
+                (0, v[0], 0)
+            }
         }
         _ => return None,
     };
@@ -92,7 +100,10 @@ fn parse_iso_time(s: &str) -> Option<NaiveTime> {
         if clock.len() % 2 != 0 || !clock.is_ascii() {
             return None;
         }
-        (0..clock.len()).step_by(2).map(|i| &clock[i..i + 2]).collect()
+        (0..clock.len())
+            .step_by(2)
+            .map(|i| &clock[i..i + 2])
+            .collect()
     };
     if fields.is_empty() || fields.len() > 3 || fields.iter().any(|f| f.len() != 2) {
         return None;
@@ -126,8 +137,11 @@ fn from_isoformat(s: &str) -> Option<NaiveDateTime> {
         )?;
         (date, 10)
     } else if bytes.len() >= 8 && s.is_char_boundary(8) {
-        let date =
-            NaiveDate::from_ymd_opt(digits(&s[0..4])? as i32, digits(&s[4..6])?, digits(&s[6..8])?)?;
+        let date = NaiveDate::from_ymd_opt(
+            digits(&s[0..4])? as i32,
+            digits(&s[4..6])?,
+            digits(&s[6..8])?,
+        )?;
         (date, 8)
     } else {
         return None;
@@ -167,7 +181,11 @@ pub fn delta_micros(a: NaiveDateTime, b: NaiveDateTime) -> i64 {
     let delta = a - b;
     delta
         .num_microseconds()
-        .unwrap_or(if delta > chrono::TimeDelta::zero() { i64::MAX } else { i64::MIN })
+        .unwrap_or(if delta > chrono::TimeDelta::zero() {
+            i64::MAX
+        } else {
+            i64::MIN
+        })
 }
 
 /// `(a - b).total_seconds()`.
@@ -286,7 +304,10 @@ mod tests {
         assert_eq!(parse_slurm_time("40:00"), Some(40 * 60));
         assert_eq!(parse_slurm_time("1-1:30"), Some(86400 + 3600 + 30 * 60));
         assert_eq!(parse_slurm_time("1-00:00:00"), Some(86400));
-        assert_eq!(parse_slurm_time("2-12:30:00"), Some(2 * 86400 + 12 * 3600 + 30 * 60));
+        assert_eq!(
+            parse_slurm_time("2-12:30:00"),
+            Some(2 * 86400 + 12 * 3600 + 30 * 60)
+        );
         assert_eq!(parse_slurm_time("0-5"), Some(5 * 3600));
         for v in ["UNLIMITED", "unlimited", "INFINITE", "INFINITY", "N/A"] {
             assert_eq!(parse_slurm_time(v), None, "{v}");
@@ -297,7 +318,16 @@ mod tests {
         assert_eq!(parse_slurm_time("08:00:00"), Some(8 * 3600));
         assert_eq!(parse_slurm_time("7-00:00:00"), Some(7 * 86400));
         assert_eq!(parse_slurm_time("6:57:57"), Some(6 * 3600 + 57 * 60 + 57));
-        for v in ["not-a-time", "1:2:3:4", "", "abc:def:ghi", "1-abc:00:00", "foo-bar", "::", "1:2:foo"] {
+        for v in [
+            "not-a-time",
+            "1:2:3:4",
+            "",
+            "abc:def:ghi",
+            "1-abc:00:00",
+            "foo-bar",
+            "::",
+            "1:2:foo",
+        ] {
             assert_eq!(parse_slurm_time(v), None, "{v:?}");
         }
     }
@@ -309,7 +339,10 @@ mod tests {
         assert_eq!(format_seconds(Some(90)), "1m");
         assert_eq!(format_seconds(Some(3600 + 30 * 60)), "1h30m");
         assert_eq!(format_seconds(Some(86400)), "1d");
-        assert_eq!(format_seconds(Some(2 * 86400 + 3 * 3600 + 15 * 60)), "2d3h15m");
+        assert_eq!(
+            format_seconds(Some(2 * 86400 + 3 * 3600 + 15 * 60)),
+            "2d3h15m"
+        );
         assert_eq!(format_seconds(Some(-100)), "0s");
         assert_eq!(format_seconds(Some(0)), "0s");
         assert_eq!(format_seconds(Some(60)), "1m");
@@ -339,7 +372,11 @@ mod tests {
             ("2024-01-15T1030", "2024-01-15T10:30:00"),
         ];
         for (input, iso) in ok {
-            assert_eq!(iso_to_dt(input).map(isoformat).as_deref(), Some(iso), "{input}");
+            assert_eq!(
+                iso_to_dt(input).map(isoformat).as_deref(),
+                Some(iso),
+                "{input}"
+            );
         }
         for bad in [
             "2024-01-15T24:00:00",
@@ -366,17 +403,32 @@ mod tests {
         assert_eq!(format_history_end("Unknown", now), "-");
         assert_eq!(format_history_end("None", now), "-");
         assert_eq!(format_history_end("", now), "-");
-        assert_eq!(format_history_end("some-other-format", now), "some-other-format");
+        assert_eq!(
+            format_history_end("some-other-format", now),
+            "some-other-format"
+        );
     }
 
     #[test]
     fn pending_start() {
         let now = dt("2026-10-06T14:30:00");
         let f = |s: &str| format_pending_start(s, now);
-        assert_eq!(f("2026-10-06T16:40:00").as_deref(), Some("in 2h10m (Tue 16:40)"));
-        assert_eq!(f("2026-10-12T09:15:00").as_deref(), Some("in 5d18h45m (Mon 09:15)"));
-        assert_eq!(f("2026-10-13T09:00:00").as_deref(), Some("in 6d18h30m (Oct 13 09:00)"));
-        assert_eq!(f("2026-11-03T08:56:51").as_deref(), Some("in 27d18h26m (Nov 03 08:56)"));
+        assert_eq!(
+            f("2026-10-06T16:40:00").as_deref(),
+            Some("in 2h10m (Tue 16:40)")
+        );
+        assert_eq!(
+            f("2026-10-12T09:15:00").as_deref(),
+            Some("in 5d18h45m (Mon 09:15)")
+        );
+        assert_eq!(
+            f("2026-10-13T09:00:00").as_deref(),
+            Some("in 6d18h30m (Oct 13 09:00)")
+        );
+        assert_eq!(
+            f("2026-11-03T08:56:51").as_deref(),
+            Some("in 27d18h26m (Nov 03 08:56)")
+        );
         assert_eq!(f("2026-10-06T14:05:00").as_deref(), Some("due (Tue 14:05)"));
         for v in ["N/A", "Unknown", "", "None"] {
             assert_eq!(f(v), None);

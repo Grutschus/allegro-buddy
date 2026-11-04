@@ -48,7 +48,9 @@ fn match_int(text: &str) -> i64 {
     text.parse().unwrap_or_else(|_| {
         text.chars()
             .filter_map(|c| c.to_digit(10).or_else(|| unicode_digit(c)))
-            .fold(0i64, |acc, d| acc.saturating_mul(10).saturating_add(i64::from(d)))
+            .fold(0i64, |acc, d| {
+                acc.saturating_mul(10).saturating_add(i64::from(d))
+            })
     })
 }
 
@@ -71,7 +73,10 @@ pub fn canonical_gpu_type(gpu_type: Option<&str>) -> String {
     if normalized.is_empty() {
         return "generic".to_owned();
     }
-    if let Some(alias) = settings::get().gpu_alias(&normalized).filter(|a| !a.is_empty()) {
+    if let Some(alias) = settings::get()
+        .gpu_alias(&normalized)
+        .filter(|a| !a.is_empty())
+    {
         return alias.to_owned();
     }
     GPU_TYPE_SYNONYMS
@@ -83,13 +88,19 @@ pub fn canonical_gpu_type(gpu_type: Option<&str>) -> String {
 /// `gpu_type_label(gpu_type)`: settings label, [`GPU_TYPE_LABELS`], else
 /// `upper().replace("_", "")`.
 pub fn gpu_type_label(gpu_type: &str) -> String {
-    if let Some(label) = settings::get().gpu_label(gpu_type).filter(|l| !l.is_empty()) {
+    if let Some(label) = settings::get()
+        .gpu_label(gpu_type)
+        .filter(|l| !l.is_empty())
+    {
         return label.to_owned();
     }
     GPU_TYPE_LABELS
         .iter()
         .find(|(kind, _)| *kind == gpu_type)
-        .map_or_else(|| gpu_type.to_uppercase().replace('_', ""), |(_, label)| (*label).to_owned())
+        .map_or_else(
+            || gpu_type.to_uppercase().replace('_', ""),
+            |(_, label)| (*label).to_owned(),
+        )
 }
 
 /// `parse_gpu_type_counts(spec)` (summed per canonical type, finditer order).
@@ -114,7 +125,10 @@ pub fn infer_gpu_type_from_features(feature_blob: Option<&str>) -> Option<String
             continue;
         }
         let lower = token.to_lowercase();
-        if !GPU_FEATURE_TYPE_HINTS.iter().any(|hint| lower.contains(hint)) {
+        if !GPU_FEATURE_TYPE_HINTS
+            .iter()
+            .any(|hint| lower.contains(hint))
+        {
             continue;
         }
         let kind = canonical_gpu_type(Some(token));
@@ -265,9 +279,18 @@ mod tests {
 
     #[test]
     fn type_counts() {
-        assert_eq!(parse_gpu_type_counts(Some("gpu:2")), counts(&[("generic", 2)]));
-        assert_eq!(parse_gpu_type_counts(Some("gpu:rtx_a5000:4")), counts(&[("rtx_a5000", 4)]));
-        assert_eq!(parse_gpu_type_counts(Some("gpu:a5000:4")), counts(&[("rtx_a5000", 4)]));
+        assert_eq!(
+            parse_gpu_type_counts(Some("gpu:2")),
+            counts(&[("generic", 2)])
+        );
+        assert_eq!(
+            parse_gpu_type_counts(Some("gpu:rtx_a5000:4")),
+            counts(&[("rtx_a5000", 4)])
+        );
+        assert_eq!(
+            parse_gpu_type_counts(Some("gpu:a5000:4")),
+            counts(&[("rtx_a5000", 4)])
+        );
         assert_eq!(
             parse_gpu_type_counts(Some("gpu:a100:2,gpu:h100:1")),
             counts(&[("a100", 2), ("h100", 1)])
@@ -275,10 +298,22 @@ mod tests {
         assert!(parse_gpu_type_counts(None).is_empty());
         assert!(parse_gpu_type_counts(Some("")).is_empty());
         assert!(parse_gpu_type_counts(Some("cpu:8")).is_empty());
-        assert_eq!(parse_gpu_type_counts(Some("gres/gpu:rtx_a5000:4")), counts(&[("rtx_a5000", 4)]));
-        assert_eq!(parse_gpu_type_counts(Some("gpu:a5000:4(IDX:0-3)")), counts(&[("rtx_a5000", 4)]));
-        assert_eq!(parse_gpu_type_counts(Some("gres/gpu:2")), counts(&[("generic", 2)]));
-        assert_eq!(parse_gpu_type_counts(Some("gpu:a100:2 gpu:a100:1")), counts(&[("a100", 3)]));
+        assert_eq!(
+            parse_gpu_type_counts(Some("gres/gpu:rtx_a5000:4")),
+            counts(&[("rtx_a5000", 4)])
+        );
+        assert_eq!(
+            parse_gpu_type_counts(Some("gpu:a5000:4(IDX:0-3)")),
+            counts(&[("rtx_a5000", 4)])
+        );
+        assert_eq!(
+            parse_gpu_type_counts(Some("gres/gpu:2")),
+            counts(&[("generic", 2)])
+        );
+        assert_eq!(
+            parse_gpu_type_counts(Some("gpu:a100:2 gpu:a100:1")),
+            counts(&[("a100", 3)])
+        );
         assert_eq!(parse_gpu_count(Some("gpu:a100:2,gpu:h100:1,gres/gpu=3")), 6);
         assert_eq!(parse_gpu_count(Some("xgpu:2,mygpu:3")), 0);
     }
@@ -301,13 +336,19 @@ mod tests {
         let all = |kind: &str, n: i64| -> BTreeMap<i64, String> {
             (0..n).map(|i| (i, kind.to_owned())).collect()
         };
-        assert_eq!(parse_node_gpu_types(Some("gpu:a5000:4(IDX:0-3)")), all("rtx_a5000", 4));
+        assert_eq!(
+            parse_node_gpu_types(Some("gpu:a5000:4(IDX:0-3)")),
+            all("rtx_a5000", 4)
+        );
         let mixed = parse_node_gpu_types(Some("gpu:a100:2(IDX:0-1),gpu:h100:2(IDX:2-3)"));
         assert_eq!(
             mixed.values().collect::<Vec<_>>(),
             ["a100", "a100", "h100", "h100"]
         );
-        assert_eq!(parse_node_gpu_types(Some("gpu:a100:4(S:0-1)")), all("a100", 4));
+        assert_eq!(
+            parse_node_gpu_types(Some("gpu:a100:4(S:0-1)")),
+            all("a100", 4)
+        );
         assert!(parse_node_gpu_types(None).is_empty());
         assert!(parse_node_gpu_types(Some("")).is_empty());
     }
@@ -315,7 +356,10 @@ mod tests {
     #[test]
     fn feature_inference() {
         let f = |s: Option<&str>| infer_gpu_type_from_features(s);
-        assert_eq!(f(Some("a5000,rtx,nvlink,gpu4")).as_deref(), Some("rtx_a5000"));
+        assert_eq!(
+            f(Some("a5000,rtx,nvlink,gpu4")).as_deref(),
+            Some("rtx_a5000")
+        );
         assert_eq!(f(Some("gtx1080,cuda,pcie")).as_deref(), Some("gtx_1080ti"));
         assert_eq!(f(Some("a100,nvlink,hbm2e")).as_deref(), Some("a100"));
         assert_eq!(f(Some("h100,nvlink,hbm3")).as_deref(), Some("h100"));
@@ -350,12 +394,18 @@ mod tests {
         let zero = counts(&[("rtx_a5000", 4), ("a100", 0)]);
         assert_eq!(collect_display_gpu_types(&[&zero]), ["rtx_a5000"]);
         let ordered = counts(&[("rtx_a5000", 4), ("gtx_1080ti", 2)]);
-        assert_eq!(collect_display_gpu_types(&[&ordered]), ["rtx_a5000", "gtx_1080ti"]);
+        assert_eq!(
+            collect_display_gpu_types(&[&ordered]),
+            ["rtx_a5000", "gtx_1080ti"]
+        );
         let again = counts(&[("rtx_a5000", 2)]);
         assert_eq!(collect_display_gpu_types(&[&one, &again]), ["rtx_a5000"]);
         let (a, h) = (counts(&[("a100", 2)]), counts(&[("h100", 4)]));
         assert_eq!(collect_display_gpu_types(&[&a, &h]), ["a100", "h100"]);
         let g = counts(&[("zz", 1), ("generic", 1), ("gtx_1080ti", 1), ("b", 1)]);
-        assert_eq!(collect_display_gpu_types(&[&g]), ["gtx_1080ti", "generic", "b", "zz"]);
+        assert_eq!(
+            collect_display_gpu_types(&[&g]),
+            ["gtx_1080ti", "generic", "b", "zz"]
+        );
     }
 }

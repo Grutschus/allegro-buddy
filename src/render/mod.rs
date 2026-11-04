@@ -168,7 +168,11 @@ impl Measurement {
     }
 
     /// Rich `Measurement.get(console, options, renderable)`.
-    pub fn get(console: &Console, options: &RenderOptions, renderable: &dyn Renderable) -> Measurement {
+    pub fn get(
+        console: &Console,
+        options: &RenderOptions,
+        renderable: &dyn Renderable,
+    ) -> Measurement {
         let max_width = options.max_width;
         if max_width < 1 {
             return Measurement::new(0, 0);

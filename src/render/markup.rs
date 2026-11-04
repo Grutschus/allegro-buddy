@@ -80,7 +80,11 @@ enum Piece<'a> {
 }
 
 fn char_offset(s: &str, byte: usize) -> usize {
-    if s.is_ascii() { byte } else { s[..byte].chars().count() }
+    if s.is_ascii() {
+        byte
+    } else {
+        s[..byte].chars().count()
+    }
 }
 
 /// Rich `markup._parse`.
@@ -260,6 +264,9 @@ mod tests {
     #[test]
     fn escape_roundtrip() {
         assert_eq!(escape("[bold]x"), r"\[bold]x");
-        assert_eq!(render(&escape("a[bold]b"), Style::NULL).unwrap().plain(), "a[bold]b");
+        assert_eq!(
+            render(&escape("a[bold]b"), Style::NULL).unwrap().plain(),
+            "a[bold]b"
+        );
     }
 }

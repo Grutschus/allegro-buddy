@@ -17,13 +17,13 @@
 
 use super::Record;
 use super::gpu::GpuCounts;
-use crate::error::Result;
-use std::collections::BTreeSet;
-use std::sync::{Arc, RwLock};
 use super::gpu::{parse_gpu_count, parse_gpu_type_counts};
 use super::parse::{parse_int, parse_prop_line};
+use crate::error::Result;
 use crate::pyfmt;
 use serde_json::Value;
+use std::collections::BTreeSet;
+use std::sync::{Arc, RwLock};
 
 /// One node, in the shape `nodes_from_json` returns (all values strings, like Python).
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -128,13 +128,21 @@ fn json_text(node: &serde_json::Map<String, Value>, key: &str) -> Option<String>
 }
 
 /// `sep.join(n.get(key) or [])`; Err when it is not a list of strings (Python TypeError).
-fn json_joined(node: &serde_json::Map<String, Value>, key: &str, sep: &str) -> std::result::Result<String, String> {
+fn json_joined(
+    node: &serde_json::Map<String, Value>,
+    key: &str,
+    sep: &str,
+) -> std::result::Result<String, String> {
     match node.get(key) {
         None => Ok(String::new()),
         Some(v) if !pyfmt::json_truthy(v) => Ok(String::new()),
         Some(Value::Array(items)) => items
             .iter()
-            .map(|item| item.as_str().map(str::to_owned).ok_or_else(|| format!("{key}: not a string")))
+            .map(|item| {
+                item.as_str()
+                    .map(str::to_owned)
+                    .ok_or_else(|| format!("{key}: not a string"))
+            })
             .collect::<std::result::Result<Vec<_>, _>>()
             .map(|items| items.join(sep)),
         Some(Value::String(s)) => Ok(s.chars().map(String::from).collect::<Vec<_>>().join(sep)),
@@ -193,7 +201,12 @@ pub fn nodes_from_json(stdout: &str) -> std::result::Result<Vec<Node>, String> {
 
 /// `node_from_props(props)` for the oneliner fallback.
 pub fn node_from_props(props: &Record) -> Node {
-    let get = |key: &str, default: &str| props.get(key).cloned().unwrap_or_else(|| default.to_owned());
+    let get = |key: &str, default: &str| {
+        props
+            .get(key)
+            .cloned()
+            .unwrap_or_else(|| default.to_owned())
+    };
     let truthy = |key: &str| props.get(key).filter(|v| !v.is_empty()).cloned();
     Node {
         name: get("NodeName", ""),
@@ -277,7 +290,9 @@ pub fn is_gpu_partition(name: &str, detect: bool) -> Result<bool> {
 /// `node_is_usable(node)`: no [`super::BAD_NODE_FLAGS`] substring in the upper-cased state.
 pub fn node_is_usable(node: &Node) -> bool {
     let state = node.state.to_uppercase();
-    !super::BAD_NODE_FLAGS.iter().any(|flag| state.contains(flag))
+    !super::BAD_NODE_FLAGS
+        .iter()
+        .any(|flag| state.contains(flag))
 }
 
 /// `node_is_idle(node)`: `IDLE` in state.
@@ -346,7 +361,12 @@ pub fn node_free(node: &Node) -> NodeFree {
         mem_free_mb: (mem_total - parse_int(Some(&node.alloc_mem), 0)).max(0),
         gpu_free_by_type: total
             .iter()
-            .map(|(kind, count)| (kind.clone(), (count - used.get(kind).copied().unwrap_or(0)).max(0)))
+            .map(|(kind, count)| {
+                (
+                    kind.clone(),
+                    (count - used.get(kind).copied().unwrap_or(0)).max(0),
+                )
+            })
             .collect(),
         gpu_total_by_type: total,
     }
@@ -399,7 +419,10 @@ pub mod testing {
             if spec.gres == "(null)" {
                 String::new()
             } else {
-                let kind = spec.gres.rsplit_once(':').map_or(spec.gres.as_str(), |(k, _)| k);
+                let kind = spec
+                    .gres
+                    .rsplit_once(':')
+                    .map_or(spec.gres.as_str(), |(k, _)| k);
                 format!("{kind}:{}(IDX:N/A)", spec.gpus_used)
             }
         });
@@ -421,7 +444,13 @@ pub mod testing {
     }
 
     /// `a5000_dict(name, gpus_free=, cpus_free=, mem_free=, state=, gpus=4)`.
-    pub fn a5000_dict(name: &str, gpus_free: i64, cpus_free: i64, mem_free: i64, state: &'static str) -> Node {
+    pub fn a5000_dict(
+        name: &str,
+        gpus_free: i64,
+        cpus_free: i64,
+        mem_free: i64,
+        state: &'static str,
+    ) -> Node {
         node_dict(
             name,
             NodeSpec {
@@ -541,7 +570,9 @@ mod tests {
             Some(if argv[1] == "--json" {
                 ok("scontrol: error: no data_parser plugin\n")
             } else {
-                ok("NodeName=gpu1 State=MIXED CPUTot=8 Gres= AvailableFeatures=a5000 Features=x MemSpecLimit=512 Partitions=gpu\n\n")
+                ok(
+                    "NodeName=gpu1 State=MIXED CPUTot=8 Gres= AvailableFeatures=a5000 Features=x MemSpecLimit=512 Partitions=gpu\n\n",
+                )
             })
         });
         let _ctx = Ctx::default().slurm(fake).install();
@@ -555,9 +586,14 @@ mod tests {
 
     #[test]
     fn strict_fallback_failure_dies() {
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(fail(1, "down"))).install();
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(fail(1, "down")))
+            .install();
         let output = crate::core::slurm::try_run(&["scontrol", "--oneliner", "show", "node"], true);
-        assert_eq!(output.unwrap_err().message(), "scontrol --oneliner show node failed: down");
+        assert_eq!(
+            output.unwrap_err().message(),
+            "scontrol --oneliner show node failed: down"
+        );
     }
 
     #[test]
@@ -570,7 +606,12 @@ mod tests {
 
     #[test]
     fn bad_json_is_an_error() {
-        for raw in ["", "[]", r#"{"nodes": [1]}"#, r#"{"nodes": [{"partitions": [1]}]}"#] {
+        for raw in [
+            "",
+            "[]",
+            r#"{"nodes": [1]}"#,
+            r#"{"nodes": [{"partitions": [1]}]}"#,
+        ] {
             assert!(nodes_from_json(raw).is_err(), "{raw}");
         }
         assert!(nodes_from_json("{}").unwrap().is_empty());
@@ -595,7 +636,10 @@ mod tests {
         assert_eq!(facts.names.len(), 2);
         assert!(is_gpu_partition("gpu-a100", false).unwrap());
         assert!(!is_gpu_partition("small", true).unwrap());
-        let configured = crate::settings::testing::with_preset("allegro", &["[cluster]", "gpu-partitions = small"]);
+        let configured = crate::settings::testing::with_preset(
+            "allegro",
+            &["[cluster]", "gpu-partitions = small"],
+        );
         let _ctx = Ctx::default().settings(configured).install();
         assert!(is_gpu_partition("small", true).unwrap());
         assert!(!is_gpu_partition("gpu", true).unwrap());
@@ -615,7 +659,15 @@ mod tests {
         for state in ["IDLE", "MIXED", "ALLOCATED", "COMPLETING", ""] {
             assert!(node_is_usable(&with_state(state)), "{state}");
         }
-        for state in ["DOWN", "IDLE+DRAIN", "FAIL", "MAINT", "REBOOT", "INVAL", "MIXED+DRAINING"] {
+        for state in [
+            "DOWN",
+            "IDLE+DRAIN",
+            "FAIL",
+            "MAINT",
+            "REBOOT",
+            "INVAL",
+            "MIXED+DRAINING",
+        ] {
             assert!(!node_is_usable(&with_state(state)), "{state}");
         }
         assert!(node_is_idle(&with_state("IDLE")));
@@ -645,8 +697,14 @@ mod tests {
             features: features.into(),
             ..Node::default()
         };
-        assert_eq!(infer_node_gpu_type(&n("a5000,rtx,nvlink", "")).as_deref(), Some("rtx_a5000"));
-        assert_eq!(infer_node_gpu_type(&n("infiniband", "a100,nvlink")).as_deref(), Some("a100"));
+        assert_eq!(
+            infer_node_gpu_type(&n("a5000,rtx,nvlink", "")).as_deref(),
+            Some("rtx_a5000")
+        );
+        assert_eq!(
+            infer_node_gpu_type(&n("infiniband", "a100,nvlink")).as_deref(),
+            Some("a100")
+        );
         assert_eq!(infer_node_gpu_type(&n("infiniband", "storage")), None);
         assert_eq!(infer_node_gpu_type(&Node::default()), None);
     }
@@ -654,8 +712,14 @@ mod tests {
     #[test]
     fn gpu_type_counts() {
         let c = |node: &Node| node_gpu_type_counts(node).into_iter().collect::<Vec<_>>();
-        assert_eq!(c(&gres_node("gpu:rtx_a5000:4", "")), [("rtx_a5000".to_owned(), 4)]);
-        assert_eq!(c(&gres_node("gpu:4", "a5000,rtx,nvlink")), [("rtx_a5000".to_owned(), 4)]);
+        assert_eq!(
+            c(&gres_node("gpu:rtx_a5000:4", "")),
+            [("rtx_a5000".to_owned(), 4)]
+        );
+        assert_eq!(
+            c(&gres_node("gpu:4", "a5000,rtx,nvlink")),
+            [("rtx_a5000".to_owned(), 4)]
+        );
         assert!(c(&gres_node("(null)", "")).is_empty());
         assert!(c(&Node::default()).is_empty());
         assert_eq!(
@@ -679,6 +743,9 @@ mod tests {
         let free = node_free(&node);
         assert_eq!(free.cpu_free, 6);
         assert_eq!(free.mem_free_mb, 512000 - 10240);
-        assert_eq!(free.gpu_free_by_type.into_iter().collect::<Vec<_>>(), [("a100".to_owned(), 3)]);
+        assert_eq!(
+            free.gpu_free_by_type.into_iter().collect::<Vec<_>>(),
+            [("a100".to_owned(), 3)]
+        );
     }
 }

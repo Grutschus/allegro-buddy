@@ -72,14 +72,19 @@ impl LiveShared {
         if state.text.is_empty() {
             return frame;
         }
-        Text::assemble([TextPart::Text(frame), " ".into(), TextPart::Text(state.text.clone())])
+        Text::assemble([
+            TextPart::Text(frame),
+            " ".into(),
+            TextPart::Text(state.text.clone()),
+        ])
     }
 
     /// Rich `LiveRender.__rich_console__`: the spinner lines joined by `\n` (no trailing).
     pub(crate) fn render(&self, console: &Console, options: &RenderOptions) -> Vec<Segment> {
         let mut state = self.state.lock().unwrap();
         let text = Self::spinner_text(&mut state);
-        let mut lines = console.render_lines(&text, options, Some(super::Style::NULL), false, false);
+        let mut lines =
+            console.render_lines(&text, options, Some(super::Style::NULL), false, false);
         let mut shape = segment::get_shape(&lines);
         let height = options.size.1;
         if shape.1 > height && !state.visible_overflow {
@@ -114,7 +119,9 @@ pub struct Status {
 
 impl std::fmt::Debug for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Status").field("active", &self.shared.is_some()).finish()
+        f.debug_struct("Status")
+            .field("active", &self.shared.is_some())
+            .finish()
     }
 }
 
@@ -214,14 +221,12 @@ impl Status {
                 segments.push(Segment::line());
             }
             let mut rendered = out;
-            rendered.push_str(&console.render_buffer(&segment::split_and_crop_lines(
-                segments,
-                console.width(),
-                None,
-                false,
-                true,
-            )
-            .concat()));
+            rendered.push_str(
+                &console.render_buffer(
+                    &segment::split_and_crop_lines(segments, console.width(), None, false, true)
+                        .concat(),
+                ),
+            );
             if console.is_terminal() {
                 rendered.push_str("\x1b[?25h");
                 rendered.push_str(&shared.restore_cursor());

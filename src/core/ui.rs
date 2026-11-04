@@ -5,9 +5,7 @@
 //! already-loaded node facts ([`super::nodes::loaded_node_facts`]).
 
 use super::nodes::{is_gpu_partition, loaded_node_facts};
-use super::parse::{
-    format_mem_value, is_nullish, normalize_sacct_state, parse_int, truncate,
-};
+use super::parse::{format_mem_value, is_nullish, normalize_sacct_state, parse_int, truncate};
 use super::{Record, RecordExt, STATE_STYLES};
 use crate::render::console::{self, PrintOptions};
 use crate::render::table::{Cell, Justify, Table};
@@ -61,7 +59,14 @@ pub fn render_table(
         let cells = row.into_iter().map(as_cell).collect();
         table.add_row(cells, section_breaks.contains(&i));
     }
-    out.print_with(&table, PrintOptions { width, style: None, ..PrintOptions::default() });
+    out.print_with(
+        &table,
+        PrintOptions {
+            width,
+            style: None,
+            ..PrintOptions::default()
+        },
+    );
     if let Some(caption) = caption.filter(|c| !c.is_empty()) {
         out.print(&muted(caption));
     }
@@ -119,7 +124,10 @@ pub fn ratio_text(free: i64, total: i64, unit: &str, free_style: &str) -> Text {
         return muted("-");
     }
     let mut text = Text::new("");
-    text.append(&free.to_string(), Some(if free > 0 { free_style } else { "dim" }));
+    text.append(
+        &free.to_string(),
+        Some(if free > 0 { free_style } else { "dim" }),
+    );
     text.append("/", Some("dim"));
     text.append(&total.to_string(), Some("dim"));
     if !unit.is_empty() {
@@ -139,7 +147,10 @@ pub fn gpu_free_text(free: i64, usable: i64, total: i64) -> Text {
         return muted("-");
     }
     let mut text = Text::new("");
-    text.append(&usable.to_string(), Some(if usable > 0 { "green" } else { "dim" }));
+    text.append(
+        &usable.to_string(),
+        Some(if usable > 0 { "green" } else { "dim" }),
+    );
     if usable < free {
         text.append(&format!("+{}", free - usable), Some("yellow"));
     }
@@ -201,11 +212,15 @@ pub fn build_dev_job_rows(jobs: &[Record]) -> Vec<TableRow> {
             let mem = job
                 .get_opt("Mem")
                 .unwrap_or_else(|| job.get_str("MinMemoryNode"));
-            let gpus = [job.get_opt("JOB_GRES"), job.get_opt("TresPerNode"), job.get_opt("GRES")]
-                .into_iter()
-                .map(parse_gpu_count)
-                .find(|&count| count != 0)
-                .unwrap_or(0);
+            let gpus = [
+                job.get_opt("JOB_GRES"),
+                job.get_opt("TresPerNode"),
+                job.get_opt("GRES"),
+            ]
+            .into_iter()
+            .map(parse_gpu_count)
+            .find(|&count| count != 0)
+            .unwrap_or(0);
             let detail = if state == "RUNNING" {
                 Cell::Str(super::timefmt::format_eta_now(job.get_str("EndTime")))
             } else {
@@ -238,40 +253,70 @@ mod tests {
     use crate::hooks::testing::Ctx;
 
     fn rec(pairs: &[(&str, &str)]) -> Record {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     fn plain(cell: &Cell) -> String {
         match cell {
             Cell::Text(t) => t.plain().to_owned(),
             Cell::Str(s) => s.clone(),
+            Cell::Renderable(_) => String::new(),
         }
     }
 
     fn job_running() -> Record {
         rec(&[
-            ("JobId", "12345"), ("JobName", "training"), ("JobState", "RUNNING"),
-            ("UserId", "alice(1000)"), ("NodeList", "gpu001"), ("TresPerNode", "gres/gpu:rtx_a5000:2"),
-            ("JOB_GRES", ""), ("GRES", ""), ("NumCPUs", "8"), ("Mem", "32768"),
-            ("EndTime", "2030-01-01T12:00:00"), ("Partition", "gpusmall"),
-            ("ArrayJobId", "N/A"), ("ArrayTaskId", "N/A"), ("SubmitTime", "2030-01-01T08:00:00"),
+            ("JobId", "12345"),
+            ("JobName", "training"),
+            ("JobState", "RUNNING"),
+            ("UserId", "alice(1000)"),
+            ("NodeList", "gpu001"),
+            ("TresPerNode", "gres/gpu:rtx_a5000:2"),
+            ("JOB_GRES", ""),
+            ("GRES", ""),
+            ("NumCPUs", "8"),
+            ("Mem", "32768"),
+            ("EndTime", "2030-01-01T12:00:00"),
+            ("Partition", "gpusmall"),
+            ("ArrayJobId", "N/A"),
+            ("ArrayTaskId", "N/A"),
+            ("SubmitTime", "2030-01-01T08:00:00"),
         ])
     }
 
     fn job_pending() -> Record {
         rec(&[
-            ("JobId", "12346"), ("JobName", "inference"), ("JobState", "PENDING"),
-            ("UserId", "alice(1000)"), ("NodeList", "(None)"), ("TresPerNode", "gres/gpu:rtx_a5000:1"),
-            ("JOB_GRES", ""), ("GRES", ""), ("NumCPUs", "4"), ("Mem", "16384"),
-            ("StartTime", "2030-01-01T10:00:00"), ("Partition", "gpusmall"), ("Reason", "Resources"),
-            ("ArrayJobId", "N/A"), ("ArrayTaskId", "N/A"),
+            ("JobId", "12346"),
+            ("JobName", "inference"),
+            ("JobState", "PENDING"),
+            ("UserId", "alice(1000)"),
+            ("NodeList", "(None)"),
+            ("TresPerNode", "gres/gpu:rtx_a5000:1"),
+            ("JOB_GRES", ""),
+            ("GRES", ""),
+            ("NumCPUs", "4"),
+            ("Mem", "16384"),
+            ("StartTime", "2030-01-01T10:00:00"),
+            ("Partition", "gpusmall"),
+            ("Reason", "Resources"),
+            ("ArrayJobId", "N/A"),
+            ("ArrayTaskId", "N/A"),
         ])
     }
 
     fn history(id: &str, state: &str, exit: &str, end: &str) -> Record {
         rec(&[
-            ("JobId", id), ("JobIDRaw", id), ("JobName", "myjob"), ("State", state),
-            ("StateToken", state), ("ExitCode", exit), ("End", end), ("Reason", ""),
+            ("JobId", id),
+            ("JobIDRaw", id),
+            ("JobName", "myjob"),
+            ("State", state),
+            ("StateToken", state),
+            ("ExitCode", exit),
+            ("End", end),
+            ("Reason", ""),
         ])
     }
 
@@ -287,7 +332,11 @@ mod tests {
         let cells: Vec<String> = rows[1].iter().map(plain).collect();
         assert_eq!(cells, ["11112", "myjob", "FAILED", "1:0", "today 09:00"]);
         assert!(build_job_history_rows(&[]).is_empty());
-        let row = &build_job_history_rows(&[rec(&[("JobId", "130"), ("JobID", "123_7"), ("State", "COMPLETED")])])[0];
+        let row = &build_job_history_rows(&[rec(&[
+            ("JobId", "130"),
+            ("JobID", "123_7"),
+            ("State", "COMPLETED"),
+        ])])[0];
         assert_eq!(plain(&row[0]), "123_7");
         assert_eq!(plain(&row[2]), "COMPLETED");
         assert_eq!(plain(&row[4]), "-");
@@ -300,7 +349,12 @@ mod tests {
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0].len(), 8);
         let cells: Vec<String> = rows[0].iter().map(plain).collect();
-        assert_eq!(cells, ["12345", "RUNNING", "gpusmall", "gpu001", "8", "32G", "2", "2h"]);
+        assert_eq!(
+            cells,
+            [
+                "12345", "RUNNING", "gpusmall", "gpu001", "8", "32G", "2", "2h"
+            ]
+        );
         assert!(build_dev_job_rows(&[]).is_empty());
         let rows = build_dev_job_rows(&[job_pending()]);
         assert_eq!(plain(rows[0].last().unwrap()), "Resources");
@@ -321,6 +375,6 @@ mod tests {
         assert_eq!(state_text("WEIRD").plain(), "WEIRD");
         assert_eq!(partition_text("gpu").plain(), "gpu");
         assert!(matches!(as_cell(Cell::Str(String::new())), Cell::Text(t) if t.plain() == "-"));
-        assert_eq!(as_cell(Cell::Str("x".into())), Cell::Str("x".into()));
+        assert!(matches!(as_cell(Cell::Str("x".into())), Cell::Str(s) if s == "x"));
     }
 }
