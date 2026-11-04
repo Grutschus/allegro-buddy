@@ -1,0 +1,23 @@
+{
+ "name": "cli-job-output-stderr-first",
+ "category": "cli",
+ "argv": [
+  "job",
+  "output",
+  "--stderr",
+  "70090"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

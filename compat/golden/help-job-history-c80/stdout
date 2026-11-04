@@ -1,0 +1,9 @@
+                                                                                
+  Usage: bab job history [OPTIONS]                                              
+                                                                                
+  Options                                                                       
+  ────────────────────────────────────────────────────────────────────────────  
+       --limit   INTEGER   how many jobs to show (0: all) [default=50]          
+  -h   --help              Show this message and exit.                          
+                                                                                
+                                                                                

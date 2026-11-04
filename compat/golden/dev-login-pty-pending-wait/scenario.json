@@ -1,0 +1,28 @@
+{
+ "name": "dev-login-pty-pending-wait",
+ "category": "dev",
+ "argv": [
+  "l",
+  "--wait",
+  "--poll-interval",
+  "1"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pty",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": [
+  [
+   "\\x1b\\[\\?25l.*?\\x1b\\[\\?25h",
+   "\u001b[?25l<spinner frames>\u001b[?25h"
+  ]
+ ]
+}

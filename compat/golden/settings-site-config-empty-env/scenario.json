@@ -1,0 +1,22 @@
+{
+ "name": "settings-site-config-empty-env",
+ "category": "settings",
+ "argv": [
+  "config",
+  "show"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "AB_SITE_CONFIG": ""
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

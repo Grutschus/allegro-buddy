@@ -1,0 +1,12 @@
+Preset: none (no preset ships for Slurm ClusterName elsewhere)
+Site file: @TMP@___________________________________/site/config.ini (not present)
+User file: @TMP@___________________________________/config/allegro-buddy/config.ini (not present)
+
+Nothing to show.
+
+      Detected from Slurm      
+Setting             Value      
+───────────────────────────────
+GPU partitions      a100       
+GPU types           A100 (a100)
+Default partition   cpu        

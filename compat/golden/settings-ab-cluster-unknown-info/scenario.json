@@ -1,0 +1,21 @@
+{
+ "name": "settings-ab-cluster-unknown-info",
+ "category": "settings",
+ "argv": [
+  "info"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "AB_CLUSTER": "nowhere"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

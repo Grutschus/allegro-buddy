@@ -1,0 +1,9 @@
+plain
+--version
+Show the version and exit.
+plain
+-h
+Show this message and exit.
+plain
+--help
+Show this message and exit.

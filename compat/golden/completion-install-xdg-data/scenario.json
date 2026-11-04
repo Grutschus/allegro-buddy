@@ -1,0 +1,26 @@
+{
+ "name": "completion-install-xdg-data",
+ "category": "completion",
+ "argv": [
+  "completion",
+  "bash",
+  "--install"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "XDG_DATA_HOME": "@TMP@/data"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [
+  "home/.bashrc",
+  "data/allegro-buddy/completion-bab.bash"
+ ],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

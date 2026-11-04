@@ -1,0 +1,2 @@
+error: this cluster has no default partition; pass --partition or set `partition` in [dev] of 
+@TMP@___________________________________/config/allegro-buddy/config.ini (you can use: a100, cpu)

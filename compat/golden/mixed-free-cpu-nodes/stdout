@@ -1,0 +1,9 @@
+                               CPU nodes                                
+Node    State                       Partitions   Free CPUs   Free memory
+────────────────────────────────────────────────────────────────────────
+cmp2    IDLE [course]               small            32/32      250/250G
+cmp1    MIXED [course]              small             4/64        90/90G
+cmp3    MIXED+COMPLETING [course]   small             1/32        1/250G
+                                                                        
+total                                               37/128      341/590G
+free/total

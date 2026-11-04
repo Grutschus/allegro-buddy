@@ -1,0 +1,5 @@
+{"argv": ["scontrol", "show", "config"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70080_3"], "exit": 1}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70080"], "exit": 1}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70080_3"], "exit": 1}
+{"argv": ["sacct", "-X", "-n", "-P", "-j", "70080_3", "--format=User,StdOut,StdErr,JobIDRaw,JobName,JobID"], "exit": 0}

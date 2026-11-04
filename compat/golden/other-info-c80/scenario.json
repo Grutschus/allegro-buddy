@@ -1,0 +1,20 @@
+{
+ "name": "other-info-c80",
+ "category": "cluster",
+ "argv": [
+  "info"
+ ],
+ "then": [],
+ "world": "other",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "80"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

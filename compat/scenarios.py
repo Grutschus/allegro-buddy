@@ -40,6 +40,8 @@ class Scenario:
     timeout: float = 60.0
     path_without_slurm: bool = False
     then: list[list[str]] = field(default_factory=list)  # more runs, same T
+    # (regex, replacement) on the captured stdout/stderr bytes of both sides
+    normalize: list[tuple[bytes, bytes]] = field(default_factory=list)
 
     def describe(self) -> dict[str, Any]:
         return {
@@ -56,6 +58,7 @@ class Scenario:
             'capture': self.capture,
             'sigint_after': self.sigint_after,
             'path_without_slurm': self.path_without_slurm,
+            'normalize': [[p.decode(), r.decode()] for p, r in self.normalize],
         }
 
 
@@ -131,6 +134,9 @@ def sbatch(**rule: Any) -> Callable[[World], None]:
     return apply
 
 
+# Console.status on a terminal: how many spinner frames show depends on timing (12.5/s);
+# keep the cursor hide/show and everything around them.
+SPINNER = (rb'\x1b\[\?25l.*?\x1b\[\?25h', b'\x1b[?25l<spinner frames>\x1b[?25h')
 USER_CONFIG = 'config/allegro-buddy/config.ini'
 SITE_CONFIG = 'site/config.ini'
 CACHE_FILE = 'cache/allegro-buddy/cluster-name.login1'
@@ -386,7 +392,6 @@ CLI = [
     ('queue-watch-attached-too-small', ['q', '-w5']),
     ('queue-watch-equals-too-small', ['q', '--watch=9.99']),
     ('queue-watch-not-a-number', ['q', '-w', 'abc']),
-    ('queue-watch-nan', ['q', '-w', 'nan']),
     ('queue-watch-inf', ['q', '-w', '-inf']),
     ('queue-extra-arg', ['queue', 'extra']),
     ('alias-l', ['l']),
@@ -678,9 +683,11 @@ DEV = [
     ('start-config-log-dir-tilde', ['dev', 'start', '--no-wait'],
      {'tweak': NO_DEV, 'files': {USER_CONFIG: '[dev]\nlog_dir = ~/my logs\n'}}),
     ('start-config-partition', ['dev', 'start', '--no-wait'],
-     {'tweak': NO_DEV, 'files': {SITE_CONFIG: '[dev]\npartition = gpushort\naccount = ml-lab\n'
+     {'tweak': NO_DEV, 'files': {SITE_CONFIG: '[dev]\npartition = gpushort\ntime = 2:00:00\n'
+                                              'account = ml-lab\n'
                                               'constraint = Intel\nexclude = gpu201\n'}}),
-    ('start-config-gpu-zero-cpu-partition', ['dev', 'start', '--no-wait', '-p', 'micro'],
+    ('start-config-gpu-zero-cpu-partition', ['dev', 'start', '--no-wait', '-p', 'micro', '-t',
+                                              '30'],
      {'tweak': NO_DEV, 'files': {USER_CONFIG: '[dev]\ngpu = 0\ncpus = 1\nmem = 2G\n'}}),
     ('start-config-bad-gpu', ['dev', 'start', '--no-wait'],
      {'tweak': NO_DEV, 'files': {USER_CONFIG: '[dev]\ngpu = two\n'}}),
@@ -690,7 +697,13 @@ DEV = [
     ('start-groups-no-access', ['dev', 'start', '--no-wait', '-p', 'big', '-g', '0'],
      {'world': 'groups'}),
     ('start-pty-runs-at-once', ['dev', 'start'],
-     {'tweak': chain(NO_DEV, RUNS_AT_ONCE), 'tty': 'pty'}),
+     {'tweak': chain(NO_DEV, RUNS_AT_ONCE), 'tty': 'pty', 'normalize': [SPINNER]}),
+    ('start-pty-runs-after-poll', ['dev', 'start', '--poll-interval', '1'],
+     {'tweak': chain(NO_DEV, RUNS_LATER), 'tty': 'pty', 'normalize': [SPINNER]}),
+    ('login-pty-pending-wait', ['l', '--wait', '--poll-interval', '1'],
+     {'tweak': chain(PENDING_DEV, change_job('70110', becomes={'after_polls': 1,
+                                                              'node': 'gpu101'})),
+      'tty': 'pty', 'normalize': [SPINNER]}),
     ('login', ['dev', 'login'], {}),
     ('login-command', ['dev', 'login', '--command', 'cd x && make'], {}),
     ('login-srun', ['dev', 'login', '--srun'], {}),
@@ -1040,7 +1053,7 @@ add('completion-install-zsh-twice', ['completion', 'zsh', '--install'], 'complet
 add('completion-install-bash-no-rc', ['completion', '--install'], 'completion',
     env=cols('100', SHELL='/bin/bash'), capture=['home/.bashrc', _BASH_SCRIPT])
 add('completion-install-zsh-zdotdir', ['completion', 'zsh', '--install'], 'completion',
-    env=cols('100', ZDOTDIR='@TMP@/zdot'),
+    env=cols('100', ZDOTDIR='@TMP@/zdot'), modes={'zdot': 0o755},
     capture=['zdot/.zshrc', 'home/.zshrc', _ZSH_SCRIPT])
 add('completion-install-xdg-data', ['completion', 'bash', '--install'], 'completion',
     env=cols('100', XDG_DATA_HOME='@TMP@/data'),

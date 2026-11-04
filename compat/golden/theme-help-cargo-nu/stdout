@@ -1,0 +1,20 @@
+ [1;32mUsage:[0m [1;36mbab[0m [36m[[0m[36mOPTIONS[0m[36m] [0m[36mCOMMAND[0m[36m [[0m[36mARGS[0m[36m]...[0m                                                             
+                                                                                                    
+ Allegro Buddy: a friendly Slurm helper.                                                            
+                                                                                                    
+[32m ═[0m[32m [0m[1;32mOptions[0m[32m [0m[32m═══════════════════════════════════════════════════════════════════════════════════════[0m[32m═ [0m
+[32m [0m[1;36m--version[0m      [39mShow the version and exit.[0m                                                         [32m [0m
+[32m [0m[1;36m--help   [0m  [1;36m-h[0m  [39mShow this message and exit.[0m                                                        [32m [0m
+[32m                                                                                                    [0m
+[32m ═[0m[32m [0m[1;32mCommands[0m[32m [0m[32m══════════════════════════════════════════════════════════════════════════════════════[0m[32m═ [0m
+[32m [0m[1;36mcompletion[0m[1;36m [0m [39mgenerate or install shell completion              [0m                                    [32m [0m
+[32m [0m[1;36mconfig    [0m[1;36m [0m [39mshow where settings come from                     [0m                                    [32m [0m
+[32m [0m[1;36mdev       [0m[1;36m [0m [39mstart, join and stop a dev job                    [0m                                    [32m [0m
+[32m [0m[1;36ml         [0m[1;36m [0m [39mjoin a running dev job (short for bab dev login)  [0m                                    [32m [0m
+[32m [0m[1;36mfree      [0m[1;36m [0m [39mshow free GPUs and cluster resources              [0m                                    [32m [0m
+[32m [0m[1;36minfo      [0m[1;36m [0m [39mshow your partitions and a cluster summary        [0m                                    [32m [0m
+[32m [0m[1;36mjob       [0m[1;36m [0m [39mshow finished jobs and their output               [0m                                    [32m [0m
+[32m [0m[1;36mnode      [0m[1;36m [0m [39mshow which jobs use a node's GPUs, CPUs and memory[0m                                    [32m [0m
+[32m [0m[1;36mqueue[0m[39m,[0m[1;36mq[0m[1;36m   [0m[1;36m [0m [39mshow your jobs in the queue                       [0m                                    [32m [0m
+[32m [0m[1;36mwhy       [0m[1;36m [0m [39mexplain what a pending job is waiting for         [0m                                    [32m [0m
+[32m                                                                                                    [0m

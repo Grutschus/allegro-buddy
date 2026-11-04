@@ -1,0 +1,2 @@
+{"argv": ["scontrol", "show", "config"], "exit": 1}
+{"argv": ["squeue", "-h", "--user=alice", "--format=%F", "--name=ab-dev"], "exit": 1}

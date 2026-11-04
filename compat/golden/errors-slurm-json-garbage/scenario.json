@@ -1,0 +1,20 @@
+{
+ "name": "errors-slurm-json-garbage",
+ "category": "errors",
+ "argv": [
+  "why"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

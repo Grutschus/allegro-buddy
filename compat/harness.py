@@ -16,6 +16,7 @@ import fcntl
 import json
 import os
 import pty
+import re
 import secrets
 import shlex
 import select
@@ -168,6 +169,7 @@ def _run_pipe(argv: list[str], env: dict[str, str], cwd: Path, scenario: Scenari
     if scenario.sigint_after is not None:
         proc.stdin.write(stdin)
         proc.stdin.close()
+        proc.stdin = None
         time.sleep(scenario.sigint_after)
         proc.send_signal(signal.SIGINT)
         stdin = None
@@ -281,10 +283,11 @@ def run(scenario: Scenario, binary: str, *, keep: bool = False) -> Result:
         for rel in scenario.capture:
             path = tmp / rel
             files[rel] = _scrub(path.read_bytes(), tmp) if path.is_file() else None
-        return Result(
-            _scrub(b''.join(outs), tmp), _scrub(b''.join(errs), tmp), ' '.join(codes),
-            calls, files,
-        )
+        out, err = _scrub(b''.join(outs), tmp), _scrub(b''.join(errs), tmp)
+        for pattern, replacement in scenario.normalize:
+            out = re.sub(pattern, lambda _: replacement, out, flags=re.S)
+            err = re.sub(pattern, lambda _: replacement, err, flags=re.S)
+        return Result(out, err, ' '.join(codes), calls, files)
     finally:
         if not keep:
             _cleanup(tmp)

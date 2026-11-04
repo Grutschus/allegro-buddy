@@ -1,0 +1,28 @@
+=== run 1: bab free ===
+           Free GPUs            
+Partition   GTX1080TI   RTXA5000
+────────────────────────────────
+all               0/4        7/8
+                                
+gpumicro          0/4        7/8
+gpushort          0/4        7/8
+gpusmall          0/4        7/8
+gpu               0/4        7/8
+free/total
+
+Nodes with free GPUs
+gpu102 (4), gpu101 (3)
+=== run 2: bab free ===
+           Free GPUs            
+Partition   GTX1080TI   RTXA5000
+────────────────────────────────
+all               0/4        7/8
+                                
+gpumicro          0/4        7/8
+gpushort          0/4        7/8
+gpusmall          0/4        7/8
+gpu               0/4        7/8
+free/total
+
+Nodes with free GPUs
+gpu102 (4), gpu101 (3)

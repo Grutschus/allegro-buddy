@@ -1,0 +1,24 @@
+{
+ "name": "fix-demo-mem-yes",
+ "category": "fix",
+ "argv": [
+  "why",
+  "70122",
+  "--fix",
+  "mem",
+  "-y"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

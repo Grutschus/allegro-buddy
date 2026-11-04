@@ -1,0 +1,27 @@
+{
+ "name": "settings-aliases-dev-start",
+ "category": "settings",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "--replace",
+  "--gpu-type",
+  "pascal"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "config/allegro-buddy/config.ini"
+ ],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

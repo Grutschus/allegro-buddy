@@ -1,0 +1,21 @@
+{
+ "name": "demo-node-multi-node-share-c80",
+ "category": "demo",
+ "argv": [
+  "node",
+  "gpu101"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "80"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

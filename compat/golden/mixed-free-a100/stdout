@@ -1,0 +1,8 @@
+                       GPU nodes                       
+Node    State            A100   Free CPUs   Free memory
+───────────────────────────────────────────────────────
+gpu10   MIXED [course]    1/2       16/16        90/90G
+gpu9    MIXED [course]    3/4       16/16        90/90G
+                                                       
+total                     4/6       32/32      180/180G
+free/total

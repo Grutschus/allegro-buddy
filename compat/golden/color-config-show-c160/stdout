@@ -1,0 +1,23 @@
+[2mPreset: [0m[1mallegro[0m[2m (Slurm ClusterName is allegro)[0m
+[2mSite file: [0m@TMP@___________________________________/site/config.ini[2m (not present)[0m
+[2mUser file: [0m@TMP@___________________________________/config/allegro-buddy/config.ini[2m (not present)[0m
+
+[1m                      Settings                       [0m
+[1mSetting                [0m[1m [0m [1m [0m[1mValue     [0m[1m [0m [1m [0m[1mSource        [0m
+─────────────────────────────────────────────────────
+[dev] gpu                 1            [2mpreset allegro[0m
+[dev] partition           gpu          [2mpreset allegro[0m
+                                                     
+[gpu-aliases] a5000       rtx_a5000    [2mpreset allegro[0m
+[gpu-aliases] gtx1080     gtx_1080ti   [2mpreset allegro[0m
+[gpu-aliases] gtx1080ti   gtx_1080ti   [2mpreset allegro[0m
+                                                     
+[gpu-labels] gtx_1080ti   GTX1080      [2mpreset allegro[0m
+[gpu-labels] rtx_a5000    A5000        [2mpreset allegro[0m
+
+[1m                    Detected from Slurm                    [0m
+[1mSetting          [0m[1m [0m [1m [0m[1mValue                                  [0m
+───────────────────────────────────────────────────────────
+GPU partitions      gpumicro, gpushort, gpusmall, gpu      
+GPU types           A5000 (rtx_a5000), GTX1080 (gtx_1080ti)
+Default partition   small                                  

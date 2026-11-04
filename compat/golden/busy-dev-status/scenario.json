@@ -1,0 +1,21 @@
+{
+ "name": "busy-dev-status",
+ "category": "errors",
+ "argv": [
+  "dev",
+  "status"
+ ],
+ "then": [],
+ "world": "busy",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}
