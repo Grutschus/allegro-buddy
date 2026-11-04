@@ -2,8 +2,8 @@
 //!
 //! # Ground rules for every module (binding for all agents)
 //!
-//! * **Byte-identical UI.** Every byte on stdout/stderr, every exit code and every Slurm call
-//!   must match the Python reference (allegro-buddy==2.7 with rich==15.0.0, click==8.3.2,
+//! * **Byte-identical UI.** Every byte on stdout/stderr, every exit code and every mutating
+//!   Slurm call (in order) must match the Python reference (allegro-buddy==2.7 with rich==15.0.0, click==8.3.2,
 //!   rich-click==1.9.9), except the program name: `ab` -> `bab` ([`core::CLI_NAME`]). The
 //!   Python source is commit `91689b9` (upstream v2.7): `git show 91689b9:src/allegro_buddy/<file>`.
 //!   Each Rust item names the Python function it mirrors (`Mirrors core.foo`).
@@ -20,9 +20,11 @@
 //!   the `BAB_TEST_*` variables are set (only with the `test-hooks` cargo feature); real
 //!   behaviour otherwise. Never read the clock,
 //!   groups, user, hostname or stdin-tty state any other way.
-//! * **Slurm calls** only through [`core::slurm`]. Concurrency only for read-only queries
-//!   Python issues anyway; never parallelize mutations or conditional fallbacks; output and
-//!   error order stay deterministic (see [`core::slurm::parallel`]).
+//! * **Slurm calls** only through [`core::slurm`]. Read-only queries may start early and
+//!   side by side ([`core::slurm::prefetch`], [`core::slurm::parallel`]), even when an
+//!   earlier failure leaves one unused, or be replaced by cheaper ones carrying the same
+//!   information ([`core::fast`]); results are still evaluated in Python's order, so output
+//!   and errors are Python's. Never add, reorder or parallelize mutations.
 //!
 //! # Module map (Python -> Rust)
 //!

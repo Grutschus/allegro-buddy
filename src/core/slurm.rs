@@ -30,14 +30,16 @@
 //!
 //! # Concurrency
 //!
+//! [`prefetch`] starts read-only queries a command is about to make on background threads;
+//! the later [`run`]/[`try_run`] of the same argv takes the result, so checks and error
+//! messages happen in Python's order. A query may go unused when an earlier call dies
+//! (fine: read-only); conditional fallbacks that are rarely needed are not prefetched.
 //! [`parallel`] runs independent closures on scoped threads (`std::thread::scope`) and
-//! returns results in input order. Rules (plan amendment 6): only read-only queries that
-//! Python would make anyway in the same invocation, never mutations (sbatch, scancel,
-//! scontrol update, ssh/srun) and never calls that Python only makes conditionally on an
-//! earlier result (e.g. the `scontrol --oneliner show node` fallback). Closures must not
-//! print: use [`try_run`] inside and report errors afterwards in Python's order. Node facts
-//! ([`super::nodes::remember_nodes`]) are thread-safe. At most [`MAX_PARALLEL`] queries
-//! run at once, so one user never floods slurmctld.
+//! returns results in input order. Never mutations (sbatch, scancel, scontrol update,
+//! ssh/srun). Closures must not print: use [`try_run`] inside and report errors
+//! afterwards in Python's order. Node facts ([`super::nodes::remember_nodes`]) are
+//! thread-safe. At most [`MAX_PARALLEL`] queries run at once, so one user never floods
+//! slurmctld.
 //!
 //! # Tests
 //!
@@ -103,8 +105,15 @@ impl RunError {
 pub const MAX_PARALLEL: usize = 8;
 
 /// Spawn `argv`, wait, and capture its output (or inherit stdout/stderr). `Err` only when
-/// it could not be started.
+/// it could not be started. A captured run that was [`prefetch`]ed takes that result.
 fn spawn<S: AsRef<str>>(argv: &[S], capture: bool) -> io::Result<Output> {
+    if capture && let Some(result) = take_prefetched(argv) {
+        return result;
+    }
+    spawn_now(argv, capture)
+}
+
+fn spawn_now<S: AsRef<str>>(argv: &[S], capture: bool) -> io::Result<Output> {
     // Python's subprocess looks the name up via os.get_exec_path (warnings.catch_warnings)
     crate::cli::help::python_warning_filters_mutated();
     #[cfg(test)]
@@ -493,6 +502,97 @@ pub fn run_parsable_rows<S: AsRef<str>>(
 ) -> Result<Vec<super::Record>> {
     let output = run(argv, check)?;
     Ok(super::parse::parse_pipe_rows(&output.stdout, headers))
+}
+
+#[cfg(test)]
+pub type PrefetchedForTests = Prefetched;
+type Prefetched = Vec<(Vec<String>, std::thread::JoinHandle<io::Result<Output>>)>;
+
+fn with_prefetched<T>(f: impl FnOnce(&mut Prefetched) -> T) -> T {
+    #[cfg(test)]
+    {
+        f(&mut crate::hooks::testing::ctx()
+            .prefetched
+            .lock()
+            .expect("prefetched"))
+    }
+    #[cfg(not(test))]
+    {
+        static PREFETCHED: std::sync::Mutex<Prefetched> = std::sync::Mutex::new(Vec::new());
+        f(&mut PREFETCHED.lock().expect("prefetched"))
+    }
+}
+
+/// The result of a [`prefetch`]ed run of exactly `argv`, waiting for it if needed.
+fn take_prefetched<S: AsRef<str>>(argv: &[S]) -> Option<io::Result<Output>> {
+    let handle = with_prefetched(|pending| {
+        let index = pending.iter().position(|(key, _)| {
+            key.len() == argv.len() && key.iter().zip(argv).all(|(k, a)| k == a.as_ref())
+        })?;
+        Some(pending.swap_remove(index).1)
+    })?;
+    Some(
+        handle
+            .join()
+            .unwrap_or_else(|_| Err(io::ErrorKind::Other.into())),
+    )
+}
+
+/// Read-only queries started early by [`prefetch`]; dropping it forgets the ones nobody
+/// asked for (they finish on their own), so a `--watch` round never sees stale answers.
+#[must_use = "dropping the guard forgets the prefetched queries"]
+pub struct Prefetch(Vec<Vec<String>>);
+
+impl Drop for Prefetch {
+    fn drop(&mut self) {
+        let unused: Prefetched = with_prefetched(|pending| {
+            let (unused, kept) = std::mem::take(pending)
+                .into_iter()
+                .partition(|(key, _)| self.0.contains(key));
+            *pending = kept;
+            unused
+        });
+        // Unit tests wait for them, so their call logs are complete.
+        #[cfg(test)]
+        for (_, handle) in unused {
+            let _ = handle.join();
+        }
+        #[cfg(not(test))]
+        drop(unused);
+    }
+}
+
+/// Start read-only queries now, each on its own thread; a later captured [`run`] /
+/// [`try_run`] of the same argv takes the result instead of starting the command again.
+/// Checks and error reporting happen there, in the caller's (Python's) order. Only for
+/// read-only Slurm queries the command is about to make (an earlier failure may leave
+/// one unused); never mutations. At most [`MAX_PARALLEL`] pending at once; an argv that
+/// is already pending is not started twice.
+pub fn prefetch(argvs: Vec<Vec<String>>) -> Prefetch {
+    let argvs = with_prefetched(|pending| {
+        let mut started: Vec<Vec<String>> = Vec::new();
+        for argv in argvs {
+            // already on its way (an outer prefetch), or too many at once
+            if pending.len() >= MAX_PARALLEL || pending.iter().any(|(key, _)| *key == argv) {
+                continue;
+            }
+            #[cfg(test)]
+            let ctx = crate::hooks::testing::ctx();
+            let owned = argv.clone();
+            let run = move || spawn_now(&owned, true);
+            #[cfg(test)]
+            let run = move || crate::hooks::testing::with_ctx(ctx, run);
+            pending.push((argv.clone(), std::thread::spawn(run)));
+            started.push(argv);
+        }
+        started
+    });
+    Prefetch(argvs)
+}
+
+/// `["a", "b"]` as an owned argv.
+pub fn argv(parts: &[&str]) -> Vec<String> {
+    parts.iter().map(|part| (*part).to_owned()).collect()
 }
 
 /// A boxed task for [`parallel`].

@@ -280,11 +280,23 @@ pub fn preset_text(name: &str) -> Option<&'static str> {
         .map(|(_, text)| *text)
 }
 
-fn cluster_name_cache_path_with_env(env: Env<'_>) -> PathBuf {
+fn cache_dir_with_env(env: Env<'_>) -> PathBuf {
     let base = non_empty(env, "XDG_CACHE_HOME")
         .map_or_else(|| home_dir_with_env(env).join(".cache"), PathBuf::from);
     base.join("allegro-buddy")
-        .join(cluster_name_cache_file(crate::hooks::hostname()))
+}
+
+fn cluster_name_cache_path_with_env(env: Env<'_>) -> PathBuf {
+    cache_dir_with_env(env).join(cluster_name_cache_file(crate::hooks::hostname()))
+}
+
+/// `<cache dir>/<name>.<host>`: the directory `ab` caches the cluster name in, for a file
+/// only `bab` uses.
+pub fn bab_cache_path(name: &str) -> PathBuf {
+    cache_dir_with_env(&process_env).join(format!(
+        "{name}.{}",
+        crate::hooks::hostname().replace('/', "_")
+    ))
 }
 
 /// `cluster-name.<host>`, always one path component. Python joins the raw hostname, so a

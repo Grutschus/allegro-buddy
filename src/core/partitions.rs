@@ -19,10 +19,13 @@ use std::collections::{BTreeSet, HashMap};
 /// `MaxTime`, `AllowGroups`, `DenyGroups`, `Default`, `MaxMemPerCPU`, ...).
 pub type Partition = Record;
 
-/// `load_partitions(strict=strict)`: `scontrol --oneliner show partition` (checked iff
-/// strict); on failure (unchecked) `[]`.
+/// `scontrol --oneliner show partition`.
+pub const ARGV: [&str; 4] = ["scontrol", "--oneliner", "show", "partition"];
+
+/// `load_partitions(strict=strict)`: [`ARGV`] (checked iff strict); on failure
+/// (unchecked) `[]`.
 pub fn load_partitions(strict: bool) -> Result<Vec<Partition>> {
-    let output = super::slurm::run(&["scontrol", "--oneliner", "show", "partition"], strict)?;
+    let output = super::slurm::run(&ARGV, strict)?;
     if !output.success() {
         return Ok(Vec::new());
     }

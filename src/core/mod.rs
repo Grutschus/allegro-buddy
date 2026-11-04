@@ -9,7 +9,8 @@
 //! * `serde_json::Value` for `scontrol --json show job` records ([`jobs::JobRecord`]).
 //!
 //! Submodules:
-//! * [`slurm`]: `run`, `exec_replace`, parallel read-only queries.
+//! * [`slurm`]: `run`, `exec_replace`, parallel and prefetched read-only queries.
+//! * [`fast`]: cheaper queries with the same information as `ab`'s (version-gated).
 //! * [`parse`]: `parse_prop_line`, `parse_pipe_rows`, nullish/int/mem helpers, hostlists.
 //! * [`timefmt`]: Slurm times, `format_seconds`, ETA/start/history-end formatting.
 //! * [`gpu`]: GPU type canonicalization, labels, GRES parsing.
@@ -29,6 +30,7 @@
 //! `slurm::fake::FakeSlurm`); `nodes::testing` and `fit::records` port the builders of
 //! `tests/slurm_records.py`.
 
+pub mod fast;
 pub mod gpu;
 pub mod jobs;
 pub mod nodes;

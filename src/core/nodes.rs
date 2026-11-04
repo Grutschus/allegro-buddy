@@ -91,21 +91,52 @@ pub struct NodeFacts {
     pub gpu_partitions: BTreeSet<String>,
 }
 
+/// `scontrol --json show nodes`, the query `ab` makes.
+pub const JSON_ARGV: [&str; 4] = ["scontrol", "--json", "show", "nodes"];
+/// The same information, ~3x cheaper ([`nodes_from_details_text`], [`super::fast`]).
+pub const DETAILS_ARGV: [&str; 5] = ["scontrol", "--oneliner", "--details", "show", "node"];
+
+/// The first node query [`load_nodes`] will make (for [`super::slurm::prefetch`]).
+pub fn query_argv() -> Vec<String> {
+    if super::fast::enabled() {
+        super::slurm::argv(&DETAILS_ARGV)
+    } else {
+        super::slurm::argv(&JSON_ARGV)
+    }
+}
+
 /// `load_nodes(strict=strict)`: `scontrol --json show nodes` (unchecked); if that fails or
 /// its JSON is unusable, fall back to `scontrol --oneliner show node` (checked iff
 /// `strict`). Always calls [`remember_nodes`]. Sequential: the fallback is conditional.
+/// With [`super::fast::enabled`], [`DETAILS_ARGV`] first (unchecked); it is used when it
+/// converts cleanly, else the Python sequence follows.
 pub fn load_nodes(strict: bool) -> Result<Vec<Node>> {
-    let output = super::slurm::run(&["scontrol", "--json", "show", "nodes"], false)?;
+    let nodes = fetch_nodes(strict)?;
+    remember_nodes(&nodes);
+    Ok(nodes)
+}
+
+/// [`load_nodes`] without [`remember_nodes`].
+pub fn fetch_nodes(strict: bool) -> Result<Vec<Node>> {
+    if super::fast::enabled() {
+        let output = super::slurm::run(&DETAILS_ARGV, false)?;
+        if output.success()
+            && let Some(nodes) = nodes_from_details_text(&output.stdout)
+        {
+            return Ok(nodes);
+        }
+    }
+    let output = super::slurm::run(&JSON_ARGV, false)?;
     let parsed = if output.success() {
         nodes_from_json(&output.stdout).ok()
     } else {
         None
     };
-    let nodes = match parsed {
-        Some(nodes) => nodes,
+    match parsed {
+        Some(nodes) => Ok(nodes),
         None => {
             let fallback = super::slurm::run(&["scontrol", "--oneliner", "show", "node"], strict)?;
-            if fallback.success() {
+            Ok(if fallback.success() {
                 pyfmt::splitlines(&fallback.stdout)
                     .into_iter()
                     .filter(|line| !pyfmt::strip(line).is_empty())
@@ -113,11 +144,175 @@ pub fn load_nodes(strict: bool) -> Result<Vec<Node>> {
                     .collect()
             } else {
                 Vec::new()
-            }
+            })
         }
+    }
+}
+
+/// Node states as `scontrol` prints them: base states, then flags in the order of
+/// `node_state_flags[]` (`src/common/slurm_protocol_defs.c`).
+const TEXT_BASE_STATES: [&str; 7] = [
+    "DOWN",
+    "IDLE",
+    "ALLOCATED",
+    "ERROR",
+    "MIXED",
+    "FUTURE",
+    "UNKNOWN",
+];
+#[rustfmt::skip]
+const TEXT_STATE_FLAGS: [&str; 20] = [
+    "BLOCKED", "CLOUD", "COMPLETING", "DRAIN", "DYNAMIC_FUTURE", "DYNAMIC_NORM",
+    "INVALID_REG", "FAIL", "MAINTENANCE", "POWER_DOWN", "POWER_UP", "POWERED_DOWN",
+    "REBOOT_REQUESTED", "REBOOT_ISSUED", "RESERVED", "RESUME", "NOT_RESPONDING", "PLANNED",
+    "POWERING_UP", "POWERING_DOWN",
+];
+/// The flags in the order of the JSON `state` list (data_parser `NODE_STATES`).
+#[rustfmt::skip]
+const JSON_STATE_FLAGS: [&str; 22] = [
+    "RESERVED", "UNDRAIN", "CLOUD", "RESUME", "DRAIN", "COMPLETING", "NOT_RESPONDING",
+    "POWERED_DOWN", "FAIL", "POWERING_UP", "MAINTENANCE", "REBOOT_REQUESTED",
+    "REBOOT_CANCELED", "POWERING_DOWN", "DYNAMIC_FUTURE", "REBOOT_ISSUED", "PLANNED",
+    "INVALID_REG", "POWER_DOWN", "POWER_UP", "POWER_DRAIN", "DYNAMIC_NORM",
+];
+
+/// `MIXED+MAINTENANCE+RESERVED` (scontrol) as the JSON list joins: `MIXED+RESERVED+MAINTENANCE`.
+/// None for anything scontrol would not print or JSON would show differently (`BLOCKED`
+/// is not in the JSON, flags JSON knows but scontrol prints as `?`).
+fn json_state_from_text(state: &str) -> Option<String> {
+    let mut parts = state.split('+');
+    let base = parts.next().filter(|b| TEXT_BASE_STATES.contains(b))?;
+    let mut previous = None;
+    let mut flags = Vec::new();
+    for flag in parts {
+        let text_index = TEXT_STATE_FLAGS.iter().position(|f| *f == flag)?;
+        if previous.is_some_and(|p| p >= text_index) {
+            return None;
+        }
+        previous = Some(text_index);
+        flags.push(JSON_STATE_FLAGS.iter().position(|f| *f == flag)?);
+    }
+    flags.sort_unstable();
+    Some(
+        std::iter::once(base)
+            .chain(flags.into_iter().map(|i| JSON_STATE_FLAGS[i]))
+            .collect::<Vec<_>>()
+            .join("+"),
+    )
+}
+
+/// The value of ` KEY=` (or `KEY=` at the very start) in `line[*from..until]`, up to the
+/// next space; moves `*from` past it.
+fn text_field<'a>(line: &'a str, from: &mut usize, until: usize, key: &str) -> Option<&'a str> {
+    let window = &line[*from..until];
+    let start = if *from == 0 && window.starts_with(key) && window[key.len()..].starts_with('=') {
+        key.len() + 1
+    } else {
+        let needle = format!(" {key}=");
+        window.find(&needle)? + needle.len()
     };
-    remember_nodes(&nodes);
-    Ok(nodes)
+    let value = &window[start..];
+    let value = &value[..value.find(' ').unwrap_or(value.len())];
+    *from += start + value.len();
+    Some(value)
+}
+
+/// A count printed with `%u`, as the JSON prints it; None for what JSON would not print
+/// as a number (`NO_VAL64`, `INFINITE64`: null).
+fn text_number(value: &str) -> Option<String> {
+    if value.is_empty() || !value.bytes().all(|b| b.is_ascii_digit()) {
+        return None;
+    }
+    value
+        .parse::<u64>()
+        .ok()
+        .filter(|n| *n < u64::MAX - 1)
+        .map(|n| n.to_string())
+}
+
+/// A comma list as the JSON list joins (`(null)` = none, empty items dropped).
+fn text_list(value: &str) -> String {
+    if value == "(null)" {
+        return String::new();
+    }
+    value
+        .split(',')
+        .filter(|item| !item.is_empty())
+        .collect::<Vec<_>>()
+        .join(",")
+}
+
+/// One line of `scontrol --oneliner --details show node` (Slurm 24.05/24.11
+/// `slurm_sprint_node_table`) as [`nodes_from_json`] would have made it from the same
+/// node's JSON. None when the line is not exactly in that shape.
+fn node_from_details_line(line: &str) -> Option<Node> {
+    let line = line.trim_end_matches(' ');
+    let mut at = 0;
+    let end = line.len();
+    let name = text_field(line, &mut at, end, "NodeName")?;
+    let cpu_alloc = text_number(text_field(line, &mut at, end, "CPUAlloc")?)?;
+    let cpu_tot = text_number(text_field(line, &mut at, end, "CPUTot")?)?;
+    let features = text_list(text_field(line, &mut at, end, "AvailableFeatures")?);
+    let active_features = text_list(text_field(line, &mut at, end, "ActiveFeatures")?);
+    let gres = text_field(line, &mut at, end, "Gres")?;
+    let memory_at = at + line[at..].find(" RealMemory=")?;
+    let gres_used = text_field(line, &mut at, memory_at, "GresUsed").unwrap_or("");
+    at = memory_at;
+    let real_memory = text_number(text_field(line, &mut at, end, "RealMemory")?)?;
+    let alloc_mem = text_number(text_field(line, &mut at, end, "AllocMem")?)?;
+    let state_at = at + line[at..].find(" State=")?;
+    let spec_mem = match text_field(line, &mut at, state_at, "MemSpecLimit") {
+        Some(value) => text_number(value)?,
+        None => "0".to_owned(),
+    };
+    at = state_at;
+    let state = json_state_from_text(text_field(line, &mut at, end, "State")?)?;
+    let boot_at = at + line[at..].find(" BootTime=")?;
+    let partitions = text_list(text_field(line, &mut at, boot_at, "Partitions").unwrap_or(""));
+    at = boot_at;
+    text_field(line, &mut at, end, "CurrentWatts")?;
+    text_field(line, &mut at, end, "AveWatts")?;
+    // Free text follows (Reason=, Comment=, Extra=, ...), then ReservationName= last.
+    let tail = &line[at..];
+    if tail.contains("Comment=") || tail.contains("Extra=") {
+        return None;
+    }
+    let reservation = match tail.matches("ReservationName=").count() {
+        0 => "",
+        1 => {
+            let (_, value) = tail.rsplit_once(" ReservationName=")?;
+            if value.contains(' ') {
+                return None;
+            }
+            value
+        }
+        _ => return None,
+    };
+    Some(Node {
+        name: name.to_owned(),
+        state,
+        cpu_tot,
+        cpu_alloc,
+        real_memory,
+        alloc_mem,
+        gres: if gres.is_empty() { "(null)" } else { gres }.to_owned(),
+        gres_used: gres_used.to_owned(),
+        partitions,
+        active_features,
+        features,
+        reservation: reservation.to_owned(),
+        spec_mem,
+    })
+}
+
+/// [`nodes_from_json`] of `scontrol --json show nodes`, from the output of
+/// [`DETAILS_ARGV`] instead; None unless every line converts.
+pub fn nodes_from_details_text(stdout: &str) -> Option<Vec<Node>> {
+    pyfmt::splitlines(stdout)
+        .into_iter()
+        .filter(|line| !pyfmt::strip(line).is_empty())
+        .map(node_from_details_line)
+        .collect()
 }
 
 /// `n.get(key) or default` for a string field, `str()` of anything else truthy.
@@ -479,6 +674,60 @@ mod tests {
     use super::*;
     use crate::core::slurm::fake::{FakeSlurm, ok};
     use crate::hooks::testing::Ctx;
+
+    /// Three Allegro nodes (Slurm 24.11.5): `scontrol --oneliner --details show node` and
+    /// the same nodes' `scontrol --json show nodes` (the fields bab reads).
+    const DETAILS_TEXT: &str = "\
+NodeName=gpu061 Arch=x86_64 CoresPerSocket=6  CPUAlloc=0 CPUEfctv=24 CPUTot=24 CPULoad=0.00 AvailableFeatures=Intel,GTX-1080ti ActiveFeatures=Intel,GTX-1080ti Gres=gpu:GTX-1080ti:4 GresDrain=N/A GresUsed=gpu:GTX-1080ti:0(IDX:N/A) NodeAddr=gpu061 NodeHostName=gpu061 Version=24.11.5 OS=Linux 6.12.96+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.96-1 (2026-07-20)  RealMemory=32000 AllocMem=0 FreeMem=24170 Sockets=2 Boards=1 State=IDLE+MAINTENANCE+RESERVED ThreadsPerCore=2 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A Partitions=gpu,gpushort,gpusmall,gpumicro  BootTime=2026-07-29T11:06:39 SlurmdStartTime=2026-10-13T15:17:17 LastBusyTime=2026-10-13T15:17:16 ResumeAfterTime=None CfgTRES=cpu=24,mem=32000M,billing=24 AllocTRES= CurrentWatts=0 AveWatts=0  ReservationName=gpu-switch
+NodeName=gpu062 Arch=x86_64 CoresPerSocket=6  CPUAlloc=1 CPUEfctv=12 CPUTot=12 CPULoad=1.04 AvailableFeatures=Intel,GTX-1080ti ActiveFeatures=Intel,GTX-1080ti Gres=gpu:GTX-1080ti:4 GresDrain=N/A GresUsed=gpu:GTX-1080ti:1(IDX:0) NodeAddr=gpu062 NodeHostName=gpu062 Version=24.11.5 OS=Linux 6.12.96+deb13-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.12.96-1 (2026-07-20)  RealMemory=64000 AllocMem=49152 FreeMem=11703 Sockets=2 Boards=1 MemSpecLimit=2048 State=MIXED+PLANNED ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A Partitions=gpu,gpushort,gpusmall,gpumicro  BootTime=2026-07-29T11:06:51 SlurmdStartTime=2026-10-13T15:17:17 LastBusyTime=2026-11-04T14:23:13 ResumeAfterTime=None CfgTRES=cpu=12,mem=62.50G,billing=12 AllocTRES=cpu=1,mem=48G CurrentWatts=0 AveWatts=0 
+NodeName=gpu074 CoresPerSocket=6  CPUAlloc=0 CPUEfctv=12 CPUTot=12 CPULoad=0.00 AvailableFeatures=(null) ActiveFeatures=(null) Gres=(null) NodeAddr=gpu074 NodeHostName=gpu074  RealMemory=64000 AllocMem=0 FreeMem=N/A Sockets=2 Boards=1 State=DOWN+DRAIN+NOT_RESPONDING ThreadsPerCore=1 TmpDisk=0 Weight=1 Owner=N/A MCS_label=N/A BootTime=None SlurmdStartTime=None LastBusyTime=Unknown ResumeAfterTime=None CfgTRES=cpu=12,mem=62.50G,billing=12 AllocTRES= CurrentWatts=0 AveWatts=0  Reason=Not responding : reboot timed out [slurm@2026-07-01T10:13:49]
+";
+    const DETAILS_JSON: &str = r#"{"nodes": [
+      {"name": "gpu061", "state": ["IDLE", "RESERVED", "MAINTENANCE"], "cpus": 24,
+       "alloc_cpus": 0, "real_memory": 32000, "alloc_memory": 0,
+       "gres": "gpu:GTX-1080ti:4", "gres_used": "gpu:GTX-1080ti:0(IDX:N/A)",
+       "partitions": ["gpu", "gpushort", "gpusmall", "gpumicro"],
+       "active_features": ["Intel", "GTX-1080ti"], "features": ["Intel", "GTX-1080ti"],
+       "reservation": "gpu-switch", "specialized_memory": 0},
+      {"name": "gpu062", "state": ["MIXED", "PLANNED"], "cpus": 12, "alloc_cpus": 1,
+       "real_memory": 64000, "alloc_memory": 49152, "gres": "gpu:GTX-1080ti:4",
+       "gres_used": "gpu:GTX-1080ti:1(IDX:0)",
+       "partitions": ["gpu", "gpushort", "gpusmall", "gpumicro"],
+       "active_features": ["Intel", "GTX-1080ti"], "features": ["Intel", "GTX-1080ti"],
+       "reservation": "", "specialized_memory": 2048},
+      {"name": "gpu074", "state": ["DOWN", "DRAIN", "NOT_RESPONDING"], "cpus": 12,
+       "alloc_cpus": 0, "real_memory": 64000, "alloc_memory": 0, "gres": "",
+       "gres_used": "", "partitions": [], "active_features": [], "features": [],
+       "reservation": "", "specialized_memory": 0}
+    ]}"#;
+
+    #[test]
+    fn details_text_converts_to_what_the_json_says() {
+        assert_eq!(
+            nodes_from_details_text(DETAILS_TEXT),
+            Some(nodes_from_json(DETAILS_JSON).unwrap())
+        );
+        let line = |from: &str, to: &str| DETAILS_TEXT.lines().next().unwrap().replace(from, to);
+        // anything that scontrol and the JSON could show differently: the JSON instead
+        for odd in [
+            line("State=IDLE+MAINTENANCE", "State=IDLE+BLOCKED+MAINTENANCE"),
+            line("State=IDLE+MAINTENANCE", "State=IDLE+?+MAINTENANCE"),
+            line("State=IDLE+MAINTENANCE+RESERVED", "State=MAINT+RESERVED"),
+            line(
+                "State=IDLE+MAINTENANCE+RESERVED",
+                "State=IDLE+RESERVED+MAINTENANCE",
+            ),
+            line("AveWatts=0 ", "AveWatts=0  Comment=x"),
+            line(
+                "AveWatts=0 ",
+                "AveWatts=0  Reason=see ReservationName=y [root@now]",
+            ),
+            line("RealMemory=32000", "RealMemory=18446744073709551614"),
+            line("NodeName=", "Node="),
+        ] {
+            assert_eq!(nodes_from_details_text(&odd), None, "{odd}");
+        }
+    }
 
     const SCONTROL_NODE_OUTPUT: &str = r#"{
   "nodes": [

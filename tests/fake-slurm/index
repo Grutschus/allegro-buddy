@@ -2,11 +2,17 @@
 #   <scenario glob> <exit code> <answer file or -> <command line glob>
 # The first line matching $FAKE_SLURM_SCENARIO and the call wins. <file> goes to stdout
 # (@TMP@ replaced by $FAKE_SLURM_TMP), <file>.err to stderr. "demo" is a busy made-up
-# Allegro-like cluster (jobs of alice and bob), "plain" the same nodes without jobs.
+# Allegro-like cluster (jobs of alice and bob), "plain" the same nodes without jobs. The
+# *-nodes.txt and squeue --json answers carry the same data as the *-nodes.json and
+# demo-jobs.json ones (Slurm 24.11 formats), for bab's cheaper queries (src/core/fast.rs).
 demo-dev-start 0 - squeue -h --user=alice --format=%F --name=ab-dev
 * 0 config scontrol show config
+* 0 version scontrol --version
 * 0 partitions scontrol --oneliner show partition
 demo-* 0 demo-nodes.json scontrol --json show nodes
+demo-* 0 demo-nodes.txt scontrol --oneliner --details show node
+demo-* 0 demo-jobs-alice-pending.json squeue --json --state=PD --user=alice
+demo-* 0 demo-jobs-pending.json squeue --json --state=PD
 demo-* 0 demo-jobs.json scontrol --json show job
 demo-* 0 job-70120.json scontrol --json show job 70120
 demo-* 0 job-70122.json scontrol --json show job 70122
@@ -22,6 +28,7 @@ demo-* 0 sacct-alice.txt sacct --parsable2 --noheader -X --user=alice --starttim
 demo-* 0 sbatch.txt sbatch --parsable --job-name=ab-dev --partition=gpu --time=08:00:00 --mem=8G --output=*/home/slurm-output/ab-dev-%j.out --wrap=trap : TERM INT; sleep infinity & wait --cpus-per-gpu=2 --gres=gpu:1
 demo-* 0 - scancel 70110
 plain-* 0 plain-nodes.json scontrol --json show nodes
+plain-* 0 plain-nodes.txt scontrol --oneliner --details show node
 plain-* 0 sacctmgr-alice.txt sacctmgr -nP show user alice withassoc cluster=allegro format=DefaultAccount,Account,QOS
 plain-* 0 - squeue -h --user=alice --format=%F
 plain-* 0 reservations.txt scontrol --oneliner show reservation

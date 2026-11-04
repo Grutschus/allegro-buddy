@@ -175,7 +175,8 @@ pub fn job_gres_on_node(job: &Record, node: &str) -> String {
     }
 }
 
-fn job_details_argv(job_id: Option<&str>) -> Vec<String> {
+/// `scontrol --oneliner --details show job [id]`.
+pub fn job_details_argv(job_id: Option<&str>) -> Vec<String> {
     let mut argv: Vec<String> = ["scontrol", "--oneliner", "--details", "show", "job"]
         .map(str::to_owned)
         .to_vec();
@@ -215,16 +216,7 @@ pub fn get_job_detail(job_id: &str) -> Result<Option<Record>> {
 pub fn get_user_jobs(user: Option<&str>, name: Option<&str>) -> Result<Vec<Record>> {
     let user = user_or_current(user);
     let name = name.filter(|n| !n.is_empty());
-    let mut argv = vec![
-        "squeue".to_owned(),
-        "-h".to_owned(),
-        format!("--user={user}"),
-        "--format=%F".to_owned(),
-    ];
-    if let Some(name) = name {
-        argv.push(format!("--name={name}"));
-    }
-    let output = slurm::run(&argv, true)?;
+    let output = slurm::run(&user_jobs_argv(&user, name), true)?;
     let mut job_ids: Vec<&str> = Vec::new();
     for id in pyfmt::split_whitespace(&output.stdout) {
         if !job_ids.contains(&id) {
@@ -253,6 +245,20 @@ pub fn get_user_jobs(user: Option<&str>, name: Option<&str>) -> Result<Vec<Recor
     let jobs = slurm::parallel(tasks).into_iter().flatten().collect();
     slurm::check_interrupted()?;
     Ok(jobs)
+}
+
+/// The `squeue` of [`get_user_jobs`].
+pub fn user_jobs_argv(user: &str, name: Option<&str>) -> Vec<String> {
+    let mut argv = vec![
+        "squeue".to_owned(),
+        "-h".to_owned(),
+        format!("--user={user}"),
+        "--format=%F".to_owned(),
+    ];
+    if let Some(name) = name {
+        argv.push(format!("--name={name}"));
+    }
+    argv
 }
 
 /// `load_running_jobs()`: all job details in [`super::RUNNING_STATES`].

@@ -256,6 +256,10 @@ pub mod testing {
         pub settings: &'static Settings,
         /// `_NODE_FACTS`, shared with worker threads of `slurm::parallel`.
         pub node_facts: Arc<RwLock<Option<Arc<NodeFacts>>>>,
+        /// `slurm::prefetch`ed queries of this test.
+        pub prefetched: Arc<std::sync::Mutex<crate::core::slurm::PrefetchedForTests>>,
+        /// The Slurm version `core::fast` sees (`None`: unknown, no fast queries).
+        pub slurm_version: Option<(u32, u32)>,
     }
 
     fn allegro_settings() -> &'static Settings {
@@ -275,6 +279,8 @@ pub mod testing {
                 cluster_name: Some("allegro"),
                 settings: allegro_settings(),
                 node_facts: Arc::default(),
+                prefetched: Arc::default(),
+                slurm_version: None,
             }
         }
     }
@@ -303,6 +309,11 @@ pub mod testing {
 
         pub fn cluster_name(mut self, name: Option<&'static str>) -> Ctx {
             self.cluster_name = name;
+            self
+        }
+
+        pub fn slurm_version(mut self, version: (u32, u32)) -> Ctx {
+            self.slurm_version = Some(version);
             self
         }
 

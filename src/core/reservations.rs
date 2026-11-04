@@ -14,10 +14,13 @@ use std::collections::{BTreeSet, HashMap};
 /// Active reservations older than this (by StartTime) are not displayed.
 pub const RESERVATION_MAX_ACTIVE_DISPLAY_AGE_DAYS: i64 = 30;
 
+/// `scontrol --oneliner show reservation`.
+pub const ARGV: [&str; 4] = ["scontrol", "--oneliner", "show", "reservation"];
+
 /// `load_reservations()`: `scontrol --oneliner show reservation` (unchecked; failure ->
 /// `[]`), lines containing `ReservationName=`.
 pub fn load_reservations() -> Result<Vec<Record>> {
-    let output = super::slurm::run(&["scontrol", "--oneliner", "show", "reservation"], false)?;
+    let output = super::slurm::run(&ARGV, false)?;
     if !output.success() {
         return Ok(Vec::new());
     }

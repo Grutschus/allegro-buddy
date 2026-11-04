@@ -10,9 +10,9 @@
 //!   not print outside the consoles. Nothing here is cached between frames: like Python,
 //!   every frame queries Slurm again; only the node facts (`core::nodes`, Python's
 //!   process-global `_NODE_FACTS`) survive from one frame to the next, as in Python.
-//! * Concurrency: only where every query of the batch is one Python makes anyway, before
-//!   anything that could stop it (a checked call failing): see [`cmd_info`] and
-//!   [`cmd_node`]. Failures are reported afterwards in Python's call order.
+//! * Concurrency: each command starts the read-only queries it is about to make at once
+//!   (`core::slurm::prefetch`; one may go unused when an earlier call dies) and evaluates
+//!   them in Python's call order, so failures are reported as Python reports them.
 
 use crate::core::gpu::{
     collect_display_gpu_types, format_gpu_type_header, gpu_type_label, parse_gpu_count,
@@ -46,7 +46,7 @@ use crate::core::ui::{
     TableRow, gpu_free_text, hint, job_id_text, muted, node_text, partition_text, ratio_text,
     render_table, state_text, warn,
 };
-use crate::core::users::{current_groups, current_user, user_accounts};
+use crate::core::users::{accounts_argv, accounts_from, current_groups, current_user};
 use crate::core::{CLI_NAME, Record, RecordExt};
 use crate::error::{Result, die};
 use crate::fit::HINT_REASONS;
@@ -370,6 +370,16 @@ fn free_caption(some_unusable: bool) -> &'static str {
 
 /// `cmd_info(all_partitions=...)`.
 pub fn cmd_info(all_partitions: bool) -> Result<()> {
+    // Every query below is read-only and made unless an earlier one dies: start them now.
+    let user = current_user();
+    let _prefetch = slurm::prefetch(vec![
+        crate::core::nodes::query_argv(),
+        slurm::argv(&crate::core::partitions::ARGV),
+        crate::core::jobs::user_jobs_argv(user, None),
+        slurm::argv(&crate::core::reservations::ARGV),
+    ]);
+    let sacctmgr = accounts_argv(user);
+    let _accounts = slurm::prefetch(vec![sacctmgr.clone()]);
     let nodes = load_nodes(true)?;
     let partitions = get_accessible_partitions(all_partitions)?;
     let names: Vec<String> = partitions
@@ -400,10 +410,9 @@ pub fn cmd_info(all_partitions: bool) -> Result<()> {
     // `_render_you`: sacctmgr (unchecked) and squeue (+ scontrol per job) are both made
     // unconditionally, in this order, so they may run side by side; a squeue failure is
     // reported after both are done, like Python's die from get_user_job_etas.
-    let user = current_user();
     let now = crate::hooks::now();
     let (accounts, etas) = slurm::join2(
-        || user_accounts(user),
+        || accounts_from(&sacctmgr),
         || get_user_job_etas(Some(user), now),
     );
     let accounts = accounts?;
@@ -467,6 +476,16 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
     if let Some(partition) = partition {
         argv.extend(["-p".to_owned(), partition.to_owned()]);
     }
+    // All users: some pending job almost always gets a bottleneck hint, which needs the
+    // pending jobs' records, the nodes and the partitions; start those now.
+    let _prefetch = selected_user.is_none().then(|| {
+        let mut argvs = vec![
+            crate::core::nodes::query_argv(),
+            slurm::argv(&crate::core::partitions::ARGV),
+        ];
+        argvs.extend(super::why::all_pending_argv());
+        slurm::prefetch(argvs)
+    });
     let jobs = slurm::run_parsable_rows(
         &argv,
         &[
@@ -505,7 +524,7 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
     let (hints, hint_error) = if hint_ids.is_empty() {
         (HashMap::new(), None)
     } else {
-        let result = super::why::queue_hints(&hint_ids);
+        let result = super::why::queue_hints(&hint_ids, selected_user);
         // Python's KeyboardInterrupt is not caught by queue_hints' `except Exception`.
         slurm::check_interrupted()?;
         result
@@ -879,6 +898,11 @@ pub fn cmd_free(
 ) -> Result<()> {
     let partition_filter = partition_filter.filter(|p| !p.is_empty());
     let gpu_type = gpu_type.filter(|g| !g.is_empty());
+    let _prefetch = slurm::prefetch(vec![
+        crate::core::nodes::query_argv(),
+        slurm::argv(&crate::core::reservations::ARGV),
+        slurm::argv(&crate::core::partitions::ARGV),
+    ]);
     let nodes = load_nodes(true)?;
     // The reservation query is unchecked and nothing between it and the (checked)
     // partition query can fail, so Python always makes both: they run side by side.
@@ -1037,6 +1061,10 @@ fn ids_text(ids: impl IntoIterator<Item = i64>) -> String {
 
 /// `cmd_node(node=)` (also `gpualloc`).
 pub fn cmd_node(node: Option<&str>) -> Result<()> {
+    let _prefetch = slurm::prefetch(vec![
+        crate::core::nodes::query_argv(),
+        crate::core::jobs::job_details_argv(None),
+    ]);
     let nodes = load_nodes(true)?; // also primes node_facts(), so guess_node won't reload
     let node_name = guess_node(node)?;
     let Some(node_info) = nodes.iter().find(|n| n.name == node_name) else {

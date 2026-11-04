@@ -8,15 +8,14 @@
 //!   return `Err(AbError::Exit(1))` (nothing printed by that line itself).
 //! * `_start_text` uses `datetime.fromtimestamp(planned_start)` (local time):
 //!   `core::timefmt::local_iso_from_epoch`.
-//! * [`load_inputs`] runs its three read-only queries (`scontrol --json show job`,
-//!   `scontrol --json show nodes`, `scontrol --oneliner show partition`) concurrently when
-//!   none can die (non-strict, for `bab q`) and evaluates them in Python's order (the
-//!   conditional node fallback stays sequential); strict (`bab why`) runs them in order.
+//! * [`load_inputs`] starts its three read-only queries (jobs, nodes, partitions) at once
+//!   and evaluates them in Python's order (conditional fallbacks stay sequential); with
+//!   `core::fast` it asks only for the job records the caller reads.
 
 use crate::core::CLI_NAME;
 use crate::core::gpu::gpu_type_label;
 use crate::core::jobs::{JobRecord, job_records_json, load_job_records};
-use crate::core::nodes::{load_nodes, node_from_props, nodes_from_json, remember_nodes};
+use crate::core::nodes::{fetch_nodes, load_nodes, remember_nodes};
 use crate::core::parse::{base_job_id, parse_prop_line};
 use crate::core::slurm::{self, Output, RunError};
 use crate::core::timefmt::{format_pending_start, local_iso_from_epoch};
@@ -66,31 +65,6 @@ fn job_records_from(ran: Ran, strict: bool) -> Result<Vec<JobRecord>> {
     }
 }
 
-/// The tail of `core.load_nodes` once `scontrol --json show nodes` (unchecked) ran.
-fn nodes_from(ran: Ran, strict: bool) -> Result<Vec<NodeCapacity>> {
-    let parsed = match ran {
-        Ok(output) if output.success() => nodes_from_json(&output.stdout).ok(),
-        _ => None,
-    };
-    let nodes = match parsed {
-        Some(nodes) => nodes,
-        None => {
-            let fallback = slurm::run(&["scontrol", "--oneliner", "show", "node"], strict)?;
-            if fallback.success() {
-                pyfmt::splitlines(&fallback.stdout)
-                    .into_iter()
-                    .filter(|line| !pyfmt::strip(line).is_empty())
-                    .map(|line| node_from_props(&parse_prop_line(line)))
-                    .collect()
-            } else {
-                Vec::new()
-            }
-        }
-    };
-    remember_nodes(&nodes);
-    Ok(nodes.iter().map(NodeCapacity::from_node).collect())
-}
-
 /// The tail of `core.load_partitions` -> `mem_per_cpu_limits`.
 fn limits_from(ran: Ran) -> Result<MemLimits> {
     let output = ran.map_err(|err| err.die())?;
@@ -105,30 +79,95 @@ fn limits_from(ran: Ran) -> Result<MemLimits> {
     Ok(mem_per_cpu_limits(&partitions))
 }
 
-/// `load_inputs(strict=, job_id=)`: `load_job_records`, `load_nodes`, `load_partitions`.
-/// Non-strict (`bab q` hints) nothing can fail, so the three queries run concurrently;
-/// strict, each may die and stop the rest, so they run in order.
-pub fn load_inputs(strict: bool, job_id: Option<&str>) -> Result<Inputs> {
-    let job_id = job_id.filter(|id| !id.is_empty());
-    let mut job_argv = vec!["scontrol", "--json", "show", "job"];
-    job_argv.extend(job_id);
-    let jobs = || slurm::try_run(&job_argv, strict && job_id.is_none());
-    let nodes = || slurm::try_run(&["scontrol", "--json", "show", "nodes"], false);
-    let partitions = || slurm::try_run(&["scontrol", "--oneliner", "show", "partition"], strict);
-    if strict {
-        // Any step may die(); Python never issues the queries after it.
-        let records = job_records_from(jobs(), strict)?;
-        slurm::check_interrupted()?;
-        let nodes = nodes_from(nodes(), strict)?;
-        let limits = limits_from(partitions())?;
-        slurm::check_interrupted()?;
-        return Ok((records, nodes, limits));
+/// The job records a caller of [`load_inputs`] reads; the others only cost time.
+#[derive(Debug, Clone, Copy)]
+pub enum Wanted<'a> {
+    /// `bab why JOBID`: `scontrol --json show job JOBID` (base id).
+    Job(&'a str),
+    /// `bab why`: the user's pending jobs.
+    PendingOf(&'a str),
+    /// `bab q` hints: these raw job ids, pending jobs of `user` (`None`: of anyone).
+    Hints {
+        ids: &'a BTreeSet<String>,
+        user: Option<&'a str>,
+    },
+}
+
+use crate::core::partitions::ARGV as PARTITIONS_ARGV;
+
+/// The `squeue --json` that prints just the records `wanted` reads, in `scontrol --json
+/// show job` order and shape (see [`crate::core::fast`]).
+fn fast_jobs_argv(wanted: Wanted<'_>) -> Option<Vec<String>> {
+    if !crate::core::fast::enabled() {
+        return None;
     }
-    let (jobs, nodes, partitions) = slurm::join3(jobs, nodes, partitions);
+    let user = match wanted {
+        Wanted::Job(_) => return None,
+        Wanted::PendingOf(user) => Some(user),
+        Wanted::Hints { user, .. } => user,
+    };
+    let mut argv = slurm::argv(&["squeue", "--json", "--state=PD"]);
+    match user {
+        Some(user) if user.is_empty() || user.starts_with('-') => return None,
+        Some(user) => argv.push(format!("--user={user}")),
+        None => {}
+    }
+    Some(argv)
+}
+
+/// `squeue --json --state=PD` for `bab q --all` hints, started with the queue listing.
+pub fn all_pending_argv() -> Option<Vec<String>> {
+    fast_jobs_argv(Wanted::Hints {
+        ids: &BTreeSet::new(),
+        user: None,
+    })
+}
+
+/// `load_inputs(strict=, job_id=)`: `load_job_records`, `load_nodes`, `load_partitions`,
+/// evaluated in that order (strict: each may die and stop the rest). All three queries
+/// start at once ([`slurm::prefetch`]); with [`crate::core::fast`] the jobs come from a
+/// filtered `squeue --json` and the nodes from the text form, falling back to Python's
+/// queries when one fails (or, for `Ids`, finds none of the jobs).
+pub fn load_inputs(strict: bool, wanted: Wanted<'_>) -> Result<Inputs> {
+    let job_id = match wanted {
+        Wanted::Job(id) => Some(id).filter(|id| !id.is_empty()),
+        _ => None,
+    };
+    let mut job_argv = slurm::argv(&["scontrol", "--json", "show", "job"]);
+    job_argv.extend(job_id.map(str::to_owned));
+    let fast_argv = fast_jobs_argv(wanted);
+    let _prefetch = slurm::prefetch(vec![
+        fast_argv.clone().unwrap_or_else(|| job_argv.clone()),
+        crate::core::nodes::query_argv(),
+        slurm::argv(&PARTITIONS_ARGV),
+    ]);
+    let mut records = None;
+    if let Some(argv) = &fast_argv {
+        let output = slurm::run(argv, false)?;
+        if output.success() {
+            records = job_records_json(&output.stdout).filter(|jobs| match wanted {
+                // the pending jobs `bab q` just listed; one gone: ask like Python
+                Wanted::Hints { ids, .. } => ids.iter().all(|id| {
+                    jobs.iter()
+                        .any(|job| job.get("job_id").is_some_and(|v| pyfmt::json_str(v) == *id))
+                }),
+                _ => true,
+            });
+        }
+    }
+    let records = match records {
+        Some(records) => records,
+        None => job_records_from(
+            slurm::try_run(&job_argv, strict && job_id.is_none()),
+            strict,
+        )?,
+    };
     slurm::check_interrupted()?;
-    let records = job_records_from(jobs, strict)?;
-    let nodes = nodes_from(nodes, strict)?;
-    let limits = limits_from(partitions)?;
+    let nodes = fetch_nodes(strict)?;
+    remember_nodes(&nodes);
+    let nodes = nodes.iter().map(NodeCapacity::from_node).collect();
+    let limits = limits_from(slurm::try_run(&PARTITIONS_ARGV, strict))?;
+    slurm::check_interrupted()?;
     Ok((records, nodes, limits))
 }
 
@@ -137,8 +176,12 @@ pub fn load_inputs(strict: bool, job_id: Option<&str>) -> Result<Inputs> {
 /// `"<ExceptionType>: <message>"`; the Rust port of the record parsing is total, so the
 /// only error left is Ctrl-C (Python's KeyboardInterrupt), which yields no hints here:
 /// callers notice it with `core::slurm::check_interrupted()`.
-pub fn queue_hints(job_ids: &BTreeSet<String>) -> (HashMap<String, String>, Option<String>) {
-    let Ok((records, nodes, limits)) = load_inputs(false, None) else {
+pub fn queue_hints(
+    job_ids: &BTreeSet<String>,
+    user: Option<&str>,
+) -> (HashMap<String, String>, Option<String>) {
+    let wanted = Wanted::Hints { ids: job_ids, user };
+    let Ok((records, nodes, limits)) = load_inputs(false, wanted) else {
         return (HashMap::new(), None);
     };
     if records.is_empty() || nodes.is_empty() {
@@ -842,7 +885,11 @@ pub fn cmd_why(
     }
 
     // %A_[...] and 65177_3 both live under the array's base id
-    let (records, nodes, limits) = load_inputs(true, jobid.map(base_job_id))?;
+    let wanted = match jobid {
+        Some(jobid) => Wanted::Job(base_job_id(jobid)),
+        None => Wanted::PendingOf(current_user()),
+    };
+    let (records, nodes, limits) = load_inputs(true, wanted)?;
     let Some(jobid) = jobid else {
         render_overview(&records, &nodes, &limits);
         return Ok(());
@@ -886,22 +933,71 @@ mod tests {
 
     #[test]
     fn strict_load_stops_at_the_first_failure() {
+        // The partition (and node) queries already started are read-only and go unused.
         let fake = FakeSlurm::always(fail(1, "down"));
         let _ctx = Ctx::default().slurm(fake.clone()).install();
-        assert_eq!(load_inputs(true, None), Err(AbError::Exit(1)));
-        assert_eq!(sorted(fake.calls()), ["scontrol --json show job"]);
+        assert_eq!(
+            load_inputs(true, Wanted::PendingOf("alice")),
+            Err(AbError::Exit(1))
+        );
+        assert_eq!(
+            sorted(fake.calls()),
+            [
+                "scontrol --json show job",
+                "scontrol --json show nodes",
+                "scontrol --oneliner show partition",
+            ]
+        );
 
         let fake = FakeSlurm::always(fail(1, "down"));
         let _ctx = Ctx::default().slurm(fake.clone()).install();
-        assert_eq!(load_inputs(true, Some("65177")), Err(AbError::Exit(1)));
+        assert_eq!(
+            load_inputs(true, Wanted::Job("65177")),
+            Err(AbError::Exit(1))
+        );
         assert_eq!(
             sorted(fake.calls()),
             [
                 "scontrol --json show job 65177",
                 "scontrol --json show nodes",
                 "scontrol --oneliner show node",
+                "scontrol --oneliner show partition",
             ]
         );
+    }
+
+    #[test]
+    fn fast_queries_and_their_fallback() {
+        let node = "NodeName=n1 CPUAlloc=0 CPUTot=4 AvailableFeatures=(null) \
+            ActiveFeatures=(null) Gres=(null) RealMemory=1000 AllocMem=0 State=IDLE \
+            Owner=N/A BootTime=None CurrentWatts=0 AveWatts=0\n";
+        for squeue_ok in [true, false] {
+            let jobs = json!({"jobs": [array_job()]}).to_string();
+            let fake = FakeSlurm::new(move |argv| {
+                Some(match argv.join(" ").as_str() {
+                    "squeue --json --state=PD --user=alice" if squeue_ok => ok(&jobs),
+                    "scontrol --json show job" => ok(&jobs),
+                    "scontrol --oneliner --details show node" => ok(node),
+                    "scontrol --oneliner show partition" => ok(""),
+                    _ => fail(1, "down"),
+                })
+            });
+            let _ctx = Ctx::default()
+                .slurm_version((24, 11))
+                .slurm(fake.clone())
+                .install();
+            let (records, nodes, _) = load_inputs(true, Wanted::PendingOf("alice")).unwrap();
+            assert_eq!((records.len(), nodes.len()), (1, 1));
+            let mut want = vec![
+                "scontrol --oneliner --details show node",
+                "scontrol --oneliner show partition",
+                "squeue --json --state=PD --user=alice",
+            ];
+            if !squeue_ok {
+                want.insert(0, "scontrol --json show job");
+            }
+            assert_eq!(sorted(fake.calls()), want);
+        }
     }
 
     #[test]
@@ -915,7 +1011,7 @@ mod tests {
         });
         let _ctx = Ctx::default().slurm(fake.clone()).install();
         let ids = BTreeSet::from(["65177".to_owned()]);
-        let (hints, error) = queue_hints(&ids);
+        let (hints, error) = queue_hints(&ids, None);
         assert!(hints.is_empty());
         assert_eq!(
             error.as_deref(),

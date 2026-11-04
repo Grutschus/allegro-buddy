@@ -26,6 +26,10 @@ pub fn display_key(section: &str, key: &str) -> String {
 
 /// `cmd_config_show()`.
 pub fn cmd_config_show() -> Result<()> {
+    let _prefetch = crate::core::slurm::prefetch(vec![
+        crate::core::nodes::query_argv(),
+        crate::core::slurm::argv(&crate::core::partitions::ARGV),
+    ]);
     let current = settings::get();
     let out = console::stdout();
     let mut head = Text::new("");
