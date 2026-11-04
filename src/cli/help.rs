@@ -11,8 +11,9 @@
 //!
 //! Not ported: `text_markup='markdown'|'rich'` and emoji (only reachable through a JSON
 //! `RICH_CLICK_THEME`), panel definitions (`option_groups`/`command_groups`), headers,
-//! epilogs and footers (allegro-buddy defines none), the `random` theme and Python's
-//! `UserWarning` for unknown themes.
+//! epilogs and footers (allegro-buddy defines none), the `random` theme and the
+//! `RICH_CLICK_THEME= failed to parse` warning for a broken JSON value. The
+//! `UserWarning` for an unknown theme is ported ([`apply_theme_warning`]).
 
 use super::commands::{Command, Const, Param, ParamKind, ParamType, ShowDefault};
 use super::parser;
@@ -29,6 +30,8 @@ use fancy_regex::Regex;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::LazyLock;
+use std::sync::OnceLock;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 /// A configuration value (Python object in `RichHelpConfiguration`).
 #[derive(Debug, Clone, PartialEq)]
@@ -110,6 +113,68 @@ fn combine(color: &ThemeDef, format: &ThemeDef) -> Styles {
         }
     }
     styles
+}
+
+/// The theme `RICH_CLICK_THEME` names (`apply_theme`): the raw value, or the `"theme"` of a
+/// JSON object; looked up with `raise_key_error=False`.
+fn env_theme() -> Option<String> {
+    let env = std::env::var("RICH_CLICK_THEME").ok()?;
+    if !env.trim().starts_with('{') {
+        return Some(env);
+    }
+    match serde_json::from_str(env.trim()) {
+        Ok(serde_json::Value::Object(data)) => match data.get("theme") {
+            Some(serde_json::Value::String(theme)) => Some(theme.clone()),
+            _ => None,
+        },
+        _ => None,
+    }
+}
+
+/// Whether `get_theme(name)` finds the theme (else it raises `RichClickThemeNotFound`).
+fn theme_exists(name: &str) -> bool {
+    if name == "random" {
+        return true;
+    }
+    if !name.contains('-') {
+        return find(COLORS, name).is_some() || find(FORMATS, name).is_some();
+    }
+    let parts: Vec<&str> = name.split('-').collect();
+    parts.len() == 2 && find(COLORS, parts[0]).is_some() && find(FORMATS, parts[1]).is_some()
+}
+
+/// Set when Python's `warnings` filters change, which resets the registry that
+/// suppresses repeats of a warning: initially, on every subprocess started by name
+/// (`os.get_exec_path` uses `warnings.catch_warnings()`) and on the lazy import of
+/// `rich_click._compat_click` (error path of rich-click's `main`).
+static WARNINGS_RESET: AtomicBool = AtomicBool::new(true);
+
+/// See [`WARNINGS_RESET`]: core::slurm calls this for every command it starts.
+pub fn python_warning_filters_mutated() {
+    WARNINGS_RESET.store(true, Ordering::SeqCst);
+}
+
+/// rich-click's `apply_theme()` (a `RichHelpConfiguration` or help formatter is created)
+/// with an unknown `RICH_CLICK_THEME`: `get_theme` warns
+/// `RichClickTheme '<name>' not found.` through `warnings.warn(..., stacklevel=2)`, shown
+/// by `warnings.showwarning` unless the registry still holds it. bab prints the same two
+/// lines with the module path relative to site-packages (Python's starts with the venv
+/// path; the compat harness normalises that prefix).
+pub fn apply_theme_warning() {
+    static UNKNOWN: OnceLock<Option<String>> = OnceLock::new();
+    let unknown = UNKNOWN.get_or_init(|| env_theme().filter(|name| !theme_exists(name)));
+    if let Some(name) = unknown {
+        if WARNINGS_RESET.swap(false, Ordering::SeqCst) {
+            super::write_stream(
+                &mut std::io::stderr(),
+                &format!(
+                    "rich_click/rich_help_configuration.py:437: UserWarning: RichClickTheme \
+                     '{name}' not found.\n  theme_styles = get_theme(theme, \
+                     raise_key_error=raise_key_error).styles\n"
+                ),
+            );
+        }
+    }
 }
 
 /// `get_theme(theme, raise_key_error=False)` (an unknown name falls back like Python).
@@ -209,13 +274,9 @@ impl Config {
             .and_then(|v| truthy(&v));
         values.insert("force_terminal".into(), force.map_or(CV::None, CV::Bool));
 
-        let mut theme: Option<String> = None;
         if let Ok(env) = std::env::var("RICH_CLICK_THEME") {
             if env.trim().starts_with('{') {
                 if let Ok(serde_json::Value::Object(data)) = serde_json::from_str(env.trim()) {
-                    if let Some(serde_json::Value::String(t)) = data.get("theme") {
-                        theme = Some(t.clone());
-                    }
                     for (key, value) in data.iter().filter(|(k, _)| *k != "theme") {
                         if !Self::known(key) {
                             break;
@@ -223,11 +284,9 @@ impl Config {
                         values.insert(key.clone(), CV::from_json(value));
                     }
                 }
-            } else {
-                theme = Some(env);
             }
         }
-        let theme = theme.unwrap_or_else(|| "modern".to_owned());
+        let theme = env_theme().unwrap_or_else(|| "modern".to_owned());
         for (key, value) in get_theme(&theme) {
             values.entry(key.to_owned()).or_insert(value);
         }
@@ -468,6 +527,7 @@ fn splitlines(s: &str) -> Vec<&str> {
 
 impl Formatter {
     pub fn new() -> Formatter {
+        apply_theme_warning();
         let config = Config::load();
         let style = |key: &str| {
             let definition = config.text(key);
@@ -1240,4 +1300,31 @@ pub fn print_aborted() {
         },
     );
     super::write_stream(&mut std::io::stderr(), &formatter.getvalue());
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn unknown_themes_like_rich_click_get_theme() {
+        // recorded with rich-click 1.9.9 `get_theme(name)` (KeyError = unknown)
+        for (name, exists) in [
+            ("bogus", false),
+            ("nord", true),
+            ("nord-box", true),
+            ("nord-bogus", false),
+            ("random", true),
+            ("x-y-z", false),
+            ("-", false),
+            ("default", true),
+            ("box", true),
+            ("modern", true),
+            ("nord-modern-x", false),
+            ("star-slim", true),
+            ("Nord", false),
+        ] {
+            assert_eq!(theme_exists(name), exists, "{name}");
+        }
+    }
 }

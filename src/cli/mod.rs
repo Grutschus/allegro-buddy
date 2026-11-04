@@ -42,6 +42,8 @@ use std::ffi::OsString;
 /// Entry point: returns the exit code (only `main.rs` exits).
 pub fn main(argv: Vec<OsString>) -> i32 {
     crate::signals::install();
+    // Python imports cli.py, whose RichHelpConfiguration applies the theme, before anything
+    help::apply_theme_warning();
     let prog_name = argv
         .first()
         .map(|a| program_name(&a.to_string_lossy()))
@@ -127,8 +129,14 @@ pub fn run(argv: &[String]) -> Result<()> {
 pub fn report(err: AbError) -> i32 {
     match &err {
         AbError::Exit(_) => {}
-        AbError::Usage(usage) => help::print_usage_error(usage),
-        AbError::Click(message) => help::print_click_exception(message),
+        AbError::Usage(usage) => {
+            help::python_warning_filters_mutated();
+            help::print_usage_error(usage)
+        }
+        AbError::Click(message) => {
+            help::python_warning_filters_mutated();
+            help::print_click_exception(message)
+        }
         AbError::Abort => help::print_aborted(),
         AbError::Interrupted => {
             write_stream(&mut std::io::stderr(), "\n");

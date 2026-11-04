@@ -105,6 +105,8 @@ pub const MAX_PARALLEL: usize = 8;
 /// Spawn `argv`, wait, and capture its output (or inherit stdout/stderr). `Err` only when
 /// it could not be started.
 fn spawn<S: AsRef<str>>(argv: &[S], capture: bool) -> io::Result<Output> {
+    // Python's subprocess looks the name up via os.get_exec_path (warnings.catch_warnings)
+    crate::cli::help::python_warning_filters_mutated();
     #[cfg(test)]
     {
         let _ = capture;

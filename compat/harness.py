@@ -90,6 +90,17 @@ def _scrub(data: bytes, tmp: Path) -> bytes:
     return data.replace(str(tmp).encode(), PLACEHOLDER.encode())
 
 
+# A Python warning raised inside rich-click (`<path>/rich_click/<module>.py:<line>:
+# UserWarning: ...`, e.g. for an unknown RICH_CLICK_THEME) names the module by its
+# machine-specific install path; bab prints it relative to site-packages. Only that path
+# prefix (everything before `rich_click/` on such a line) becomes `@PYLIB@/`.
+_WARNING_PATH = re.compile(rb'(?m)^[^\n]*?(?=rich_click/[\w/]+\.py:\d+: \w*Warning: )')
+
+
+def _normalize_warning_paths(data: bytes) -> bytes:
+    return _WARNING_PATH.sub(b'@PYLIB@/', data)
+
+
 def _materialize(value: Any, tmp: Path) -> Any:
     text = json.dumps(value)
     return json.loads(text.replace('@TMP@', str(tmp)))
@@ -284,6 +295,7 @@ def run(scenario: Scenario, binary: str, *, keep: bool = False) -> Result:
             path = tmp / rel
             files[rel] = _scrub(path.read_bytes(), tmp) if path.is_file() else None
         out, err = _scrub(b''.join(outs), tmp), _scrub(b''.join(errs), tmp)
+        out, err = _normalize_warning_paths(out), _normalize_warning_paths(err)
         for pattern, replacement in scenario.normalize:
             out = re.sub(pattern, lambda _: replacement, out, flags=re.S)
             err = re.sub(pattern, lambda _: replacement, err, flags=re.S)

@@ -40,7 +40,14 @@ Scratch dir `T` with a fixed path length of 40 characters (`$BAB_COMPAT_WORK/<ra
 so output that wraps around a path wraps identically on every machine; every `T` in
 captured bytes becomes `@TMP@___...` (same length). Nothing else is normalised, except
 the spinner frames of `Console.status` in the three pty scenarios that wait for a dev
-job (`normalize` in the scenario: frame count depends on timing).
+job (`normalize` in the scenario: frame count depends on timing), and the install path
+of a Python warning raised inside rich-click: on a line
+`<prefix>rich_click/<module>.py:<line>: <Category>Warning: ...` the `<prefix>` (Python:
+`<venv>/lib/python3.12/site-packages/`; bab prints none) becomes `@PYLIB@/` on both
+sides (stdout and stderr). That is rich-click's `RichClickTheme '<name>' not found.`
+`UserWarning` for an unknown `RICH_CLICK_THEME` (`theme-help-*bogus`); bab prints it at
+the same points (import, then each help/error formatter after Python's warnings registry
+was reset by a subprocess or the lazy `_compat_click` import).
 
 Environment (nothing inherited): `PATH=<fake_slurm/bin>:/usr/bin:/bin`, `HOME=T/home`
 (also the cwd), `USER=LOGNAME=alice`, `TZ=UTC`, `LANG=C.UTF-8`,
