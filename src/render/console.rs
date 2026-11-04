@@ -248,7 +248,8 @@ fn terminal_size(fd: i32) -> Option<(usize, usize)> {
     // SAFETY: TIOCGWINSZ writes a winsize into the struct we own.
     unsafe {
         let mut ws: libc::winsize = std::mem::zeroed();
-        (libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0).then_some((ws.ws_col as usize, ws.ws_row as usize))
+        (libc::ioctl(fd, libc::TIOCGWINSZ, &mut ws) == 0)
+            .then_some((ws.ws_col as usize, ws.ws_row as usize))
     }
 }
 
@@ -263,7 +264,11 @@ fn digits(value: Option<String>) -> Option<usize> {
 }
 
 /// Rich `_detect_color_system` given `is_terminal` and `is_dumb_terminal`.
-pub fn detect_color_system(env: &dyn Fn(&str) -> Option<String>, is_terminal: bool, is_dumb: bool) -> Option<ColorSystem> {
+pub fn detect_color_system(
+    env: &dyn Fn(&str) -> Option<String>,
+    is_terminal: bool,
+    is_dumb: bool,
+) -> Option<ColorSystem> {
     if !is_terminal || is_dumb {
         return None;
     }
@@ -293,9 +298,19 @@ impl Console {
             live: Mutex::new(None),
             config,
         };
-        console.width_override = console.config.width.or_else(|| digits(console.env("COLUMNS")));
-        console.height_override = console.config.height.or_else(|| digits(console.env("LINES")));
-        let fd = console.config.stream.or(console.config.detect_stream).map(Stream::fd);
+        console.width_override = console
+            .config
+            .width
+            .or_else(|| digits(console.env("COLUMNS")));
+        console.height_override = console
+            .config
+            .height
+            .or_else(|| digits(console.env("LINES")));
+        let fd = console
+            .config
+            .stream
+            .or(console.config.detect_stream)
+            .map(Stream::fd);
         let is_terminal = console.is_terminal_fd(fd);
         let is_dumb = is_terminal && console.term_is_dumb();
         console.color_system = match console.config.color_system {
@@ -454,7 +469,8 @@ impl Console {
         if segment::style_truthy(style) {
             rendered = segment::apply_style(rendered, style, None);
         }
-        let mut lines = segment::split_and_crop_lines(rendered, options.max_width, style, pad, new_lines);
+        let mut lines =
+            segment::split_and_crop_lines(rendered, options.max_width, style, pad, new_lines);
         if let Some(height) = options.height {
             lines.truncate(height);
             while lines.len() < height {
@@ -474,11 +490,16 @@ impl Console {
         let markup = o.markup.unwrap_or(self.config.markup);
         let highlight = o.highlight.unwrap_or(self.config.highlight);
         let plain_text = || {
-            let plain = if emoji { emoji_replace(text).into_owned() } else { text.to_owned() };
+            let plain = if emoji {
+                emoji_replace(text).into_owned()
+            } else {
+                text.to_owned()
+            };
             Text::with_style(plain, o.style)
         };
         let mut rich_text = if markup {
-            super::markup::render_with(text, o.style, &self.config.theme, emoji).unwrap_or_else(|_| plain_text())
+            super::markup::render_with(text, o.style, &self.config.theme, emoji)
+                .unwrap_or_else(|_| plain_text())
         } else {
             plain_text()
         };
@@ -572,7 +593,8 @@ impl Console {
 
     fn print_collected(&self, renderable: &dyn Renderable, options: &PrintOptions) {
         let soft_wrap = options.soft_wrap.unwrap_or(self.config.soft_wrap);
-        let (mut no_wrap, mut overflow, mut crop) = (options.no_wrap, options.overflow, options.crop);
+        let (mut no_wrap, mut overflow, mut crop) =
+            (options.no_wrap, options.overflow, options.crop);
         if soft_wrap {
             no_wrap = no_wrap.or(Some(true));
             overflow = overflow.or(Some(Overflow::Ignore));
@@ -604,7 +626,13 @@ impl Console {
         self.emit_segments(prefix, segments, options.style, crop);
     }
 
-    fn emit_segments(&self, prefix: String, mut segments: Vec<Segment>, style: Option<Style>, crop: bool) {
+    fn emit_segments(
+        &self,
+        prefix: String,
+        mut segments: Vec<Segment>,
+        style: Option<Style>,
+        crop: bool,
+    ) {
         if let Some(style) = style {
             let mut styled = Vec::with_capacity(segments.len());
             for (line, terminated) in segment::split_lines_terminator(segments) {
@@ -633,7 +661,11 @@ impl Console {
         if !self.interactive {
             return;
         }
-        let prefix = if self.is_terminal() { live.position_cursor() } else { String::new() };
+        let prefix = if self.is_terminal() {
+            live.position_cursor()
+        } else {
+            String::new()
+        };
         let segments = live.render(self, &self.options());
         self.emit_segments(prefix, segments, None, true);
     }
@@ -704,9 +736,9 @@ impl Console {
         }
     }
 
-    /// Write control codes (Rich `Console.control`): dropped when not a terminal.
+    /// Write control codes (Rich `Console.control`): only on a non-dumb terminal.
     pub fn control(&self, codes: &str) {
-        if self.is_terminal() {
+        if self.is_terminal() && !self.is_dumb_terminal() {
             self.write_raw(codes);
         }
     }
@@ -718,7 +750,12 @@ impl Console {
 
     /// Stop capturing and return what was printed meanwhile (`Console.end_capture`).
     pub fn end_capture(&self) -> String {
-        self.state.lock().unwrap().capture.take().unwrap_or_default()
+        self.state
+            .lock()
+            .unwrap()
+            .capture
+            .take()
+            .unwrap_or_default()
     }
 
     /// Everything an in-memory console (`stream: None`) printed so far.
@@ -781,7 +818,11 @@ mod tests {
         Console::new(ConsoleConfig {
             stream: None,
             force_terminal,
-            env: Some(env.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()),
+            env: Some(
+                env.iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect(),
+            ),
             ..ConsoleConfig::default()
         })
     }
@@ -789,8 +830,14 @@ mod tests {
     #[test]
     fn detection() {
         assert_eq!(console(&[], None).color_system(), None);
-        assert_eq!(console(&[("FORCE_COLOR", "1")], None).color_system(), Some(ColorSystem::Standard));
-        assert_eq!(console(&[("FORCE_COLOR", "")], Some(true)).color_system(), Some(ColorSystem::Standard));
+        assert_eq!(
+            console(&[("FORCE_COLOR", "1")], None).color_system(),
+            Some(ColorSystem::Standard)
+        );
+        assert_eq!(
+            console(&[("FORCE_COLOR", "")], Some(true)).color_system(),
+            Some(ColorSystem::Standard)
+        );
         assert_eq!(console(&[("FORCE_COLOR", "")], None).color_system(), None);
         assert_eq!(
             console(&[("FORCE_COLOR", "1"), ("TERM", "xterm-256color")], None).color_system(),
@@ -800,8 +847,14 @@ mod tests {
             console(&[("FORCE_COLOR", "1"), ("COLORTERM", "truecolor")], None).color_system(),
             Some(ColorSystem::TrueColor)
         );
-        assert_eq!(console(&[("FORCE_COLOR", "1"), ("TERM", "dumb")], None).color_system(), None);
-        assert_eq!(console(&[("TTY_COMPATIBLE", "0"), ("FORCE_COLOR", "1")], None).color_system(), None);
+        assert_eq!(
+            console(&[("FORCE_COLOR", "1"), ("TERM", "dumb")], None).color_system(),
+            None
+        );
+        assert_eq!(
+            console(&[("TTY_COMPATIBLE", "0"), ("FORCE_COLOR", "1")], None).color_system(),
+            None
+        );
         assert!(console(&[("NO_COLOR", "1")], None).no_color());
         assert!(!console(&[("NO_COLOR", "")], None).no_color());
         assert!(console(&[("FORCE_COLOR", "1")], None).is_interactive());
@@ -811,8 +864,18 @@ mod tests {
     #[test]
     fn width_from_columns() {
         assert_eq!(console(&[("COLUMNS", "123")], None).width(), 123);
-        assert_eq!(console(&[("COLUMNS", "50"), ("FORCE_COLOR", "1"), ("TERM", "dumb")], None).width(), 80);
-        assert_eq!(console(&[("FORCE_COLOR", "1"), ("TERM", "dumb")], None).width(), 80);
+        assert_eq!(
+            console(
+                &[("COLUMNS", "50"), ("FORCE_COLOR", "1"), ("TERM", "dumb")],
+                None
+            )
+            .width(),
+            80
+        );
+        assert_eq!(
+            console(&[("FORCE_COLOR", "1"), ("TERM", "dumb")], None).width(),
+            80
+        );
     }
 
     #[test]

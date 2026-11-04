@@ -205,7 +205,12 @@ impl Default for Table {
 }
 
 /// Rich `ratio_reduce(total, ratios, maximums, values)`.
-pub fn ratio_reduce(total: isize, ratios: &[isize], maximums: &[isize], values: &[isize]) -> Vec<isize> {
+pub fn ratio_reduce(
+    total: isize,
+    ratios: &[isize],
+    maximums: &[isize],
+    values: &[isize],
+) -> Vec<isize> {
     let ratios: Vec<isize> = ratios
         .iter()
         .zip(maximums)
@@ -219,7 +224,8 @@ pub fn ratio_reduce(total: isize, ratios: &[isize], maximums: &[isize], values: 
     let mut result = Vec::with_capacity(values.len());
     for ((&ratio, &maximum), &value) in ratios.iter().zip(maximums).zip(values) {
         if ratio != 0 && total_ratio > 0 {
-            let share = (ratio as f64 * total_remaining as f64 / total_ratio as f64).round_ties_even() as isize;
+            let share = (ratio as f64 * total_remaining as f64 / total_ratio as f64)
+                .round_ties_even() as isize;
             let distributed = maximum.min(share);
             result.push(value - distributed);
             total_remaining -= distributed;
@@ -249,7 +255,8 @@ pub fn ratio_distribute(total: isize, ratios: &[isize], minimums: Option<&[isize
     let mut out = Vec::with_capacity(ratios.len());
     for (&ratio, &minimum) in ratios.iter().zip(minimums) {
         let distributed = if total_ratio > 0 {
-            minimum.max((ratio as f64 * total_remaining as f64 / total_ratio as f64).ceil() as isize)
+            minimum
+                .max((ratio as f64 * total_remaining as f64 / total_ratio as f64).ceil() as isize)
         } else {
             total_remaining
         };
@@ -341,7 +348,12 @@ impl Table {
     }
 
     /// `add_row(*cells, style=style, end_section=end_section)`.
-    pub fn add_row_styled(&mut self, mut cells: Vec<Cell>, style: Option<Style>, end_section: bool) -> &mut Table {
+    pub fn add_row_styled(
+        &mut self,
+        mut cells: Vec<Cell>,
+        style: Option<Style>,
+        end_section: bool,
+    ) -> &mut Table {
         while cells.len() < self.columns.len() {
             cells.push(Cell::Str(String::new()));
         }
@@ -446,13 +458,19 @@ impl Table {
         };
         let mut raw: Vec<(Style, &Cell)> = Vec::with_capacity(column.cells.len() + 2);
         if self.show_header {
-            raw.push((self.header_style.combine(&column.header_style), &column.header));
+            raw.push((
+                self.header_style.combine(&column.header_style),
+                &column.header,
+            ));
         }
         for cell in &column.cells {
             raw.push((column.style, cell));
         }
         if self.show_footer {
-            raw.push((self.footer_style.combine(&column.footer_style), &column.footer));
+            raw.push((
+                self.footer_style.combine(&column.footer_style),
+                &column.footer,
+            ));
         }
         let count = raw.len();
         raw.into_iter()
@@ -466,7 +484,12 @@ impl Table {
             .collect()
     }
 
-    fn measure_column(&self, console: &Console, options: &RenderOptions, index: usize) -> Measurement {
+    fn measure_column(
+        &self,
+        console: &Console,
+        options: &RenderOptions,
+        index: usize,
+    ) -> Measurement {
         let column = &self.columns[index];
         let max_width = options.max_width;
         if max_width < 1 {
@@ -474,7 +497,8 @@ impl Table {
         }
         let padding_width = self.get_padding_width(index);
         if let Some(width) = column.width {
-            return Measurement::new(width + padding_width, width + padding_width).with_maximum(max_width);
+            return Measurement::new(width + padding_width, width + padding_width)
+                .with_maximum(max_width);
         }
         let mut minimum: Option<usize> = None;
         let mut maximum: Option<usize> = None;
@@ -534,7 +558,13 @@ impl Table {
             .collect();
         let mut widths: Vec<isize> = width_ranges
             .iter()
-            .map(|r| if r.maximum == 0 { 1 } else { r.maximum as isize })
+            .map(|r| {
+                if r.maximum == 0 {
+                    1
+                } else {
+                    r.maximum as isize
+                }
+            })
             .collect();
         let extra_width = self.extra_width() as isize;
         if self.expand() {
@@ -547,7 +577,13 @@ impl Table {
                 let fixed_widths: Vec<isize> = width_ranges
                     .iter()
                     .zip(&self.columns)
-                    .map(|(r, c)| if c.ratio.is_some() { 0 } else { r.maximum as isize })
+                    .map(|(r, c)| {
+                        if c.ratio.is_some() {
+                            0
+                        } else {
+                            r.maximum as isize
+                        }
+                    })
                     .collect();
                 let flex_minimum: Vec<isize> = self
                     .columns
@@ -555,7 +591,8 @@ impl Table {
                     .enumerate()
                     .filter(|(_, c)| c.ratio.is_some())
                     .map(|(i, c)| {
-                        (c.width.filter(|&w| w != 0).unwrap_or(1) + self.get_padding_width(i)) as isize
+                        (c.width.filter(|&w| w != 0).unwrap_or(1) + self.get_padding_width(i))
+                            as isize
                     })
                     .collect();
                 let flexible_width = max_width - fixed_widths.iter().sum::<isize>();
@@ -585,7 +622,10 @@ impl Table {
             widths = widths
                 .iter()
                 .enumerate()
-                .map(|(i, &w)| self.measure_column(console, &options.update_width(w), i).maximum as isize)
+                .map(|(i, &w)| {
+                    self.measure_column(console, &options.update_width(w), i)
+                        .maximum as isize
+                })
                 .collect();
         }
         let below_min = self
@@ -631,20 +671,42 @@ impl Table {
         }
     }
 
-    fn render_body(&self, console: &Console, options: &RenderOptions, widths: &[usize]) -> Vec<Segment> {
+    fn render_body(
+        &self,
+        console: &Console,
+        options: &RenderOptions,
+        widths: &[usize],
+    ) -> Vec<Segment> {
         let mut out = Vec::new();
         let border_style = Some(self.style.combine(&self.border_style));
-        let column_cells: Vec<Vec<CellSpec>> = (0..self.columns.len()).map(|i| self.get_cells(i)).collect();
+        let column_cells: Vec<Vec<CellSpec>> =
+            (0..self.columns.len()).map(|i| self.get_cells(i)).collect();
         let row_count = column_cells.iter().map(Vec::len).min().unwrap_or(0);
-        let bx = self
-            .box_style
-            .map(|b| if self.show_header { b } else { b.get_plain_headed_box() });
+        let bx = self.box_style.map(|b| {
+            if self.show_header {
+                b
+            } else {
+                b.get_plain_headed_box()
+            }
+        });
         let seg = |text: String| Segment::new(text, border_style);
         let box_segments = bx.map(|b| {
             [
-                (seg(b.head_left.into()), seg(b.head_right.into()), seg(b.head_vertical.into())),
-                (seg(b.mid_left.into()), seg(b.mid_right.into()), seg(b.mid_vertical.into())),
-                (seg(b.foot_left.into()), seg(b.foot_right.into()), seg(b.foot_vertical.into())),
+                (
+                    seg(b.head_left.into()),
+                    seg(b.head_right.into()),
+                    seg(b.head_vertical.into()),
+                ),
+                (
+                    seg(b.mid_left.into()),
+                    seg(b.mid_right.into()),
+                    seg(b.mid_vertical.into()),
+                ),
+                (
+                    seg(b.foot_left.into()),
+                    seg(b.foot_right.into()),
+                    seg(b.foot_vertical.into()),
+                ),
             ]
         });
         if let Some(b) = bx {
@@ -658,7 +720,8 @@ impl Table {
             let last = index + 1 == row_count;
             let header_row = first && self.show_header;
             let footer_row = last && self.show_footer;
-            let row = (!header_row && !footer_row).then(|| &self.rows[index - usize::from(self.show_header)]);
+            let row = (!header_row && !footer_row)
+                .then(|| &self.rows[index - usize::from(self.show_header)]);
             let row_style = if header_row || footer_row {
                 Style::NULL
             } else {
@@ -727,7 +790,10 @@ impl Table {
                     divider.clone()
                 } else {
                     let own = divider.style.unwrap_or(Style::NULL);
-                    Segment::new(divider.text.clone(), Some(row_style.background_style().combine(&own)))
+                    Segment::new(
+                        divider.text.clone(),
+                        Some(row_style.background_style().combine(&own)),
+                    )
                 };
                 for line_no in 0..max_height {
                     if self.show_edge {
@@ -765,7 +831,9 @@ impl Table {
                     && !(self.show_header && header_row)
                 {
                     if self.leading > 0 {
-                        out.push(seg(b.get_row(widths, RowLevel::Mid, self.show_edge).repeat(self.leading)));
+                        out.push(seg(b
+                            .get_row(widths, RowLevel::Mid, self.show_edge)
+                            .repeat(self.leading)));
                     } else {
                         out.push(seg(b.get_row(widths, RowLevel::Row, self.show_edge)));
                     }
@@ -790,8 +858,10 @@ impl Renderable for Table {
         }
         let max_width = self.width.unwrap_or(options.max_width);
         let extra_width = self.extra_width();
-        let widths =
-            self.calculate_column_widths(console, &options.update_width(max_width as isize - extra_width as isize));
+        let widths = self.calculate_column_widths(
+            console,
+            &options.update_width(max_width as isize - extra_width as isize),
+        );
         let table_width = widths.iter().sum::<usize>() + extra_width;
         let render_options = RenderOptions {
             min_width: table_width,
@@ -802,13 +872,29 @@ impl Renderable for Table {
         };
         let mut out = Vec::new();
         if let Some(title) = self.title.as_ref().filter(|t| t.is_truthy()) {
-            let style = self.title_style.unwrap_or_else(|| theme::style("table.title"));
-            out.extend(self.render_annotation(console, &render_options, title, style, self.title_justify));
+            let style = self
+                .title_style
+                .unwrap_or_else(|| theme::style("table.title"));
+            out.extend(self.render_annotation(
+                console,
+                &render_options,
+                title,
+                style,
+                self.title_justify,
+            ));
         }
         out.extend(self.render_body(console, &render_options, &widths));
         if let Some(caption) = self.caption.as_ref().filter(|t| t.is_truthy()) {
-            let style = self.caption_style.unwrap_or_else(|| theme::style("table.caption"));
-            out.extend(self.render_annotation(console, &render_options, caption, style, self.caption_justify));
+            let style = self
+                .caption_style
+                .unwrap_or_else(|| theme::style("table.caption"));
+            out.extend(self.render_annotation(
+                console,
+                &render_options,
+                caption,
+                style,
+                self.caption_justify,
+            ));
         }
         out
     }
@@ -817,7 +903,10 @@ impl Renderable for Table {
         let max_width = self.width.unwrap_or(options.max_width) as isize;
         let extra_width = self.extra_width();
         let max_width: usize = self
-            .calculate_column_widths(console, &options.update_width(max_width - extra_width as isize))
+            .calculate_column_widths(
+                console,
+                &options.update_width(max_width - extra_width as isize),
+            )
             .iter()
             .sum();
         let measurements: Vec<Measurement> = (0..self.columns.len())
@@ -838,7 +927,10 @@ mod tests {
 
     #[test]
     fn ratios() {
-        assert_eq!(ratio_reduce(3, &[1, 1, 1], &[10, 10, 10], &[10, 10, 10]), vec![9, 9, 9]);
+        assert_eq!(
+            ratio_reduce(3, &[1, 1, 1], &[10, 10, 10], &[10, 10, 10]),
+            vec![9, 9, 9]
+        );
         assert_eq!(ratio_distribute(10, &[1, 1, 1], None), vec![4, 3, 3]);
         assert_eq!(ratio_reduce(5, &[1, 0], &[5, 5], &[20, 10]), vec![15, 10]);
     }

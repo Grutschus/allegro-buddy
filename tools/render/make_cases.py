@@ -162,5 +162,61 @@ case('table-misc', [
     P({'type': 'padding', 'renderable': 'unexpanded [b]str[/b]', 'pad': [0, 2], 'expand': False}),
 ], widths=(25, 60), colors=('standard',))
 
+# Seeded random cases: broad coverage of wrapping and the column width algorithm.
+import random
+
+rng = random.Random(15)
+WORDS = ['gpu', 'a100', 'RUNNING', 'x', 'node[01-04]', 'averyveryverylongtoken', '中文', '全角字符', 'ⓘ', '·', '…',
+         '12:34', '5/12', 'job_1', '[bold]b[/]', ':cat:', 'tab\tx', '  ', 'dash-ed', 'emoji😃', 'Ä', 'ß', '→', '≤']
+RSTYLES = ['', '', 'bold', 'dim', 'red', 'bold green', 'cyan', 'italic', 'reverse']
+
+
+def rwords(n):
+    return ' '.join(rng.choice(WORDS) for _ in range(n))
+
+
+def rcell():
+    kind = rng.random()
+    if kind < 0.4:
+        return rwords(rng.randint(0, 6))
+    if kind < 0.8:
+        return T(rwords(rng.randint(0, 6)), rng.choice(RSTYLES))
+    return T(parts=[[rwords(rng.randint(1, 3)), rng.choice(RSTYLES)], ' ', rwords(rng.randint(0, 3))])
+
+
+for i in range(int(__import__("os").environ.get("BAB_RANDOM_TABLES", "40"))):
+    ncols = rng.randint(1, 6)
+    columns = []
+    for _ in range(ncols):
+        c = {'header': rwords(rng.randint(0, 2)), 'justify': rng.choice(['left', 'right', 'center', 'full', 'default'])}
+        if rng.random() < 0.25:
+            c['no_wrap'] = True
+        if rng.random() < 0.15:
+            c['overflow'] = rng.choice(['fold', 'crop', 'ellipsis'])
+        if rng.random() < 0.1:
+            c['max_width'] = rng.randint(1, 12)
+        if rng.random() < 0.1:
+            c['min_width'] = rng.randint(1, 12)
+        if rng.random() < 0.15:
+            c['style'] = rng.choice(RSTYLES[1:])
+        columns.append(c)
+    rows = [{'cells': [rcell() for _ in range(ncols)], 'end_section': rng.random() < 0.2} for _ in range(rng.randint(0, 6))]
+    flavour = rng.random()
+    if flavour < 0.5:
+        table = simple(rwords(rng.randint(0, 4)) or None, columns, rows)
+    elif flavour < 0.7:
+        table = {'type': 'table', 'grid': [0, rng.randint(0, 3)], 'columns': columns, 'rows': rows}
+    else:
+        table = {'type': 'table', 'columns': columns, 'rows': rows, 'options': {
+            'box': rng.choice(['ROUNDED', 'SIMPLE', 'HORIZONTALS_TOP', 'MINIMAL', 'SQUARE']),
+            'expand': rng.random() < 0.3, 'show_header': rng.random() < 0.7, 'pad_edge': rng.random() < 0.5,
+            'show_edge': rng.random() < 0.6, 'collapse_padding': rng.random() < 0.2}}
+    case(f'random-table-{i}', [P(table)], widths=(rng.randint(8, 30), rng.randint(31, 120)), colors=('standard',))
+
+for i in range(int(__import__("os").environ.get("BAB_RANDOM_TEXTS", "20"))):
+    spec = T(rwords(rng.randint(5, 40)), rng.choice(RSTYLES), justify=rng.choice(['left', 'right', 'center', 'full', 'default']),
+             overflow=rng.choice(['fold', 'crop', 'ellipsis']), no_wrap=rng.random() < 0.2)
+    case(f'random-text-{i}', [P(spec), P(rwords(rng.randint(3, 20)))], widths=(rng.randint(3, 25), rng.randint(26, 90)), colors=('standard',))
+
 (ROOT / 'tests/render/cases.json').write_text(json.dumps(cases, indent=1, ensure_ascii=False) + '\n')
 print(len(cases), 'cases,', sum(len(c['variants']) for c in cases), 'variants')

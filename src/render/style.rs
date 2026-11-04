@@ -246,10 +246,14 @@ impl Style {
             }
         }
         if let Some(color) = self.color {
-            color.downgrade(color_system).push_ansi_codes(true, &mut out);
+            color
+                .downgrade(color_system)
+                .push_ansi_codes(true, &mut out);
         }
         if let Some(bgcolor) = self.bgcolor {
-            bgcolor.downgrade(color_system).push_ansi_codes(false, &mut out);
+            bgcolor
+                .downgrade(color_system)
+                .push_ansi_codes(false, &mut out);
         }
         out
     }
@@ -318,11 +322,25 @@ mod tests {
     fn combine_and_render() {
         let combined = Style::of("bold red") + Style::of("not bold blue");
         assert_eq!(combined.sgr_codes(ColorSystem::Standard), "34");
-        assert_eq!(Style::of("bold").render("x", Some(ColorSystem::Standard)), "\x1b[1mx\x1b[0m");
+        assert_eq!(
+            Style::of("bold").render("x", Some(ColorSystem::Standard)),
+            "\x1b[1mx\x1b[0m"
+        );
         assert_eq!(Style::of("bold").render("x", None), "x");
-        assert_eq!(Style::of("bold").render("", Some(ColorSystem::Standard)), "");
-        assert_eq!(Style::of("bold red").without_color().sgr_codes(ColorSystem::Standard), "1");
-        assert_eq!(Style::of("#ff0000").sgr_codes(ColorSystem::EightBit), "38;5;196");
+        assert_eq!(
+            Style::of("bold").render("", Some(ColorSystem::Standard)),
+            ""
+        );
+        assert_eq!(
+            Style::of("bold red")
+                .without_color()
+                .sgr_codes(ColorSystem::Standard),
+            "1"
+        );
+        assert_eq!(
+            Style::of("#ff0000").sgr_codes(ColorSystem::EightBit),
+            "38;5;196"
+        );
         assert_eq!(Style::of("#ff0000").sgr_codes(ColorSystem::Standard), "31");
     }
 }

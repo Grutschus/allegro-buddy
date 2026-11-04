@@ -72,14 +72,19 @@ impl LiveShared {
         if state.text.is_empty() {
             return frame;
         }
-        Text::assemble([TextPart::Text(frame), " ".into(), TextPart::Text(state.text.clone())])
+        Text::assemble([
+            TextPart::Text(frame),
+            " ".into(),
+            TextPart::Text(state.text.clone()),
+        ])
     }
 
     /// Rich `LiveRender.__rich_console__`: the spinner lines joined by `\n` (no trailing).
     pub(crate) fn render(&self, console: &Console, options: &RenderOptions) -> Vec<Segment> {
         let mut state = self.state.lock().unwrap();
         let text = Self::spinner_text(&mut state);
-        let mut lines = console.render_lines(&text, options, Some(super::Style::NULL), false, false);
+        let mut lines =
+            console.render_lines(&text, options, Some(super::Style::NULL), false, false);
         let mut shape = segment::get_shape(&lines);
         let height = options.size.1;
         if shape.1 > height && !state.visible_overflow {
@@ -114,7 +119,9 @@ pub struct Status {
 
 impl std::fmt::Debug for Status {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("Status").field("active", &self.shared.is_some()).finish()
+        f.debug_struct("Status")
+            .field("active", &self.shared.is_some())
+            .finish()
     }
 }
 
@@ -126,8 +133,17 @@ fn refresh(console: &Console, shared: &LiveShared) {
 }
 
 impl Status {
-    /// `with console.status(text):` (Rich `Live.start(refresh=True)`).
+    /// `with console.status(text):` (Rich `Live.start()`).
     pub(crate) fn start(console: &'static Console, text: Text) -> Status {
+        Self::start_with_refresh(console, text, Some(Duration::from_secs_f64(1.0 / 12.5)))
+    }
+
+    /// `refresh: None` disables the background refresh (deterministic tests).
+    fn start_with_refresh(
+        console: &'static Console,
+        text: Text,
+        refresh_every: Option<Duration>,
+    ) -> Status {
         let stop = Arc::new((Mutex::new(false), Condvar::new()));
         let shared = Arc::new(LiveShared {
             state: Mutex::new(LiveState {
@@ -149,14 +165,14 @@ impl Status {
             }
             *live = Some(shared.clone());
         }
+        // `Status.__enter__` starts `Live` without an initial refresh: the first frame shows
+        // after one interval or with the next print.
         console.show_cursor(false);
-        refresh(console, &shared);
-        let thread = {
+        let thread = refresh_every.map(|interval| {
             let shared = shared.clone();
             let stop = stop.clone();
             std::thread::spawn(move || {
                 let (lock, cvar) = &*stop;
-                let interval = Duration::from_secs_f64(1.0 / 12.5);
                 let mut stopped = lock.lock().unwrap();
                 loop {
                     let (guard, _) = cvar.wait_timeout(stopped, interval).unwrap();
@@ -169,12 +185,12 @@ impl Status {
                     stopped = lock.lock().unwrap();
                 }
             })
-        };
+        });
         Status {
             console,
             shared: Some(shared),
             stop,
-            thread: Some(thread),
+            thread,
         }
     }
 
@@ -214,15 +230,13 @@ impl Status {
                 segments.push(Segment::line());
             }
             let mut rendered = out;
-            rendered.push_str(&console.render_buffer(&segment::split_and_crop_lines(
-                segments,
-                console.width(),
-                None,
-                false,
-                true,
-            )
-            .concat()));
-            if console.is_terminal() {
+            rendered.push_str(
+                &console.render_buffer(
+                    &segment::split_and_crop_lines(segments, console.width(), None, false, true)
+                        .concat(),
+                ),
+            );
+            if console.is_terminal() && !console.is_dumb_terminal() {
                 rendered.push_str("\x1b[?25h");
                 rendered.push_str(&shared.restore_cursor());
             }
@@ -234,5 +248,61 @@ impl Status {
 impl Drop for Status {
     fn drop(&mut self) {
         self.stop();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::render::console::{ColorChoice, ConsoleConfig};
+    use crate::render::style::ColorSystem;
+
+    fn console(env: &[(&str, &str)]) -> &'static Console {
+        Box::leak(Box::new(Console::new(ConsoleConfig {
+            stream: None,
+            force_terminal: Some(true),
+            color_system: ColorChoice::Fixed(Some(ColorSystem::Standard)),
+            width: Some(30),
+            height: Some(25),
+            env: Some(
+                env.iter()
+                    .map(|(k, v)| (k.to_string(), v.to_string()))
+                    .collect(),
+            ),
+            ..ConsoleConfig::default()
+        })))
+    }
+
+    fn run(console: &'static Console) -> String {
+        let status = Status::start_with_refresh(
+            console,
+            Text::assemble([
+                "Waiting for ".into(),
+                TextPart::Styled("123".into(), theme::style("cyan")),
+            ]),
+            None,
+        );
+        console.print_str("inside 1", None);
+        status.update(Text::new("changed"));
+        drop(status);
+        console.take_output()
+    }
+
+    // Expected bytes from rich 15 (a status that ends within one refresh interval).
+    #[test]
+    fn matches_rich() {
+        let out = run(console(&[]));
+        assert_eq!(
+            out,
+            "\x1b[?25linside \x1b[1;36m1\x1b[0m\n\x1b[32m⠋\x1b[0m Waiting for \x1b[36m123\x1b[0m\r\x1b[2K\x1b[32m⠋\x1b[0m changed\n\x1b[?25h\r\x1b[1A\x1b[2K"
+        );
+        assert_eq!(
+            run(console(&[("TTY_INTERACTIVE", "0")])),
+            "\x1b[?25linside \x1b[1;36m1\x1b[0m\n\x1b[?25h"
+        );
+        assert_eq!(
+            run(console(&[("TERM", "dumb")])),
+            "inside \x1b[1;36m1\x1b[0m\n"
+        );
     }
 }

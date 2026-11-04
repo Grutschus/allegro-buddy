@@ -64,7 +64,10 @@ impl Color {
             }
             return Err(invalid());
         }
-        if let Some(inner) = color.strip_prefix("color(").and_then(|s| s.strip_suffix(')')) {
+        if let Some(inner) = color
+            .strip_prefix("color(")
+            .and_then(|s| s.strip_suffix(')'))
+        {
             if (1..=3).contains(&inner.len()) && inner.bytes().all(|b| b.is_ascii_digit()) {
                 let number: u32 = inner.parse().unwrap();
                 if number > 255 {
@@ -78,7 +81,9 @@ impl Color {
         }
         if let Some(inner) = color.strip_prefix("rgb(").and_then(|s| s.strip_suffix(')')) {
             let admissible = !inner.is_empty()
-                && inner.chars().all(|c| c.is_ascii_digit() || c == ',' || c.is_whitespace());
+                && inner
+                    .chars()
+                    .all(|c| c.is_ascii_digit() || c == ',' || c.is_whitespace());
             if !admissible {
                 return Err(invalid());
             }
@@ -97,7 +102,11 @@ impl Color {
                     "color components must be <= 255 in {original:?}"
                 )));
             }
-            return Ok(Color::TrueColor(values[0] as u8, values[1] as u8, values[2] as u8));
+            return Ok(Color::TrueColor(
+                values[0] as u8,
+                values[1] as u8,
+                values[2] as u8,
+            ));
         }
         Err(invalid())
     }
@@ -118,7 +127,14 @@ impl Color {
                 let _ = write!(out, "{};5;{}", if foreground { 38 } else { 48 }, n);
             }
             Color::TrueColor(r, g, b) => {
-                let _ = write!(out, "{};2;{};{};{}", if foreground { 38 } else { 48 }, r, g, b);
+                let _ = write!(
+                    out,
+                    "{};2;{};{};{}",
+                    if foreground { 38 } else { 48 },
+                    r,
+                    g,
+                    b
+                );
             }
         }
     }
@@ -138,7 +154,11 @@ impl Color {
         }
         match (system, *self) {
             (ColorSystem::EightBit, Color::TrueColor(red, green, blue)) => {
-                let (_, l, s) = rgb_to_hls(red as f64 / 255.0, green as f64 / 255.0, blue as f64 / 255.0);
+                let (_, l, s) = rgb_to_hls(
+                    red as f64 / 255.0,
+                    green as f64 / 255.0,
+                    blue as f64 / 255.0,
+                );
                 if s < 0.15 {
                     let gray = (l * 25.0).round_ties_even() as i64;
                     let number = match gray {
@@ -150,7 +170,11 @@ impl Color {
                 }
                 let six = |c: u8| {
                     let c = c as f64;
-                    if c < 95.0 { c / 95.0 } else { 1.0 + (c - 95.0) / 40.0 }
+                    if c < 95.0 {
+                        c / 95.0
+                    } else {
+                        1.0 + (c - 95.0) / 40.0
+                    }
                 };
                 let number = 16.0
                     + 36.0 * six(red).round_ties_even()
@@ -233,10 +257,25 @@ mod tests {
 
     #[test]
     fn downgrade() {
-        assert_eq!(Color::TrueColor(255, 0, 0).downgrade(ColorSystem::EightBit), Color::EightBit(196));
-        assert_eq!(Color::TrueColor(128, 128, 128).downgrade(ColorSystem::EightBit), Color::EightBit(244));
-        assert_eq!(Color::TrueColor(255, 0, 0).downgrade(ColorSystem::Standard), Color::Standard(1));
-        assert_eq!(Color::EightBit(196).downgrade(ColorSystem::Standard), Color::Standard(1));
-        assert_eq!(Color::Standard(1).downgrade(ColorSystem::TrueColor), Color::Standard(1));
+        assert_eq!(
+            Color::TrueColor(255, 0, 0).downgrade(ColorSystem::EightBit),
+            Color::EightBit(196)
+        );
+        assert_eq!(
+            Color::TrueColor(128, 128, 128).downgrade(ColorSystem::EightBit),
+            Color::EightBit(244)
+        );
+        assert_eq!(
+            Color::TrueColor(255, 0, 0).downgrade(ColorSystem::Standard),
+            Color::Standard(1)
+        );
+        assert_eq!(
+            Color::EightBit(196).downgrade(ColorSystem::Standard),
+            Color::Standard(1)
+        );
+        assert_eq!(
+            Color::Standard(1).downgrade(ColorSystem::TrueColor),
+            Color::Standard(1)
+        );
     }
 }

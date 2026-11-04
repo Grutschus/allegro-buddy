@@ -3734,5 +3734,4818 @@
     }
    }
   ]
+ },
+ {
+  "name": "random-table-0",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 63,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "全角字符 dash-ed [bold]b[/]",
+     "columns": [
+      {
+       "header": "",
+       "justify": "default",
+       "min_width": 11,
+       "style": "cyan"
+      },
+      {
+       "header": "",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "… 全角字符",
+        "tab\tx job_1 全角字符 dash-ed [bold]b[/]"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "dash-ed 12:34 [bold]b[/]",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "[bold]b[/] 5/12 RUNNING",
+           "italic"
+          ],
+          " ",
+          ""
+         ]
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "→ ≤ gpu ·",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "plain": "x x 5/12 a100 RUNNING [bold]b[/]",
+         "style": "reverse"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "averyveryverylongtoken",
+           "reverse"
+          ],
+          " ",
+          "RUNNING 全角字符"
+         ]
+        },
+        "Ä"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "[bold]b[/] RUNNING",
+           "red"
+          ],
+          " ",
+          "node[01-04] x ß"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "gpu ⓘ ≤"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "",
+        {
+         "type": "text",
+         "parts": [
+          [
+           ":cat:",
+           "italic"
+          ],
+          " ",
+          "a100 tab\tx a100"
+         ]
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-1",
+  "variants": [
+   {
+    "width": 28,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 111,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "",
+       "justify": "default",
+       "no_wrap": true
+      },
+      {
+       "header": "→ ·",
+       "justify": "default",
+       "max_width": 7
+      },
+      {
+       "header": "",
+       "justify": "center",
+       "max_width": 5
+      },
+      {
+       "header": "…",
+       "justify": "right"
+      },
+      {
+       "header": "a100",
+       "justify": "right"
+      },
+      {
+       "header": "…",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "dash-ed gpu",
+           ""
+          ],
+          " ",
+          "→"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "averyveryverylongtoken Ä 中文 dash-ed      ",
+         "style": "bold green"
+        },
+        "  ",
+        {
+         "type": "text",
+         "plain": "x tab\tx ≤ [bold]b[/] dash-ed",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "… [bold]b[/] emoji😃",
+           "cyan"
+          ],
+          " ",
+          ""
+         ]
+        },
+        "ⓘ"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "→ dash-ed 中文",
+        "ⓘ 中文 ≤ ß RUNNING",
+        {
+         "type": "text",
+         "plain": "[bold]b[/]    averyveryverylongtoken 全角字符 …",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "≤ averyveryverylongtoken 12:34",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": ":cat: [bold]b[/] [bold]b[/]",
+         "style": "bold"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "≤ 全角字符 ß"
+        },
+        {
+         "type": "text",
+         "plain": "Ä averyveryverylongtoken a100"
+        },
+        {
+         "type": "text",
+         "plain": "[bold]b[/] gpu …",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "ⓘ 5/12 [bold]b[/]",
+           "italic"
+          ],
+          " ",
+          "→ Ä tab\tx"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "ß",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "… → dash-ed",
+         "style": "italic"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "averyveryverylongtoken",
+        {
+         "type": "text",
+         "plain": "5/12 ß x →",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "plain": "[bold]b[/] ⓘ",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "job_1 x",
+           "red"
+          ],
+          " ",
+          "ⓘ"
+         ]
+        },
+        "· node[01-04]",
+        {
+         "type": "text",
+         "plain": "全角字符 node[01-04] :cat: tab\tx"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {
+      "box": "MINIMAL",
+      "expand": false,
+      "show_header": true,
+      "pad_edge": true,
+      "show_edge": true,
+      "collapse_padding": false
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-2",
+  "variants": [
+   {
+    "width": 14,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 71,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "5/12",
+     "columns": [
+      {
+       "header": "≤",
+       "justify": "full"
+      },
+      {
+       "header": "… x",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "default"
+      },
+      {
+       "header": "",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "default"
+      },
+      {
+       "header": "",
+       "justify": "default",
+       "no_wrap": true
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "dash-ed … … 12:34 job_1",
+        {
+         "type": "text",
+         "plain": "5/12 gpu :cat: ≤ dash-ed",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "plain": "job_1 12:34 node[01-04] 中文",
+         "style": "reverse"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "node[01-04]",
+           ""
+          ],
+          " ",
+          "tab\tx ⓘ"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "a100 [bold]b[/] tab\tx",
+           ""
+          ],
+          " ",
+          "gpu"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": ":cat: 全角字符 → node[01-04] ß averyveryverylongtoken",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "plain": "≤",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "… Ä",
+           "italic"
+          ],
+          " ",
+          ""
+         ]
+        },
+        "   averyveryverylongtoken 5/12 dash-ed · …"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "ⓘ",
+           "bold"
+          ],
+          " ",
+          ""
+         ]
+        },
+        "node[01-04] 5/12 ·",
+        {
+         "type": "text",
+         "plain": "tab\tx 5/12 全角字符 ß"
+        },
+        {
+         "type": "text",
+         "plain": "12:34 averyveryverylongtoken averyveryverylongtoken 中文"
+        },
+        "ß averyveryverylongtoken",
+        "· job_1 node[01-04] dash-ed"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "tab\tx"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "job_1 RUNNING",
+           "italic"
+          ],
+          " ",
+          "emoji😃 averyveryverylongtoken"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "12:34    a100 ≤ Ä",
+         "style": "italic"
+        },
+        "ß … emoji😃",
+        {
+         "type": "text",
+         "plain": "全角字符 5/12 → 12:34 [bold]b[/] dash-ed",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "plain": "12:34 5/12 RUNNING node[01-04] ⓘ ß",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-3",
+  "variants": [
+   {
+    "width": 8,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 49,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      0
+     ],
+     "columns": [
+      {
+       "header": "12:34",
+       "justify": "right",
+       "no_wrap": true
+      }
+     ],
+     "rows": []
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-4",
+  "variants": [
+   {
+    "width": 17,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 101,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "",
+       "justify": "full"
+      }
+     ],
+     "rows": [],
+     "options": {
+      "box": "ROUNDED",
+      "expand": false,
+      "show_header": false,
+      "pad_edge": false,
+      "show_edge": true,
+      "collapse_padding": false
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-5",
+  "variants": [
+   {
+    "width": 19,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 35,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": null,
+     "columns": [
+      {
+       "header": "12:34",
+       "justify": "full",
+       "min_width": 3
+      },
+      {
+       "header": "  ",
+       "justify": "full"
+      },
+      {
+       "header": "",
+       "justify": "center"
+      }
+     ],
+     "rows": [],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-6",
+  "variants": [
+   {
+    "width": 8,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 32,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "emoji😃 全角字符",
+     "columns": [
+      {
+       "header": "tab\tx",
+       "justify": "right",
+       "min_width": 3
+      },
+      {
+       "header": "",
+       "justify": "left"
+      },
+      {
+       "header": "RUNNING",
+       "justify": "center"
+      },
+      {
+       "header": "",
+       "justify": "default"
+      },
+      {
+       "header": "",
+       "justify": "right"
+      },
+      {
+       "header": "… dash-ed",
+       "justify": "default",
+       "overflow": "fold"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "dash-ed node[01-04]    中文",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "averyveryverylongtoken RUNNING a100",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "plain": "全角字符 ⓘ dash-ed tab\tx averyveryverylongtoken dash-ed",
+         "style": "dim"
+        },
+        "tab\tx",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "Ä",
+           ""
+          ],
+          " ",
+          "x averyveryverylongtoken 5/12"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "Ä emoji😃 :cat: RUNNING",
+         "style": "italic"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "全角字符 全角字符",
+         "style": "cyan"
+        },
+        "dash-ed x",
+        "   → 全角字符 :cat:",
+        "job_1   ",
+        {
+         "type": "text",
+         "plain": ":cat: ß [bold]b[/]",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "… emoji😃 [bold]b[/] 12:34",
+         "style": "red"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "job_1 job_1",
+        {
+         "type": "text",
+         "plain": "node[01-04] ≤ Ä emoji😃",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "bold"
+        },
+        "≤ a100",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "全角字符 ß",
+           "red"
+          ],
+          " ",
+          "ß job_1 中文"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "… 全角字符",
+           "dim"
+          ],
+          " ",
+          ""
+         ]
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "中文 emoji😃 … emoji😃 … 5/12"
+        },
+        "x :cat: dash-ed",
+        "→ averyveryverylongtoken [bold]b[/] gpu Ä",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "node[01-04]",
+           "red"
+          ],
+          " ",
+          "全角字符 emoji😃 averyveryverylongtoken"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "ⓘ Ä →   "
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "job_1",
+           "bold"
+          ],
+          " ",
+          ""
+         ]
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-7",
+  "variants": [
+   {
+    "width": 23,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 62,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": null,
+     "columns": [
+      {
+       "header": "a100 a100",
+       "justify": "full"
+      },
+      {
+       "header": "·",
+       "justify": "default",
+       "overflow": "fold",
+       "min_width": 11
+      },
+      {
+       "header": "a100 ⓘ",
+       "justify": "left",
+       "overflow": "crop"
+      },
+      {
+       "header": "ⓘ Ä",
+       "justify": "right",
+       "overflow": "crop"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "dash-ed →",
+        {
+         "type": "text",
+         "plain": "tab\tx x 5/12 :cat: tab\tx",
+         "style": "red"
+        },
+        "ⓘ x",
+        {
+         "type": "text",
+         "plain": "job_1 averyveryverylongtoken 中文 5/12 dash-ed",
+         "style": "bold"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "… job_1",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "tab\tx gpu",
+           "italic"
+          ],
+          " ",
+          "全角字符 ⓘ →"
+         ]
+        },
+        "tab\tx emoji😃   ",
+        {
+         "type": "text",
+         "plain": ""
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-8",
+  "variants": [
+   {
+    "width": 23,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 74,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "中文 tab\tx x RUNNING",
+     "columns": [
+      {
+       "header": "",
+       "justify": "left",
+       "no_wrap": true
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        ":cat: 中文 emoji😃 emoji😃 中文 a100"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "a100"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "中文",
+         "style": "cyan"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "ⓘ ≤ 全角字符 emoji😃",
+         "style": "italic"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "gpu a100 ⓘ"
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-9",
+  "variants": [
+   {
+    "width": 23,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 77,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "a100 全角字符",
+     "columns": [
+      {
+       "header": "  ",
+       "justify": "default",
+       "max_width": 8
+      },
+      {
+       "header": "",
+       "justify": "full"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "12:34",
+        "…"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "emoji😃 [bold]b[/]   ",
+           "dim"
+          ],
+          " ",
+          "ß tab\tx 5/12"
+         ]
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "cyan"
+        },
+        "5/12 5/12"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "   a100 a100 tab\tx"
+        },
+        {
+         "type": "text",
+         "plain": "Ä ≤",
+         "style": "reverse"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-10",
+  "variants": [
+   {
+    "width": 10,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 93,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "dash-ed emoji😃 ·",
+     "columns": [
+      {
+       "header": "",
+       "justify": "full",
+       "overflow": "ellipsis"
+      },
+      {
+       "header": "ß",
+       "justify": "left"
+      },
+      {
+       "header": "gpu",
+       "justify": "default",
+       "no_wrap": true,
+       "max_width": 11
+      },
+      {
+       "header": "",
+       "justify": "full",
+       "no_wrap": true
+      },
+      {
+       "header": "",
+       "justify": "center"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "emoji😃 5/12",
+           "cyan"
+          ],
+          " ",
+          "RUNNING ·"
+         ]
+        },
+        "a100 … ⓘ x Ä gpu",
+        {
+         "type": "text",
+         "plain": "averyveryverylongtoken",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "→"
+        },
+        "RUNNING node[01-04] ≤ x …"
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-11",
+  "variants": [
+   {
+    "width": 22,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "job_1 :cat:",
+       "justify": "default",
+       "overflow": "fold"
+      },
+      {
+       "header": "Ä [bold]b[/]",
+       "justify": "full",
+       "no_wrap": true
+      },
+      {
+       "header": "x",
+       "justify": "right"
+      },
+      {
+       "header": "→ x",
+       "justify": "full"
+      },
+      {
+       "header": "",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        ":cat: [bold]b[/] ß",
+        "gpu",
+        {
+         "type": "text",
+         "plain": "· 全角字符",
+         "style": "reverse"
+        },
+        "ß",
+        "node[01-04] 5/12 ⓘ"
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {
+      "box": "ROUNDED",
+      "expand": false,
+      "show_header": true,
+      "pad_edge": false,
+      "show_edge": true,
+      "collapse_padding": true
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-12",
+  "variants": [
+   {
+    "width": 28,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 93,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "",
+       "justify": "full",
+       "no_wrap": true
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        ""
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "5/12    →",
+           ""
+          ],
+          " ",
+          "ⓘ"
+         ]
+        }
+       ],
+       "end_section": true
+      }
+     ],
+     "options": {
+      "box": "MINIMAL",
+      "expand": false,
+      "show_header": true,
+      "pad_edge": true,
+      "show_edge": true,
+      "collapse_padding": false
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-13",
+  "variants": [
+   {
+    "width": 25,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 105,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      3
+     ],
+     "columns": [
+      {
+       "header": "≤",
+       "justify": "full"
+      },
+      {
+       "header": "",
+       "justify": "right",
+       "style": "bold green"
+      },
+      {
+       "header": "≤ →",
+       "justify": "default"
+      },
+      {
+       "header": "中文 job_1",
+       "justify": "center"
+      },
+      {
+       "header": "tab\tx   ",
+       "justify": "right",
+       "overflow": "ellipsis"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "· x job_1 Ä   ",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "→   ",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "…",
+         "style": "reverse"
+        },
+        "dash-ed",
+        "→ →"
+       ],
+       "end_section": true
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-14",
+  "variants": [
+   {
+    "width": 23,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 63,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "gpu 5/12 x",
+     "columns": [
+      {
+       "header": "emoji😃 ß",
+       "justify": "center",
+       "no_wrap": true
+      },
+      {
+       "header": "全角字符",
+       "justify": "center",
+       "no_wrap": true,
+       "overflow": "fold",
+       "max_width": 10
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "全角字符 ⓘ",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "≤",
+           "red"
+          ],
+          " ",
+          "≤"
+         ]
+        },
+        "x :cat: … job_1 中文 :cat:"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "全角字符",
+           ""
+          ],
+          " ",
+          ""
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "→ emoji😃 [bold]b[/]",
+         "style": "bold green"
+        }
+       ],
+       "end_section": true
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-15",
+  "variants": [
+   {
+    "width": 21,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 33,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "ß 12:34 ·",
+     "columns": [
+      {
+       "header": "12:34",
+       "justify": "right"
+      },
+      {
+       "header": "dash-ed",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "center",
+       "no_wrap": true,
+       "max_width": 6
+      },
+      {
+       "header": "ⓘ",
+       "justify": "default",
+       "no_wrap": true
+      },
+      {
+       "header": "≤ →",
+       "justify": "default"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "ⓘ x [bold]b[/] …",
+         "style": "bold"
+        },
+        "job_1",
+        "",
+        "5/12 a100",
+        "  "
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "Ä gpu",
+        "job_1 … … 12:34",
+        "gpu [bold]b[/] a100 node[01-04] job_1 中文",
+        {
+         "type": "text",
+         "plain": ":cat: dash-ed ≤ 5/12",
+         "style": "red"
+        },
+        "12:34 a100    dash-ed ß"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpu job_1 5/12 12:34 RUNNING",
+         "style": "bold green"
+        },
+        "",
+        {
+         "type": "text",
+         "plain": "node[01-04] emoji😃",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "·",
+           "italic"
+          ],
+          " ",
+          "averyveryverylongtoken"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "→ RUNNING 5/12 averyveryverylongtoken RUNNING averyveryverylongtoken",
+         "style": "red"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-16",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 89,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": ":cat: emoji😃",
+     "columns": [
+      {
+       "header": "ⓘ 5/12",
+       "justify": "default"
+      },
+      {
+       "header": "gpu",
+       "justify": "left"
+      },
+      {
+       "header": "",
+       "justify": "center",
+       "overflow": "fold"
+      },
+      {
+       "header": "5/12",
+       "justify": "left"
+      },
+      {
+       "header": "RUNNING [bold]b[/]",
+       "justify": "full"
+      },
+      {
+       "header": "job_1 RUNNING",
+       "justify": "right"
+      }
+     ],
+     "rows": [],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-17",
+  "variants": [
+   {
+    "width": 13,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 56,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "·",
+     "columns": [
+      {
+       "header": "",
+       "justify": "default",
+       "no_wrap": true,
+       "style": "cyan"
+      },
+      {
+       "header": "",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "full"
+      },
+      {
+       "header": "RUNNING [bold]b[/]",
+       "justify": "default",
+       "overflow": "fold"
+      },
+      {
+       "header": "全角字符",
+       "justify": "center"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "ß ß Ä averyveryverylongtoken Ä 全角字符",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "x tab\tx 中文 5/12 ⓘ averyveryverylongtoken"
+        },
+        "node[01-04] job_1 全角字符 x ·",
+        "[bold]b[/] 全角字符 :cat: x"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "",
+        {
+         "type": "text",
+         "plain": "",
+         "style": "red"
+        },
+        "   job_1 gpu",
+        {
+         "type": "text",
+         "plain": "a100",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "plain": "ⓘ 5/12 job_1"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "Ä Ä emoji😃 node[01-04] 12:34",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "≤ node[01-04] →",
+           "dim"
+          ],
+          " ",
+          "x Ä job_1"
+         ]
+        },
+        "Ä 5/12 →",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "全角字符 emoji😃 averyveryverylongtoken",
+           "reverse"
+          ],
+          " ",
+          "   :cat: ·"
+         ]
+        },
+        "… 5/12 job_1 [bold]b[/] gpu"
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-18",
+  "variants": [
+   {
+    "width": 16,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 59,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Ä    :cat: :cat:",
+     "columns": [
+      {
+       "header": "gpu 5/12",
+       "justify": "default"
+      },
+      {
+       "header": "Ä 12:34",
+       "justify": "default",
+       "max_width": 1
+      },
+      {
+       "header": ":cat:",
+       "justify": "default",
+       "no_wrap": true,
+       "overflow": "ellipsis",
+       "style": ""
+      },
+      {
+       "header": ":cat:",
+       "justify": "center"
+      },
+      {
+       "header": "",
+       "justify": "left",
+       "no_wrap": true
+      },
+      {
+       "header": "ß dash-ed",
+       "justify": "default",
+       "no_wrap": true,
+       "style": "italic"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "… … tab\tx RUNNING a100",
+        "中文 Ä",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "tab\tx gpu",
+           "reverse"
+          ],
+          " ",
+          "x ⓘ 全角字符"
+         ]
+        },
+        "… 中文 →",
+        "x ≤",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "x [bold]b[/]",
+           "italic"
+          ],
+          " ",
+          "中文"
+         ]
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "[bold]b[/] [bold]b[/] ≤ node[01-04] averyveryverylongtoken",
+        "tab\tx … :cat: ß",
+        "dash-ed dash-ed gpu",
+        {
+         "type": "text",
+         "plain": "   ⓘ RUNNING",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "reverse"
+        },
+        "job_1"
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-19",
+  "variants": [
+   {
+    "width": 26,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 96,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "",
+       "justify": "default"
+      },
+      {
+       "header": "",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "tab\tx …    5/12",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "ß [bold]b[/] dash-ed averyveryverylongtoken job_1   ",
+        "… [bold]b[/]"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "12:34 a100   "
+        },
+        {
+         "type": "text",
+         "plain": ":cat: ß ß 全角字符 中文",
+         "style": "dim"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "",
+        {
+         "type": "text",
+         "plain": "tab\tx",
+         "style": "red"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "emoji😃 中文 ⓘ job_1 x averyveryverylongtoken",
+        {
+         "type": "text",
+         "plain": "",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "job_1 全角字符 a100 emoji😃 12:34",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "≤",
+           "red"
+          ],
+          " ",
+          "averyveryverylongtoken gpu …"
+         ]
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {
+      "box": "HORIZONTALS_TOP",
+      "expand": true,
+      "show_header": false,
+      "pad_edge": false,
+      "show_edge": true,
+      "collapse_padding": false
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-20",
+  "variants": [
+   {
+    "width": 10,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 35,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "emoji😃 Ä",
+     "columns": [
+      {
+       "header": "·   ",
+       "justify": "default"
+      },
+      {
+       "header": "tab\tx a100",
+       "justify": "right"
+      },
+      {
+       "header": ":cat:",
+       "justify": "default",
+       "min_width": 5
+      },
+      {
+       "header": "ⓘ →",
+       "justify": "full",
+       "overflow": "crop"
+      },
+      {
+       "header": "",
+       "justify": "left",
+       "no_wrap": true
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "bold green"
+        },
+        "[bold]b[/] a100 [bold]b[/]    emoji😃 ·",
+        {
+         "type": "text",
+         "plain": "emoji😃 12:34 →",
+         "style": "italic"
+        },
+        "RUNNING 中文",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "Ä",
+           "italic"
+          ],
+          " ",
+          "x"
+         ]
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "中文 → node[01-04] · dash-ed RUNNING",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "x job_1",
+           "bold green"
+          ],
+          " ",
+          "a100"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "中文",
+           "bold"
+          ],
+          " ",
+          "ⓘ ·"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "node[01-04]",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "plain": "dash-ed … gpu",
+         "style": "reverse"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "→ … ⓘ a100",
+        {
+         "type": "text",
+         "plain": "node[01-04]",
+         "style": "bold"
+        },
+        "tab\tx tab\tx :cat:",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "emoji😃",
+           "bold"
+          ],
+          " ",
+          "node[01-04] ß"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "5/12 a100 [bold]b[/] RUNNING a100 →",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "ß    ≤ RUNNING x job_1",
+        "… emoji😃 全角字符",
+        "[bold]b[/] gpu",
+        "ⓘ",
+        {
+         "type": "text",
+         "plain": "dash-ed 全角字符 5/12 tab\tx Ä x"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-21",
+  "variants": [
+   {
+    "width": 17,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 64,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "tab\tx",
+     "columns": [
+      {
+       "header": "5/12",
+       "justify": "right",
+       "min_width": 6
+      },
+      {
+       "header": "dash-ed",
+       "justify": "center",
+       "no_wrap": true,
+       "overflow": "crop",
+       "max_width": 10
+      },
+      {
+       "header": "",
+       "justify": "right",
+       "overflow": "ellipsis"
+      }
+     ],
+     "rows": [],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-22",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 92,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      0
+     ],
+     "columns": [
+      {
+       "header": "ⓘ",
+       "justify": "right"
+      },
+      {
+       "header": "node[01-04]",
+       "justify": "left",
+       "no_wrap": true
+      },
+      {
+       "header": "averyveryverylongtoken ≤",
+       "justify": "full",
+       "min_width": 11
+      },
+      {
+       "header": "ⓘ ≤",
+       "justify": "full",
+       "max_width": 7
+      },
+      {
+       "header": "",
+       "justify": "left",
+       "no_wrap": true
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "node[01-04] [bold]b[/] … averyveryverylongtoken",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "5/12 job_1 x",
+           "cyan"
+          ],
+          " ",
+          "ⓘ"
+         ]
+        },
+        ":cat: 全角字符",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "tab\tx",
+           "dim"
+          ],
+          " ",
+          ":cat:"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "· 5/12",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "x [bold]b[/] 12:34 12:34 全角字符",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "[bold]b[/] emoji😃 12:34 dash-ed",
+         "style": "bold"
+        },
+        "12:34 → ≤",
+        {
+         "type": "text",
+         "plain": "job_1"
+        },
+        {
+         "type": "text",
+         "plain": "a100",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-23",
+  "variants": [
+   {
+    "width": 26,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 107,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      2
+     ],
+     "columns": [
+      {
+       "header": "ⓘ averyveryverylongtoken",
+       "justify": "right",
+       "overflow": "ellipsis"
+      },
+      {
+       "header": "",
+       "justify": "default",
+       "overflow": "crop"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "ⓘ",
+        ""
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "… averyveryverylongtoken :cat:",
+           ""
+          ],
+          " ",
+          ""
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "ⓘ … · dash-ed a100",
+         "style": "cyan"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "dim"
+        },
+        "x"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "5/12",
+         "style": "dim"
+        },
+        "tab\tx"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "· 全角字符 emoji😃 全角字符 Ä :cat:",
+         "style": "bold green"
+        },
+        "gpu"
+       ],
+       "end_section": false
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-24",
+  "variants": [
+   {
+    "width": 13,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 97,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "→ gpu 中文",
+     "columns": [
+      {
+       "header": "12:34 中文",
+       "justify": "full"
+      },
+      {
+       "header": "ⓘ",
+       "justify": "full",
+       "no_wrap": true
+      },
+      {
+       "header": "",
+       "justify": "center",
+       "min_width": 9
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": ":cat: gpu RUNNING 中文",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "job_1 · job_1 Ä node[01-04]",
+         "style": "cyan"
+        },
+        "全角字符"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "node[01-04] a100 ⓘ",
+           "cyan"
+          ],
+          " ",
+          "ß"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "node[01-04]",
+         "style": "red"
+        },
+        "emoji😃"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpu a100 node[01-04]",
+         "style": "cyan"
+        },
+        "tab\tx x node[01-04]",
+        "12:34 :cat: 5/12 5/12 a100 RUNNING"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "node[01-04] gpu",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "全角字符 … 12:34",
+           "bold"
+          ],
+          " ",
+          "ß"
+         ]
+        },
+        "     "
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "5/12 emoji😃 12:34 5/12 averyveryverylongtoken →",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "plain": "job_1   ",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "· 5/12 gpu 中文 12:34",
+         "style": "bold green"
+        }
+       ],
+       "end_section": true
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-25",
+  "variants": [
+   {
+    "width": 10,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 43,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "dash-ed",
+     "columns": [
+      {
+       "header": "",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "right",
+       "no_wrap": true
+      },
+      {
+       "header": "",
+       "justify": "left",
+       "min_width": 4
+      },
+      {
+       "header": "[bold]b[/]",
+       "justify": "default",
+       "overflow": "crop"
+      },
+      {
+       "header": "",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "tab\tx → job_1",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "12:34 x",
+           ""
+          ],
+          " ",
+          "5/12"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "→ … gpu",
+           ""
+          ],
+          " ",
+          "a100 5/12 [bold]b[/]"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "· 12:34 5/12 ≤ 5/12",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "· … x tab\tx",
+         "style": "bold"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-26",
+  "variants": [
+   {
+    "width": 29,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 92,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "   ⓘ ß",
+     "columns": [
+      {
+       "header": "x RUNNING",
+       "justify": "default",
+       "overflow": "crop"
+      },
+      {
+       "header": "中文",
+       "justify": "center",
+       "overflow": "ellipsis"
+      },
+      {
+       "header": "",
+       "justify": "full",
+       "overflow": "ellipsis"
+      },
+      {
+       "header": "",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "→",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "中文",
+           ""
+          ],
+          " ",
+          "tab\tx gpu"
+         ]
+        },
+        "→ gpu gpu node[01-04] · RUNNING",
+        "emoji😃 gpu"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        ":cat: 5/12 中文",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "ß 12:34 ≤",
+           "bold"
+          ],
+          " ",
+          ""
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "中文 x job_1",
+         "style": "cyan"
+        },
+        "→ ≤    node[01-04] RUNNING"
+       ],
+       "end_section": true
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-27",
+  "variants": [
+   {
+    "width": 28,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 73,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      2
+     ],
+     "columns": [
+      {
+       "header": "5/12 …",
+       "justify": "full",
+       "style": "cyan"
+      },
+      {
+       "header": "5/12   ",
+       "justify": "full"
+      },
+      {
+       "header": "",
+       "justify": "right",
+       "no_wrap": true
+      },
+      {
+       "header": "job_1 全角字符",
+       "justify": "right",
+       "overflow": "ellipsis",
+       "max_width": 1
+      },
+      {
+       "header": "job_1   ",
+       "justify": "full",
+       "no_wrap": true
+      },
+      {
+       "header": "…",
+       "justify": "full"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "plain": "a100 a100 :cat:",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "plain": ":cat: averyveryverylongtoken a100 5/12",
+         "style": "cyan"
+        },
+        "x",
+        "dash-ed RUNNING ≤ x",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "RUNNING 12:34 …",
+           "dim"
+          ],
+          " ",
+          "全角字符 →"
+         ]
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "node[01-04] emoji😃 5/12",
+           ""
+          ],
+          " ",
+          "  "
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "job_1 x",
+           "reverse"
+          ],
+          " ",
+          "a100"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "Ä a100",
+           ""
+          ],
+          " ",
+          "ß Ä 12:34"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "gpu job_1",
+         "style": "bold"
+        },
+        "node[01-04] [bold]b[/] ≤ job_1 5/12",
+        {
+         "type": "text",
+         "plain": "job_1 x",
+         "style": "bold"
+        }
+       ],
+       "end_section": false
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-28",
+  "variants": [
+   {
+    "width": 11,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 81,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": null,
+     "columns": [
+      {
+       "header": "emoji😃 dash-ed",
+       "justify": "right"
+      },
+      {
+       "header": "  ",
+       "justify": "right",
+       "no_wrap": true
+      },
+      {
+       "header": "   5/12",
+       "justify": "left"
+      },
+      {
+       "header": "· gpu",
+       "justify": "default",
+       "style": ""
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "gpu emoji😃 Ä 5/12 x",
+        "averyveryverylongtoken [bold]b[/]",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "averyveryverylongtoken 中文",
+           "bold"
+          ],
+          " ",
+          "ⓘ"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "job_1",
+           "red"
+          ],
+          " ",
+          "全角字符 … ⓘ"
+         ]
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "dim"
+        },
+        "",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "中文 →",
+           ""
+          ],
+          " ",
+          "tab\tx ⓘ emoji😃"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "ß → dash-ed · :cat: 5/12",
+         "style": "italic"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "ß job_1 · 5/12 中文",
+        "gpu",
+        {
+         "type": "text",
+         "plain": "a100 → RUNNING · Ä",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "[bold]b[/]"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "averyveryverylongtoken tab\tx 12:34 5/12",
+        {
+         "type": "text",
+         "plain": "· … job_1 ß",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "[bold]b[/] 全角字符 ß …",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "a100 …",
+         "style": "bold green"
+        }
+       ],
+       "end_section": true
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-29",
+  "variants": [
+   {
+    "width": 22,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 36,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      1
+     ],
+     "columns": [
+      {
+       "header": ":cat: job_1",
+       "justify": "right",
+       "no_wrap": true
+      },
+      {
+       "header": "5/12 node[01-04]",
+       "justify": "full",
+       "max_width": 12
+      },
+      {
+       "header": "",
+       "justify": "full",
+       "no_wrap": true
+      },
+      {
+       "header": "…",
+       "justify": "right",
+       "no_wrap": true,
+       "min_width": 12
+      },
+      {
+       "header": "→",
+       "justify": "full",
+       "overflow": "fold"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "averyveryverylongtoken",
+           "italic"
+          ],
+          " ",
+          "emoji😃"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "12:34 …",
+           "bold green"
+          ],
+          " ",
+          ""
+         ]
+        },
+        "",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "ⓘ ·",
+           ""
+          ],
+          " ",
+          "x tab\tx ß"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "· ⓘ gpu",
+         "style": "cyan"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "· Ä",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "· RUNNING ß 12:34 中文",
+         "style": "cyan"
+        },
+        "",
+        {
+         "type": "text",
+         "plain": "job_1 job_1",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "node[01-04] 中文 ≤ RUNNING averyveryverylongtoken ≤",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-30",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 47,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "",
+       "justify": "left",
+       "min_width": 6
+      },
+      {
+       "header": "job_1",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "full"
+      },
+      {
+       "header": "全角字符 →",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "→ :cat:   ",
+           "cyan"
+          ],
+          " ",
+          ""
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "全角字符 [bold]b[/] emoji😃",
+           ""
+          ],
+          " ",
+          "全角字符 12:34 ⓘ"
+         ]
+        },
+        "   5/12 averyveryverylongtoken → 中文 ·",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "   … ß",
+           "italic"
+          ],
+          " ",
+          "ⓘ → RUNNING"
+         ]
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {
+      "box": "SIMPLE",
+      "expand": false,
+      "show_header": true,
+      "pad_edge": false,
+      "show_edge": true,
+      "collapse_padding": false
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-31",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 72,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "a100 全角字符",
+       "justify": "default",
+       "no_wrap": true
+      },
+      {
+       "header": ":cat: [bold]b[/]",
+       "justify": "left"
+      },
+      {
+       "header": "ⓘ",
+       "justify": "center",
+       "no_wrap": true,
+       "style": "italic"
+      },
+      {
+       "header": "job_1 …",
+       "justify": "full"
+      },
+      {
+       "header": "   [bold]b[/]",
+       "justify": "center"
+      },
+      {
+       "header": "gpu ≤",
+       "justify": "left",
+       "no_wrap": true
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "dash-ed ß",
+        "ⓘ",
+        "tab\tx",
+        "→ 12:34 [bold]b[/]",
+        {
+         "type": "text",
+         "plain": "emoji😃 Ä emoji😃 → ≤ dash-ed",
+         "style": "bold green"
+        },
+        ""
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "Ä averyveryverylongtoken [bold]b[/] … averyveryverylongtoken gpu",
+        "12:34 全角字符",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "5/12 →",
+           "italic"
+          ],
+          " ",
+          ":cat: 5/12"
+         ]
+        },
+        "… x RUNNING Ä",
+        "averyveryverylongtoken",
+        {
+         "type": "text",
+         "plain": "[bold]b[/] … averyveryverylongtoken",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "ß x",
+           "bold"
+          ],
+          " ",
+          ""
+         ]
+        },
+        "[bold]b[/]",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "node[01-04] [bold]b[/]",
+           "cyan"
+          ],
+          " ",
+          "中文 RUNNING :cat:"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "node[01-04] dash-ed",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        "tab\tx"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "cyan"
+        },
+        "job_1 x a100",
+        {
+         "type": "text",
+         "plain": "emoji😃 emoji😃 a100 node[01-04] ß",
+         "style": "red"
+        },
+        "   gpu ⓘ    全角字符",
+        "job_1 ⓘ ß",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "→ a100",
+           ""
+          ],
+          " ",
+          "emoji😃 中文 x"
+         ]
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {
+      "box": "ROUNDED",
+      "expand": false,
+      "show_header": false,
+      "pad_edge": true,
+      "show_edge": true,
+      "collapse_padding": false
+     }
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-32",
+  "variants": [
+   {
+    "width": 12,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 108,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "job_1 ≤ ≤ →",
+     "columns": [
+      {
+       "header": "5/12",
+       "justify": "full"
+      },
+      {
+       "header": "",
+       "justify": "right",
+       "overflow": "ellipsis"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "ⓘ 5/12 · 5/12 ≤ averyveryverylongtoken",
+        ""
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-33",
+  "variants": [
+   {
+    "width": 9,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 50,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "averyveryverylongtoken",
+     "columns": [
+      {
+       "header": "averyveryverylongtoken …",
+       "justify": "left"
+      },
+      {
+       "header": "x",
+       "justify": "default"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "emoji😃",
+        "tab\tx emoji😃 5/12 ≤ job_1 averyveryverylongtoken"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "job_1 gpu ß job_1 a100 中文",
+        {
+         "type": "text",
+         "plain": "emoji😃 5/12 :cat:",
+         "style": "red"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-34",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 36,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "… 5/12 ≤ averyveryverylongtoken",
+     "columns": [
+      {
+       "header": "job_1",
+       "justify": "default",
+       "overflow": "fold",
+       "min_width": 10,
+       "style": "bold"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "12:34   ",
+           "red"
+          ],
+          " ",
+          "· a100 ß"
+         ]
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "中文 全角字符 12:34 全角字符 job_1"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "全角字符 ß gpu 12:34 …"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "全角字符",
+         "style": "dim"
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-35",
+  "variants": [
+   {
+    "width": 28,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 104,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      2
+     ],
+     "columns": [
+      {
+       "header": "node[01-04]",
+       "justify": "left",
+       "max_width": 6,
+       "min_width": 1
+      },
+      {
+       "header": "",
+       "justify": "right"
+      },
+      {
+       "header": "x 全角字符",
+       "justify": "default",
+       "no_wrap": true,
+       "overflow": "ellipsis"
+      },
+      {
+       "header": "5/12",
+       "justify": "default"
+      },
+      {
+       "header": "averyveryverylongtoken tab\tx",
+       "justify": "full",
+       "no_wrap": true
+      },
+      {
+       "header": "x averyveryverylongtoken",
+       "justify": "full"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "· emoji😃 ß",
+           "red"
+          ],
+          " ",
+          "   5/12"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "ß ≤ · ⓘ",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "plain": "中文 emoji😃 → x",
+         "style": "bold green"
+        },
+        "averyveryverylongtoken averyveryverylongtoken 5/12 …",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "dash-ed job_1 [bold]b[/]",
+           "bold"
+          ],
+          " ",
+          "RUNNING"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "→ … averyveryverylongtoken",
+         "style": "reverse"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "dash-ed a100 ⓘ",
+        {
+         "type": "text",
+         "plain": "中文 job_1 RUNNING",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "dim"
+        },
+        "a100 gpu … :cat: [bold]b[/]",
+        {
+         "type": "text",
+         "parts": [
+          [
+           ":cat: ß",
+           "bold green"
+          ],
+          " ",
+          "node[01-04] averyveryverylongtoken tab\tx"
+         ]
+        },
+        ""
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "tab\tx RUNNING",
+         "style": "reverse"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "x dash-ed ß",
+           "italic"
+          ],
+          " ",
+          "[bold]b[/] · dash-ed"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "a100 job_1 ß … node[01-04]",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "a100 ⓘ :cat: · ⓘ Ä",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "12:34 ⓘ",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "tab\tx a100",
+         "style": "red"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "Ä · :cat: ⓘ",
+        "中文 全角字符 ≤    ß x",
+        {
+         "type": "text",
+         "plain": "全角字符"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "italic"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "averyveryverylongtoken 中文 中文",
+           ""
+          ],
+          " ",
+          ""
+         ]
+        },
+        "tab\tx job_1 →"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "   ⓘ",
+           "dim"
+          ],
+          " ",
+          "averyveryverylongtoken :cat: job_1"
+         ]
+        },
+        "",
+        "[bold]b[/]",
+        "ß 12:34 ⓘ 中文 :cat: tab\tx",
+        {
+         "type": "text",
+         "plain": "job_1 tab\tx emoji😃 tab\tx a100 中文",
+         "style": "dim"
+        },
+        "ⓘ → ß → 中文 12:34"
+       ],
+       "end_section": false
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-36",
+  "variants": [
+   {
+    "width": 10,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 54,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "· →",
+     "columns": [
+      {
+       "header": "",
+       "justify": "full",
+       "min_width": 9
+      },
+      {
+       "header": "emoji😃",
+       "justify": "right"
+      },
+      {
+       "header": "",
+       "justify": "center"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "x ⓘ dash-ed emoji😃 [bold]b[/]",
+         "style": "dim"
+        },
+        "dash-ed",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "a100 12:34 ·",
+           "reverse"
+          ],
+          " ",
+          "x ≤"
+         ]
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "averyveryverylongtoken 中文 x 5/12",
+         "style": "dim"
+        },
+        "a100",
+        {
+         "type": "text",
+         "plain": "·",
+         "style": "reverse"
+        }
+       ],
+       "end_section": true
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-37",
+  "variants": [
+   {
+    "width": 20,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 107,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "· gpu · ≤",
+     "columns": [
+      {
+       "header": "averyveryverylongtoken node[01-04]",
+       "justify": "default",
+       "max_width": 4
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "parts": [
+          [
+           "emoji😃",
+           ""
+          ],
+          " ",
+          "averyveryverylongtoken [bold]b[/]"
+         ]
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "italic"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        "ß dash-ed dash-ed RUNNING tab\tx node[01-04]"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        ""
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        ""
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        ""
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-38",
+  "variants": [
+   {
+    "width": 8,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 43,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "node[01-04]",
+     "columns": [
+      {
+       "header": "中文 …",
+       "justify": "full",
+       "max_width": 10
+      },
+      {
+       "header": "x gpu",
+       "justify": "left"
+      },
+      {
+       "header": "",
+       "justify": "center",
+       "no_wrap": true
+      },
+      {
+       "header": "",
+       "justify": "center",
+       "style": "reverse"
+      },
+      {
+       "header": "",
+       "justify": "default"
+      },
+      {
+       "header": "12:34",
+       "justify": "left",
+       "overflow": "ellipsis"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "",
+        "Ä dash-ed x a100",
+        "gpu node[01-04]",
+        "[bold]b[/] gpu",
+        {
+         "type": "text",
+         "plain": ":cat: ß job_1 emoji😃"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        }
+       ],
+       "end_section": false
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-table-39",
+  "variants": [
+   {
+    "width": 17,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 89,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      3
+     ],
+     "columns": [
+      {
+       "header": "RUNNING ≤",
+       "justify": "full",
+       "style": "bold"
+      },
+      {
+       "header": "",
+       "justify": "default",
+       "min_width": 2
+      },
+      {
+       "header": "   ≤",
+       "justify": "full"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "emoji😃 gpu ⓘ node[01-04] ⓘ emoji😃",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "≤",
+           "bold"
+          ],
+          " ",
+          "averyveryverylongtoken"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "全角字符 中文 job_1 averyveryverylongtoken    12:34",
+         "style": "reverse"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "[bold]b[/] tab\tx x",
+        {
+         "type": "text",
+         "plain": "x tab\tx → dash-ed ⓘ job_1",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "plain": "12:34    RUNNING averyveryverylongtoken",
+         "style": "reverse"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "… dash-ed 中文 RUNNING",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "plain": "ⓘ job_1 →",
+         "style": "cyan"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "",
+         "style": "red"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "12:34",
+           ""
+          ],
+          " ",
+          "job_1 x"
+         ]
+        },
+        "中文 tab\tx tab\tx tab\tx"
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "ⓘ 全角字符 gpu",
+         "style": "cyan"
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "12:34",
+           "bold"
+          ],
+          " ",
+          "dash-ed tab\tx"
+         ]
+        },
+        {
+         "type": "text",
+         "plain": "a100",
+         "style": "red"
+        }
+       ],
+       "end_section": false
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "averyveryverylongtoken dash-ed 5/12",
+           "red"
+          ],
+          " ",
+          "ß"
+         ]
+        },
+        {
+         "type": "text",
+         "parts": [
+          [
+           "gpu    ⓘ",
+           "red"
+          ],
+          " ",
+          "Ä …"
+         ]
+        }
+       ],
+       "end_section": false
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "random-text-0",
+  "variants": [
+   {
+    "width": 24,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 89,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "right",
+     "overflow": "fold",
+     "no_wrap": true,
+     "plain": "a100    RUNNING dash-ed ≤ RUNNING ⓘ Ä [bold]b[/] tab\tx 12:34 ⓘ a100 12:34 … gpu dash-ed dash-ed tab\tx emoji😃 RUNNING → 中文 全角字符 12:34 ≤ ⓘ    5/12 [bold]b[/] tab\tx [bold]b[/] 中文    x"
+    }
+   },
+   {
+    "print": "≤ 12:34 x averyveryverylongtoken 中文 ⓘ 12:34 全角字符"
+   }
+  ]
+ },
+ {
+  "name": "random-text-1",
+  "variants": [
+   {
+    "width": 24,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 73,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "default",
+     "overflow": "fold",
+     "no_wrap": true,
+     "plain": "node[01-04] emoji😃 Ä tab\tx job_1 averyveryverylongtoken x … 12:34 ⓘ gpu ß averyveryverylongtoken · RUNNING →",
+     "style": "red"
+    }
+   },
+   {
+    "print": "· dash-ed Ä ⓘ"
+   }
+  ]
+ },
+ {
+  "name": "random-text-2",
+  "variants": [
+   {
+    "width": 24,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 59,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "full",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "RUNNING 中文 → [bold]b[/] job_1 全角字符 RUNNING averyveryverylongtoken [bold]b[/] node[01-04] … … ≤ ß x job_1 gpu Ä dash-ed job_1 · tab\tx :cat: :cat: node[01-04] … 5/12 tab\tx RUNNING 12:34 12:34 gpu :cat:"
+    }
+   },
+   {
+    "print": "x ß :cat: tab\tx gpu ≤ averyveryverylongtoken → ß RUNNING a100 ⓘ 12:34 node[01-04] 12:34 emoji😃 dash-ed"
+   }
+  ]
+ },
+ {
+  "name": "random-text-3",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 41,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "right",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "tab\tx    RUNNING ⓘ 全角字符 … 全角字符 job_1 ≤ x 全角字符 ≤ [bold]b[/] ⓘ ≤ :cat: … [bold]b[/] → 5/12 :cat: · →    tab\tx x … node[01-04] dash-ed tab\tx averyveryverylongtoken tab\tx job_1 averyveryverylongtoken 12:34 → [bold]b[/] 中文 全角字符",
+     "style": "cyan"
+    }
+   },
+   {
+    "print": ":cat:    emoji😃 … 中文"
+   }
+  ]
+ },
+ {
+  "name": "random-text-4",
+  "variants": [
+   {
+    "width": 20,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 51,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "full",
+     "overflow": "fold",
+     "no_wrap": false,
+     "plain": "job_1 ≤ a100 中文 ß … · emoji😃 averyveryverylongtoken gpu 全角字符 全角字符",
+     "style": "italic"
+    }
+   },
+   {
+    "print": "   job_1 RUNNING    dash-ed RUNNING ≤ x 中文 node[01-04] tab\tx node[01-04] RUNNING dash-ed job_1 5/12 x"
+   }
+  ]
+ },
+ {
+  "name": "random-text-5",
+  "variants": [
+   {
+    "width": 4,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 41,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "left",
+     "overflow": "fold",
+     "no_wrap": true,
+     "plain": "Ä ⓘ :cat: 12:34 … … RUNNING · x    全角字符 job_1 5/12 [bold]b[/] 5/12 Ä → … job_1 dash-ed emoji😃 RUNNING averyveryverylongtoken job_1 gpu gpu 12:34 dash-ed tab\tx 5/12 … averyveryverylongtoken    ß … 全角字符 x job_1 → 全角字符",
+     "style": "reverse"
+    }
+   },
+   {
+    "print": "node[01-04]    ≤ gpu emoji😃 … :cat: RUNNING → a100 [bold]b[/] job_1 → ≤ x :cat: RUNNING"
+   }
+  ]
+ },
+ {
+  "name": "random-text-6",
+  "variants": [
+   {
+    "width": 15,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 42,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "full",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "5/12 ≤ 12:34    a100    ≤ ⓘ 5/12 tab\tx ß 全角字符 ≤ ß    node[01-04] 5/12 job_1 job_1 Ä 12:34 a100 node[01-04] 全角字符 5/12 5/12 5/12 ⓘ averyveryverylongtoken gpu    5/12 5/12 ≤",
+     "style": "red"
+    }
+   },
+   {
+    "print": "node[01-04] · tab\tx · gpu"
+   }
+  ]
+ },
+ {
+  "name": "random-text-7",
+  "variants": [
+   {
+    "width": 18,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 67,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "full",
+     "overflow": "crop",
+     "no_wrap": true,
+     "plain": "job_1 job_1 Ä Ä averyveryverylongtoken gpu → · 全角字符 …    ⓘ ß · ß [bold]b[/] job_1 ß    job_1 averyveryverylongtoken averyveryverylongtoken node[01-04] 全角字符 全角字符 5/12 [bold]b[/] 全角字符 a100 tab\tx node[01-04] node[01-04] 全角字符 RUNNING … 12:34 emoji😃",
+     "style": "bold"
+    }
+   },
+   {
+    "print": "dash-ed … ≤ … gpu Ä … … gpu node[01-04] node[01-04] gpu 全角字符 中文 dash-ed · 5/12 a100"
+   }
+  ]
+ },
+ {
+  "name": "random-text-8",
+  "variants": [
+   {
+    "width": 16,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 68,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "right",
+     "overflow": "fold",
+     "no_wrap": false,
+     "plain": "a100 Ä x [bold]b[/] averyveryverylongtoken :cat: 5/12 → Ä    · gpu · ⓘ job_1 a100 Ä · a100 …",
+     "style": "bold green"
+    }
+   },
+   {
+    "print": "RUNNING ß job_1 ß dash-ed 5/12 · emoji😃 · a100 dash-ed dash-ed ≤ ß dash-ed … :cat: ß"
+   }
+  ]
+ },
+ {
+  "name": "random-text-9",
+  "variants": [
+   {
+    "width": 4,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "left",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "5/12 gpu · 中文 · 12:34 [bold]b[/] x job_1 → node[01-04] Ä · node[01-04] averyveryverylongtoken averyveryverylongtoken → 中文 averyveryverylongtoken dash-ed",
+     "style": "red"
+    }
+   },
+   {
+    "print": "ⓘ x · ß ß 12:34 · x 12:34 ⓘ 12:34 gpu a100"
+   }
+  ]
+ },
+ {
+  "name": "random-text-10",
+  "variants": [
+   {
+    "width": 25,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 37,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "center",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "12:34 · node[01-04] :cat: → x … ß job_1 全角字符 Ä 12:34 [bold]b[/] tab\tx node[01-04] dash-ed 全角字符 中文 gpu job_1 x 中文 x · 12:34 a100",
+     "style": "reverse"
+    }
+   },
+   {
+    "print": "x node[01-04]    job_1 RUNNING node[01-04] a100 averyveryverylongtoken · x RUNNING Ä 5/12 · :cat: ⓘ"
+   }
+  ]
+ },
+ {
+  "name": "random-text-11",
+  "variants": [
+   {
+    "width": 16,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 74,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "default",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "tab\tx :cat: x 12:34 → → … Ä RUNNING tab\tx x    … 中文 emoji😃 5/12 · [bold]b[/] ≤ a100 ≤ dash-ed 中文 中文",
+     "style": "bold"
+    }
+   },
+   {
+    "print": "a100 averyveryverylongtoken · a100 ≤ 中文 … ≤ a100 dash-ed job_1 x … ⓘ [bold]b[/] RUNNING"
+   }
+  ]
+ },
+ {
+  "name": "random-text-12",
+  "variants": [
+   {
+    "width": 17,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 37,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "default",
+     "overflow": "fold",
+     "no_wrap": false,
+     "plain": "5/12 ⓘ [bold]b[/] job_1 ß ≤    · → dash-ed :cat: ⓘ ≤ emoji😃 emoji😃 node[01-04] dash-ed 5/12 12:34 x emoji😃 中文 emoji😃 ⓘ a100 ≤ averyveryverylongtoken a100 [bold]b[/] x ß averyveryverylongtoken job_1 averyveryverylongtoken RUNNING tab\tx dash-ed … RUNNING"
+    }
+   },
+   {
+    "print": "tab\tx emoji😃 x    emoji😃 job_1 ≤ node[01-04] emoji😃 tab\tx node[01-04] ≤ … 全角字符 node[01-04] tab\tx ß 12:34"
+   }
+  ]
+ },
+ {
+  "name": "random-text-13",
+  "variants": [
+   {
+    "width": 12,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 55,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "default",
+     "overflow": "ellipsis",
+     "no_wrap": true,
+     "plain": "→ a100 … 全角字符 dash-ed x averyveryverylongtoken … Ä emoji😃 12:34 emoji😃 dash-ed    :cat:"
+    }
+   },
+   {
+    "print": "emoji😃 … 5/12 a100 → RUNNING → a100    Ä"
+   }
+  ]
+ },
+ {
+  "name": "random-text-14",
+  "variants": [
+   {
+    "width": 23,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 63,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "left",
+     "overflow": "fold",
+     "no_wrap": false,
+     "plain": "emoji😃 job_1 gpu a100 [bold]b[/]    中文 RUNNING emoji😃 tab\tx dash-ed … → gpu job_1 … x x a100 tab\tx gpu a100 → ⓘ 5/12 x",
+     "style": "italic"
+    }
+   },
+   {
+    "print": "≤ 中文 tab\tx tab\tx    全角字符"
+   }
+  ]
+ },
+ {
+  "name": "random-text-15",
+  "variants": [
+   {
+    "width": 7,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 28,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "center",
+     "overflow": "crop",
+     "no_wrap": false,
+     "plain": "emoji😃 emoji😃 全角字符 中文 … emoji😃 tab\tx job_1 [bold]b[/] ≤ ≤ 中文 ß ≤ … → 中文 averyveryverylongtoken a100 全角字符 ß averyveryverylongtoken ß gpu dash-ed 中文 gpu ß → gpu",
+     "style": "bold"
+    }
+   },
+   {
+    "print": "中文 ≤ ß 全角字符 a100 … ß    ⓘ ≤ Ä [bold]b[/] 12:34 ≤ … [bold]b[/] dash-ed x →"
+   }
+  ]
+ },
+ {
+  "name": "random-text-16",
+  "variants": [
+   {
+    "width": 9,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 67,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "default",
+     "overflow": "ellipsis",
+     "no_wrap": false,
+     "plain": "≤ node[01-04] 12:34 averyveryverylongtoken a100 5/12 node[01-04] ≤ dash-ed ß ⓘ 中文 job_1 … 全角字符 [bold]b[/] tab\tx tab\tx 中文 · emoji😃 node[01-04] 全角字符 node[01-04] averyveryverylongtoken a100 5/12 :cat:    中文 emoji😃 全角字符",
+     "style": "cyan"
+    }
+   },
+   {
+    "print": "[bold]b[/] ⓘ 中文 12:34 中文 中文 a100 dash-ed averyveryverylongtoken averyveryverylongtoken x 全角字符 dash-ed x [bold]b[/]   "
+   }
+  ]
+ },
+ {
+  "name": "random-text-17",
+  "variants": [
+   {
+    "width": 22,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 49,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "left",
+     "overflow": "ellipsis",
+     "no_wrap": true,
+     "plain": "averyveryverylongtoken averyveryverylongtoken node[01-04] ⓘ gpu … a100 :cat: ß x gpu averyveryverylongtoken job_1 ⓘ RUNNING ß tab\tx RUNNING a100 tab\tx ß [bold]b[/] ≤ Ä ß dash-ed 5/12 Ä    :cat: → job_1 emoji😃 ⓘ",
+     "style": "reverse"
+    }
+   },
+   {
+    "print": "a100 gpu ß    中文 RUNNING a100"
+   }
+  ]
+ },
+ {
+  "name": "random-text-18",
+  "variants": [
+   {
+    "width": 18,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 46,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "center",
+     "overflow": "crop",
+     "no_wrap": true,
+     "plain": "→ x    5/12 →    RUNNING 中文 job_1 12:34 a100 x RUNNING ·",
+     "style": "reverse"
+    }
+   },
+   {
+    "print": "Ä → · 中文 ⓘ ⓘ"
+   }
+  ]
+ },
+ {
+  "name": "random-text-19",
+  "variants": [
+   {
+    "width": 22,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 44,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "justify": "right",
+     "overflow": "crop",
+     "no_wrap": false,
+     "plain": "emoji😃 a100 averyveryverylongtoken x :cat: tab\tx dash-ed job_1 gpu ß 中文 emoji😃 Ä 全角字符 a100    全角字符 gpu    中文 emoji😃 a100 · node[01-04]",
+     "style": "bold"
+    }
+   },
+   {
+    "print": "dash-ed :cat: → Ä [bold]b[/] a100 averyveryverylongtoken"
+   }
+  ]
  }
 ]

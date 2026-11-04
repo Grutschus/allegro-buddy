@@ -43,7 +43,10 @@ fn overflow(v: &Value) -> Overflow {
 fn text_part(v: &Value) -> TextPart {
     match v {
         Value::String(s) => TextPart::Plain(s.clone()),
-        Value::Array(a) => TextPart::Styled(a[0].as_str().unwrap().to_owned(), style(a[1].as_str().unwrap())),
+        Value::Array(a) => TextPart::Styled(
+            a[0].as_str().unwrap().to_owned(),
+            style(a[1].as_str().unwrap()),
+        ),
         _ => TextPart::Text(build_text(v)),
     }
 }
@@ -55,7 +58,11 @@ fn build_text(spec: &Value) -> Text {
             let mut text = match spec.get("plain") {
                 Some(plain) => Text::with_style(plain.as_str().unwrap(), base),
                 None => {
-                    let parts = spec.get("parts").and_then(Value::as_array).cloned().unwrap_or_default();
+                    let parts = spec
+                        .get("parts")
+                        .and_then(Value::as_array)
+                        .cloned()
+                        .unwrap_or_default();
                     let mut t = Text::assemble(parts.iter().map(text_part));
                     t.style = base;
                     t
@@ -73,18 +80,37 @@ fn build_text(spec: &Value) -> Text {
             if let Some(v) = spec.get("end") {
                 text.end = v.as_str().unwrap().to_owned();
             }
-            for s in spec.get("stylize").and_then(Value::as_array).into_iter().flatten() {
+            for s in spec
+                .get("stylize")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
                 let s = s.as_array().unwrap();
-                text.stylize(style(s[0].as_str().unwrap()), s[1].as_i64().unwrap() as isize, s[2].as_i64().map(|e| e as isize));
+                text.stylize(
+                    style(s[0].as_str().unwrap()),
+                    s[1].as_i64().unwrap() as isize,
+                    s[2].as_i64().map(|e| e as isize),
+                );
             }
-            for a in spec.get("append").and_then(Value::as_array).into_iter().flatten() {
+            for a in spec
+                .get("append")
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
                 let a = a.as_array().unwrap();
                 text.append(a[0].as_str().unwrap(), a[1].as_str());
             }
             text
         }
         "join" => {
-            let items: Vec<Text> = spec["items"].as_array().unwrap().iter().map(build_text).collect();
+            let items: Vec<Text> = spec["items"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(build_text)
+                .collect();
             build_text(&spec["sep"]).join(items)
         }
         other => panic!("not a text: {other}"),
@@ -116,10 +142,18 @@ impl OwnedPadding {
 }
 
 impl Renderable for OwnedPadding {
-    fn render(&self, console: &Console, options: &bab::render::RenderOptions) -> Vec<bab::render::Segment> {
+    fn render(
+        &self,
+        console: &Console,
+        options: &bab::render::RenderOptions,
+    ) -> Vec<bab::render::Segment> {
         self.padding().render(console, options)
     }
-    fn measure(&self, console: &Console, options: &bab::render::RenderOptions) -> bab::render::Measurement {
+    fn measure(
+        &self,
+        console: &Console,
+        options: &bab::render::RenderOptions,
+    ) -> bab::render::Measurement {
         self.padding().measure(console, options)
     }
 }
@@ -128,7 +162,12 @@ fn build(spec: &Value) -> Rc<dyn Renderable> {
     match spec["type"].as_str().unwrap() {
         "text" | "join" => Rc::new(build_text(spec)),
         "padding" => {
-            let pad: Vec<usize> = spec["pad"].as_array().unwrap().iter().map(|v| v.as_u64().unwrap() as usize).collect();
+            let pad: Vec<usize> = spec["pad"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|v| v.as_u64().unwrap() as usize)
+                .collect();
             let inner: Rc<dyn Renderable> = match &spec["renderable"] {
                 Value::String(s) => Rc::new(cell(&Value::String(s.clone()))),
                 v => build(v),
@@ -152,12 +191,22 @@ fn build_table(spec: &Value) -> Table {
     let mut table = if spec.get("simple").and_then(Value::as_bool) == Some(true) {
         Table::simple(spec.get("title").and_then(Value::as_str))
     } else if let Some(grid) = spec.get("grid") {
-        let g: Vec<usize> = grid.as_array().unwrap().iter().map(|v| v.as_u64().unwrap() as usize).collect();
+        let g: Vec<usize> = grid
+            .as_array()
+            .unwrap()
+            .iter()
+            .map(|v| v.as_u64().unwrap() as usize)
+            .collect();
         Table::grid(g[0], g[1])
     } else {
         Table::new()
     };
-    for (key, value) in spec.get("options").and_then(Value::as_object).cloned().unwrap_or_default() {
+    for (key, value) in spec
+        .get("options")
+        .and_then(Value::as_object)
+        .cloned()
+        .unwrap_or_default()
+    {
         match key.as_str() {
             "box" => table.box_style = value.as_str().map(|n| BoxStyle::named(n).unwrap()),
             "title" => table.title = Some(cell(&value)),
@@ -174,15 +223,32 @@ fn build_table(spec: &Value) -> Table {
             "width" => table.width = value.as_u64().map(|v| v as usize),
             "min_width" => table.min_width = value.as_u64().map(|v| v as usize),
             "border_style" => table.border_style = style(value.as_str().unwrap()),
-            "row_styles" => table.row_styles = value.as_array().unwrap().iter().map(|s| style(s.as_str().unwrap())).collect(),
+            "row_styles" => {
+                table.row_styles = value
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|s| style(s.as_str().unwrap()))
+                    .collect()
+            }
             "padding" => {
-                let p: Vec<usize> = value.as_array().unwrap().iter().map(|v| v.as_u64().unwrap() as usize).collect();
+                let p: Vec<usize> = value
+                    .as_array()
+                    .unwrap()
+                    .iter()
+                    .map(|v| v.as_u64().unwrap() as usize)
+                    .collect();
                 table.padding = Padding::unpack(&p);
             }
             other => panic!("table option {other}"),
         }
     }
-    for c in spec.get("columns").and_then(Value::as_array).into_iter().flatten() {
+    for c in spec
+        .get("columns")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         let m = c.as_object().unwrap();
         let mut column = Column {
             header: m.get("header").map_or(Cell::Str(String::new()), cell),
@@ -211,15 +277,33 @@ fn build_table(spec: &Value) -> Table {
         column.no_wrap = m.get("no_wrap").and_then(Value::as_bool).unwrap_or(false);
         column.ratio = m.get("ratio").and_then(Value::as_u64).map(|v| v as usize);
         column.width = m.get("width").and_then(Value::as_u64).map(|v| v as usize);
-        column.min_width = m.get("min_width").and_then(Value::as_u64).map(|v| v as usize);
-        column.max_width = m.get("max_width").and_then(Value::as_u64).map(|v| v as usize);
-        column.highlight = Some(m.get("highlight").and_then(Value::as_bool).unwrap_or(table.highlight));
+        column.min_width = m
+            .get("min_width")
+            .and_then(Value::as_u64)
+            .map(|v| v as usize);
+        column.max_width = m
+            .get("max_width")
+            .and_then(Value::as_u64)
+            .map(|v| v as usize);
+        column.highlight = Some(
+            m.get("highlight")
+                .and_then(Value::as_bool)
+                .unwrap_or(table.highlight),
+        );
         table.add_column_spec(column);
     }
-    for r in spec.get("rows").and_then(Value::as_array).into_iter().flatten() {
+    for r in spec
+        .get("rows")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+    {
         let cells = r["cells"].as_array().unwrap().iter().map(cell).collect();
         let row_style = r.get("style").and_then(Value::as_str).map(style);
-        let end_section = r.get("end_section").and_then(Value::as_bool).unwrap_or(false);
+        let end_section = r
+            .get("end_section")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
         table.add_row_styled(cells, row_style, end_section);
     }
     table
@@ -290,16 +374,26 @@ fn variant_name(case: &Value, variant: &Value) -> String {
         case["name"].as_str().unwrap(),
         variant["width"],
         variant["color"].as_str().unwrap(),
-        if variant["no_color"].as_bool().unwrap() { "-nocolor" } else { "" }
+        if variant["no_color"].as_bool().unwrap() {
+            "-nocolor"
+        } else {
+            ""
+        }
     )
 }
 
-fn compare(label: &str, actual: &BTreeMap<String, String>, expected: &BTreeMap<String, String>) -> Vec<String> {
+fn compare(
+    label: &str,
+    actual: &BTreeMap<String, String>,
+    expected: &BTreeMap<String, String>,
+) -> Vec<String> {
     let mut failures = Vec::new();
     for (name, want) in expected {
         let got = actual.get(name).map(String::as_str).unwrap_or("<missing>");
         if got != want {
-            failures.push(format!("[{label}] {name}\n--- rich\n{want:?}\n--- bab\n{got:?}"));
+            failures.push(format!(
+                "[{label}] {name}\n--- rich\n{want:?}\n--- bab\n{got:?}"
+            ));
         }
     }
     failures
@@ -310,7 +404,8 @@ fn render_matches_rich() {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"));
     let cases_path = root.join("tests/render/cases.json");
     let expected_path = root.join("tests/render/expected.json");
-    let cases: Vec<Value> = serde_json::from_str(&std::fs::read_to_string(&cases_path).unwrap()).unwrap();
+    let cases: Vec<Value> =
+        serde_json::from_str(&std::fs::read_to_string(&cases_path).unwrap()).unwrap();
     let mut actual = BTreeMap::new();
     for case in &cases {
         for variant in case["variants"].as_array().unwrap() {
@@ -327,7 +422,11 @@ fn render_matches_rich() {
             .arg(&cases_path)
             .output()
             .expect("run BAB_RICH_PY");
-        assert!(output.status.success(), "{}", String::from_utf8_lossy(&output.stderr));
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
         if std::env::var("BAB_RICH_REGEN").as_deref() == Ok("1") {
             std::fs::write(&expected_path, &output.stdout).unwrap();
         }
@@ -336,7 +435,11 @@ fn render_matches_rich() {
     }
     let expected: BTreeMap<String, String> =
         serde_json::from_str(&std::fs::read_to_string(&expected_path).unwrap()).unwrap();
-    assert_eq!(expected.len(), actual.len(), "expected.json is stale: regenerate it");
+    assert_eq!(
+        expected.len(),
+        actual.len(),
+        "expected.json is stale: regenerate it"
+    );
     failures.extend(compare("fixture", &actual, &expected));
     let count = failures.len();
     for failure in failures.iter().take(8) {
