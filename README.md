@@ -43,13 +43,25 @@ or `pipx install better-allegro-buddy`. Upgrade with `uv tool upgrade better-all
 The package is `better-allegro-buddy` (the name `bab` was taken on PyPI); the command
 is `bab`. `ab` and `bab` happily live side by side.
 
+No Python on the cluster? Every [release](https://github.com/plainerman/better-allegro-buddy/releases)
+also has the bare binary. It runs on any Linux with glibc ≥ 2.17 (RHEL/CentOS 7 and
+newer; dynamically linked on purpose, so group lookups via sssd/LDAP work):
+
+```bash
+mkdir -p ~/.local/bin && curl -fsSL https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-unknown-linux-gnu.tar.gz | tar -xz -C ~/.local/bin bab
+```
+
+(macOS: `bab-x86_64-apple-darwin.tar.gz`, `bab-aarch64-apple-darwin.tar.gz`.)
+
 From source, with Rust ≥ 1.88 (e.g. via [rustup](https://rustup.rs)):
 
 ```bash
 cargo install --locked --git https://github.com/plainerman/better-allegro-buddy
 ```
 
-This puts `bab` into `~/.cargo/bin` (run it again to upgrade).
+This puts `bab` into `~/.cargo/bin` (run it again to upgrade). Such a build needs the
+glibc of the machine it was built on (or newer), so build it on the cluster itself, or
+use the wheels and release binaries above, which are built for glibc 2.17.
 
 ## Commands
 

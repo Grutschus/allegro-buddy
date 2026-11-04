@@ -3,8 +3,9 @@ name: Release
 # Wheels for PyPI (`uv tool install better-allegro-buddy`): the `bab` binary in platform
 # wheels built by maturin (pyproject.toml), plus the sdist.
 # * push to main (paths below): build and smoke-test everything, publish nothing.
-# * tag v*: the same, then publish to PyPI (trusted publishing) and attach the files to
-#   a GitHub release. Path filters do not apply to tag pushes.
+# * tag v*: the same, then publish to PyPI (trusted publishing) and create a GitHub
+#   release with the wheels, the sdist and standalone `bab` binaries (bab-<target>.tar.gz,
+#   for copying onto a cluster without Python). Path filters do not apply to tag pushes.
 # * workflow_dispatch: build and smoke-test only, never publishes.
 # Releasing: README.md (Development > Releasing).
 on:
@@ -57,7 +58,7 @@ jobs:
           target: ${{ matrix.target }}
           manylinux: '2014'
           args: --release --locked --out dist
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: false
       - name: Smoke test
@@ -66,10 +67,30 @@ jobs:
           uvx --from "$wheel" bab --version
           uvx --from "$wheel" bab -h > /dev/null
           uvx --from "$wheel" bab --version | grep -qx 'bab, version [0-9.]*'
+      - name: Standalone binary; glibc symbol versions <= 2.17, runs on glibc 2.17
+        run: |
+          mkdir -p bin
+          unzip -o -j dist/*.whl '*.data/scripts/bab' -d bin
+          chmod +x bin/bab
+          newest=$(objdump -T bin/bab | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -n 1)
+          echo "newest glibc symbol version: $newest"
+          if [ "$(printf '%s\n' "$newest" GLIBC_2.17 | sort -V | tail -n 1)" != GLIBC_2.17 ]; then
+            echo "::error::bab needs $newest, newer than manylinux2014's GLIBC_2.17"
+            exit 1
+          fi
+          docker run --rm -v "$PWD/bin:/b:ro" quay.io/pypa/manylinux2014_${{ matrix.target }} \
+            sh -c 'ldd --version | head -n 1; /b/bab --version'
+          tar -czf bab-${{ matrix.target }}-unknown-linux-gnu.tar.gz --owner=0 --group=0 \
+            -C bin bab -C .. LICENSE
       - uses: actions/upload-artifact@v7
         with:
           name: wheels-linux-${{ matrix.target }}
           path: dist/*.whl
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binary-linux-${{ matrix.target }}
+          path: bab-*.tar.gz
           if-no-files-found: error
 
   macos:
@@ -90,7 +111,7 @@ jobs:
           maturin-version: ${{ env.MATURIN_VERSION }}
           target: ${{ matrix.target }}
           args: --release --locked --out dist
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: false
       - name: Smoke test
@@ -99,10 +120,22 @@ jobs:
           uvx --from "$wheel" bab --version
           uvx --from "$wheel" bab -h > /dev/null
           uvx --from "$wheel" bab --version | grep -qx 'bab, version [0-9.]*'
+      - name: Standalone binary
+        run: |
+          mkdir -p bin
+          unzip -o -j dist/*.whl '*.data/scripts/bab' -d bin
+          chmod +x bin/bab
+          bin/bab --version
+          tar -czf bab-${{ matrix.target }}-apple-darwin.tar.gz -C bin bab -C .. LICENSE
       - uses: actions/upload-artifact@v7
         with:
           name: wheels-macos-${{ matrix.target }}
           path: dist/*.whl
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v7
+        with:
+          name: binary-macos-${{ matrix.target }}
+          path: bab-*.tar.gz
           if-no-files-found: error
 
   sdist:
@@ -123,7 +156,7 @@ jobs:
           maturin-version: ${{ env.MATURIN_VERSION }}
           command: sdist
           args: --out dist
-      - uses: astral-sh/setup-uv@v10
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: false
       - name: The sdist builds a working wheel (cargo + maturin from PyPI)
@@ -144,9 +177,14 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
+          pattern: wheels-*
           path: dist
           merge-multiple: true
-      - uses: astral-sh/setup-uv@v10
+      - uses: actions/download-artifact@v8
+        with:
+          name: sdist
+          path: dist
+      - uses: astral-sh/setup-uv@v10.3.3
         with:
           enable-cache: false
       - run: ls -l dist
@@ -166,8 +204,13 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
+          pattern: wheels-*
           path: dist
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: sdist
+          path: dist
       - uses: pypa/gh-action-pypi-publish@release/v1
 
   github-release:
@@ -179,12 +222,17 @@ jobs:
     steps:
       - uses: actions/download-artifact@v8
         with:
-          path: dist
+          path: assets
           merge-multiple: true
-      - name: GitHub release with the wheels and sdist
+      # Wheels, sdist and the standalone binaries bab-<target>.tar.gz (README: Install),
+      # with SHA256SUMS.
+      - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >
-          gh release create "$GITHUB_REF_NAME" dist/*
-          --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME"
-          --generate-notes --verify-tag
+        run: |
+          cd assets
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" * \
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" \
+            --generate-notes --verify-tag
