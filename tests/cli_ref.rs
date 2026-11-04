@@ -7,6 +7,8 @@
 //!   the fixtures first (venv with allegro-buddy==2.7, click==8.3.2, rich==15.0.0,
 //!   rich-click==1.9.9).
 //! * `BAB_CLI_REF_FILTER=<substring>` runs only matching cases.
+//! * `BAB_CLI_REF_TMP=<dir>` picks the scratch parent (default: `std::env::temp_dir()`,
+//!   then `/tmp`); it must be short, since every case root is padded to `ROOT_LEN`.
 
 use serde_json::Value;
 use std::path::{Path, PathBuf};
@@ -15,15 +17,62 @@ use std::process::{Command, Stdio};
 /// Length of the per-case root directory (as in gen.py), so wrapped paths match.
 const ROOT_LEN: usize = 64;
 
+/// Longest suffix appended to the scratch dir before padding: `/gen/tmpXXXXXXXX` (gen.py's
+/// `tempfile` dirs) or `/<case index>`, plus at least one `_`.
+const SUFFIX_MAX: usize = "/gen/tmpXXXXXXXX_".len();
+
+/// Per-run scratch dir, independent of where the checkout and target dir live (a long
+/// CARGO_TARGET_TMPDIR would not leave room for `ROOT_LEN`); removed on drop, also when
+/// the test panics.
+struct Scratch(PathBuf);
+
+impl Scratch {
+    fn new() -> Scratch {
+        let candidates = match std::env::var_os("BAB_CLI_REF_TMP") {
+            Some(dir) => vec![PathBuf::from(dir)],
+            None => vec![std::env::temp_dir(), PathBuf::from("/tmp")],
+        };
+        let name = format!("bab_cliref_{}", std::process::id());
+        let mut tried = Vec::new();
+        for parent in candidates {
+            let dir = parent.join(&name);
+            if dir
+                .to_str()
+                .is_some_and(|d| d.len() + SUFFIX_MAX <= ROOT_LEN)
+            {
+                let _ = std::fs::remove_dir_all(&dir);
+                match std::fs::create_dir_all(&dir) {
+                    Ok(()) => return Scratch(dir),
+                    Err(err) => tried.push(format!("{}: {err}", dir.display())),
+                }
+            } else {
+                tried.push(format!("{}: too long", dir.display()));
+            }
+        }
+        panic!(
+            "no usable scratch dir of at most {} bytes for the {ROOT_LEN}-byte case roots \
+             (set BAB_CLI_REF_TMP to a short writable dir): {}",
+            ROOT_LEN - SUFFIX_MAX,
+            tried.join("; ")
+        );
+    }
+}
+
+impl Drop for Scratch {
+    fn drop(&mut self) {
+        let _ = std::fs::remove_dir_all(&self.0);
+    }
+}
+
 fn fixtures() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/cli_ref")
 }
 
-fn regenerate() {
+fn regenerate(scratch: &Scratch) {
     let Some(python) = std::env::var_os("BAB_CLI_REF_PYTHON") else {
         return;
     };
-    let tmp = Path::new(env!("CARGO_TARGET_TMPDIR")).join("cli-ref-gen");
+    let tmp = scratch.0.join("gen");
     std::fs::create_dir_all(&tmp).unwrap();
     let status = Command::new(&python)
         .arg(fixtures().join("gen.py"))
@@ -41,12 +90,9 @@ struct Outcome {
     files: Vec<(String, Option<String>)>,
 }
 
-fn run_case(case: &Value, index: usize) -> Outcome {
-    let base = format!("{}/cli-ref/{index}", env!("CARGO_TARGET_TMPDIR"));
-    assert!(
-        base.len() < ROOT_LEN,
-        "target dir path too long for the fixtures"
-    );
+fn run_case(scratch: &Scratch, case: &Value, index: usize) -> Outcome {
+    let base = format!("{}/{index}", scratch.0.to_str().unwrap());
+    assert!(base.len() < ROOT_LEN, "scratch path {base} too long");
     let root = PathBuf::from(format!("{base}{}", "_".repeat(ROOT_LEN - base.len())));
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(root.join("home")).unwrap();
@@ -122,7 +168,8 @@ fn run_case(case: &Value, index: usize) -> Outcome {
 
 #[test]
 fn cli_matches_python_reference() {
-    regenerate();
+    let scratch = Scratch::new();
+    regenerate(&scratch);
     let text = std::fs::read_to_string(fixtures().join("cases.json")).unwrap();
     let cases: Vec<Value> = serde_json::from_str(&text).unwrap();
     let filter = std::env::var("BAB_CLI_REF_FILTER").unwrap_or_default();
@@ -134,7 +181,7 @@ fn cli_matches_python_reference() {
             continue;
         }
         ran += 1;
-        let got = run_case(case, index);
+        let got = run_case(&scratch, case, index);
         let mut problems = Vec::new();
         if got.code != case["code"].as_i64().unwrap() as i32 {
             problems.push(format!("exit code {} != {}", got.code, case["code"]));

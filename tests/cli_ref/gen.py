@@ -216,6 +216,8 @@ for instr in ('bash_source', 'zsh_source', 'fish_source', 'tcsh_complete', 'bash
 def run_case(python: str, spec: dict) -> dict:
     with tempfile.TemporaryDirectory(dir=os.environ.get('BAB_GEN_TMP')) as tmp:
         # fixed-length root: messages that wrap around paths wrap the same in Rust
+        if len(tmp) + 2 > ROOT_LEN:
+            sys.exit(f'{tmp}: temp dir too long for {ROOT_LEN}-char roots; set BAB_GEN_TMP')
         root = Path(tmp, '_' * (ROOT_LEN - len(tmp) - 1))
         root.mkdir()
         (root / 'home').mkdir()
