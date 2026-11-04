@@ -8,6 +8,17 @@ license = "MIT"
 repository = "https://github.com/plainerman/better-allegro-buddy"
 readme = "README.md"
 publish = false
+# What a source package (`maturin sdist` for PyPI, `cargo package`) contains: only what
+# builds the binary. compat/, bench/, tests/, tools/, .github/ stay in the repository.
+include = [
+    "/Cargo.toml",
+    "/Cargo.lock",
+    "/LICENSE",
+    "/README.md",
+    "/pyproject.toml",
+    "/presets/*.ini",
+    "/src/**/*.rs",
+]
 
 [[bin]]
 name = "bab"
