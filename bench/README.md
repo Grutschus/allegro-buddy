@@ -58,7 +58,7 @@ sh live/nss_check.sh venv/bin/python bin/nss_groups
 ```
 
 Raw recordings contain other users' names, jobs and paths: keep them out of git
-(`/srv/public/plainer/bab-data/`), commit only `anonymise.py` output:
+(a private directory outside the repo), commit only `anonymise.py` output:
 
 ```sh
 python3 bench/live/anonymise.py bench/data/allegro snapshot=RAW1 as-user-a=RAW2 as-user-b=RAW3
