@@ -879,7 +879,11 @@ pub fn cmd_free(
     let partition_filter = partition_filter.filter(|p| !p.is_empty());
     let gpu_type = gpu_type.filter(|g| !g.is_empty());
     let nodes = load_nodes(true)?;
-    let all_resvs = load_reservations()?;
+    // The reservation query is unchecked and nothing between it and the (checked)
+    // partition query can fail, so Python always makes both: they run side by side.
+    let (all_resvs, partitions) =
+        slurm::join2(load_reservations, || get_accessible_partitions(false));
+    let all_resvs = all_resvs?;
     let now = crate::hooks::now();
     let active_resvs = active_reservations(&all_resvs);
     let resv_map = reserved_nodes_map(&active_resvs);
@@ -890,7 +894,7 @@ pub fn cmd_free(
         active_resv_by_name.insert(resv.get_str("ReservationName"), resv);
     }
 
-    let partitions = get_accessible_partitions(false)?;
+    let partitions = partitions?;
     let mut names: Vec<String> = Vec::new();
     for partition in &partitions {
         let name = partition.get_str("PartitionName");
