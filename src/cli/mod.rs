@@ -24,6 +24,8 @@ pub mod completion;
 pub mod help;
 pub mod parser;
 pub mod prompt;
+pub mod rich;
+pub mod themes;
 pub mod watch;
 
 use crate::error::{AbError, Result};
@@ -94,7 +96,12 @@ pub fn run(argv: &[String]) -> Result<()> {
             args,
         } => {
             let action = command.action.expect("parser only returns runnable commands");
-            dispatch(action, &args).map_err(|err| match err {
+            let result = if stub_handlers() {
+                stub_dispatch(action, &args)
+            } else {
+                dispatch(action, &args)
+            };
+            result.map_err(|err| match err {
                 AbError::Usage(mut usage) if usage.command_path.is_empty() => {
                     usage.command_path = path;
                     AbError::Usage(usage)
@@ -225,4 +232,103 @@ pub fn dispatch(action: Action, args: &Args) -> Result<()> {
         Action::DevStop => dev::cmd_dev_stop(args.opt_str("jobid")),
         Action::ConfigShow => handlers::config::cmd_config_show(),
     }
+}
+
+/// `BAB_TEST_STUB_HANDLERS=1`: print the handler call instead of running it (the
+/// reference does the same with `BAB_REF_STUB=1`, see tests/cli_ref), and answer dynamic
+/// completions from fixed job lists. Lets parsing/dispatch be compared without Slurm.
+pub(crate) fn stub_handlers() -> bool {
+    std::env::var_os("BAB_TEST_STUB_HANDLERS").is_some_and(|v| v == "1")
+}
+
+fn py_repr(value: &parser::Value) -> String {
+    match value {
+        parser::Value::None => "None".to_owned(),
+        parser::Value::Bool(true) => "True".to_owned(),
+        parser::Value::Bool(false) => "False".to_owned(),
+        parser::Value::Str(s) => crate::pyfmt::repr_str(s),
+        parser::Value::Int(i) => i.to_string(),
+        parser::Value::Float(f) => parser::py_float_repr(*f),
+    }
+}
+
+fn stub_dispatch(action: Action, args: &Args) -> Result<()> {
+    let call = |name: &str, kwargs: &[(&str, &str)]| {
+        let rendered: Vec<String> = kwargs
+            .iter()
+            .map(|(kw, dest)| format!("{kw}={}", py_repr(args.get(dest))))
+            .collect();
+        echo(&format!("{name}({})", rendered.join(", ")));
+    };
+    let watched = || echo(&format!("watch={}", py_repr(args.get("watch"))));
+    match action {
+        Action::Info => call("cmd_info", &[("all_partitions", "all_partitions")]),
+        Action::Queue => {
+            watched();
+            call(
+                "cmd_queue",
+                &[("all_users", "all_users"), ("user", "user"), ("partition", "partition")],
+            );
+        }
+        Action::Why => call(
+            "cmd_why",
+            &[
+                ("jobid", "jobid"),
+                ("show_nodes", "show_nodes"),
+                ("fix", "fix"),
+                ("assume_yes", "assume_yes"),
+            ],
+        ),
+        Action::Completion => return dispatch(action, args),
+        Action::Free => {
+            watched();
+            call(
+                "cmd_free",
+                &[
+                    ("kind", "kind"),
+                    ("show_nodes", "nodes"),
+                    ("partition_filter", "partition"),
+                    ("gpu_type", "gpu_type"),
+                ],
+            );
+        }
+        Action::Node | Action::Gpualloc => call("cmd_node", &[("node", "node")]),
+        Action::JobHistory => call("cmd_job_history", &[("limit", "limit")]),
+        Action::JobOutput => call("cmd_job_output", &[("jobid", "jobid"), ("stderr", "stderr")]),
+        Action::DevStart => call(
+            "cmd_dev_start",
+            &[
+                ("partition", "partition"),
+                ("time_limit", "time_limit"),
+                ("gpu", "gpu"),
+                ("gpu_type", "gpu_type"),
+                ("cpus", "cpus"),
+                ("mem", "mem"),
+                ("account", "account"),
+                ("constraint", "constraint"),
+                ("exclude", "exclude"),
+                ("node", "node"),
+                ("replace", "replace"),
+                ("no_wait", "no_wait"),
+                ("login", "login"),
+                ("timeout", "timeout"),
+                ("poll_interval", "poll_interval"),
+            ],
+        ),
+        Action::DevStatus => call("cmd_dev_status", &[("jobid", "jobid")]),
+        Action::DevLogin => call(
+            "cmd_dev_login",
+            &[
+                ("jobid", "jobid"),
+                ("wait", "wait"),
+                ("timeout", "timeout"),
+                ("poll_interval", "poll_interval"),
+                ("srun", "srun"),
+                ("command", "command"),
+            ],
+        ),
+        Action::DevStop => call("cmd_dev_stop", &[("jobid", "jobid")]),
+        Action::ConfigShow => call("cmd_config_show", &[]),
+    }
+    Ok(())
 }

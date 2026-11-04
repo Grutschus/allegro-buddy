@@ -70,7 +70,7 @@ for env_name, env in {
         case(f'help-{env_name}-{slug(cmd)}', [*cmd, '-h'], env)
 for theme in ('default', 'modern', 'box', 'nu', 'slim', 'robo', 'quartz', 'forest-modern',
               'dracula-box', 'nord-nu', 'solarized-robo', 'star-slim', 'cargo-modern',
-              'quartz2-box', 'red', 'nonexistent'):
+              'quartz2-box', 'red1-modern', 'mono-slim', 'plain', 'cyan2-robo', 'nord-box'):
     for cmd in ([], ['dev', 'start'], ['why']):
         case(f'theme-{theme}-{slug(cmd)}', [*cmd, '-h'],
              {'RICH_CLICK_THEME': theme, 'COLUMNS': '100', 'FORCE_COLOR': '1'})

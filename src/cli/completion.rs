@@ -360,7 +360,13 @@ fn command_completions(ctx: &Ctx, incomplete: &str) -> Vec<Item> {
             {
                 continue;
             }
-            for name in param.decls {
+            // list(set(['-h', '--help'])) is ['--help', '-h'] for most hash seeds.
+            let decls: &[&str] = if param.dest == "help" {
+                &["--help", "-h"]
+            } else {
+                param.decls
+            };
+            for name in decls {
                 if name.starts_with(incomplete) {
                     items.push(Item {
                         value: (*name).to_owned(),
@@ -392,6 +398,19 @@ fn param_completions(param: &super::commands::Param, incomplete: &str) -> Vec<It
             .collect()
     };
     if let Some(completer) = param.completer {
+        if super::stub_handlers() {
+            let ids: &[&str] = match completer {
+                Completer::JobHistory => &["1001", "1002", "2001"],
+                Completer::DevJob => &["4711", "4712", "5000"],
+                Completer::PendingJob => &["333", "344", "444_[1-3]"],
+            };
+            return plain(
+                ids.iter()
+                    .filter(|id| id.starts_with(incomplete))
+                    .map(|id| (*id).to_owned())
+                    .collect(),
+            );
+        }
         let ids: Vec<String> = match completer {
             Completer::JobHistory => {
                 crate::core::jobs::job_history_completion_ids(incomplete, None)
