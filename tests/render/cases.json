@@ -1,0 +1,3738 @@
+[
+ {
+  "name": "styles",
+  "variants": [
+   {
+    "width": 80,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "none",
+    "no_color": true
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": true
+   },
+   {
+    "width": 80,
+    "color": "256",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "256",
+    "no_color": true
+   },
+   {
+    "width": 80,
+    "color": "truecolor",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "truecolor",
+    "no_color": true
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold!",
+     "style": "bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "dim!",
+     "style": "dim"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "italic!",
+     "style": "italic"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "underline!",
+     "style": "underline"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold red!",
+     "style": "bold red"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold yellow!",
+     "style": "bold yellow"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold green!",
+     "style": "bold green"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold blue!",
+     "style": "bold blue"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold cyan!",
+     "style": "bold cyan"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "green!",
+     "style": "green"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "yellow!",
+     "style": "yellow"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "blue!",
+     "style": "blue"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "red!",
+     "style": "red"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "cyan!",
+     "style": "cyan"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "magenta!",
+     "style": "magenta"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "white!",
+     "style": "white"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "not bold!",
+     "style": "not bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bold not bold!",
+     "style": "bold not bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "on blue!",
+     "style": "on blue"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "red on white!",
+     "style": "red on white"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "#ff8800!",
+     "style": "#ff8800"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "rgb(10,200,30)!",
+     "style": "rgb(10,200,30)"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "color(200)!",
+     "style": "color(200)"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "color(9)!",
+     "style": "color(9)"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bright_red!",
+     "style": "bright_red"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "grey50!",
+     "style": "grey50"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "status.spinner!",
+     "style": "status.spinner"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "repr.number!",
+     "style": "repr.number"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "table.header!",
+     "style": "table.header"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "none!",
+     "style": "none"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "bogus!",
+     "style": "bogus"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "b i u s!",
+     "style": "b i u s"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "reverse blink2 conceal strike!",
+     "style": "reverse blink2 conceal strike"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "underline2 frame encircle overline!",
+     "style": "underline2 frame encircle overline"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "default on default!",
+     "style": "default on default"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "#808080!",
+     "style": "#808080"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "#123456 on #fedcba!",
+     "style": "#123456 on #fedcba"
+    }
+   }
+  ]
+ },
+ {
+  "name": "assemble",
+  "variants": [
+   {
+    "width": 80,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "256",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "truecolor",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "parts": [
+      [
+       "error: ",
+       "bold red"
+      ],
+      "something went wrong"
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "parts": [
+      [
+       "warning: ",
+       "bold yellow"
+      ],
+      {
+       "type": "text",
+       "plain": "job 12 is ",
+       "style": "white"
+      },
+      [
+       "RUNNING",
+       "green"
+      ]
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "ⓘ `bab why` shows what is short",
+     "style": "dim"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "parts": [
+      "  ",
+      {
+       "type": "text",
+       "parts": [
+        [
+         "A100",
+         "cyan"
+        ],
+        " starts 123 now. This runs:"
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "join",
+     "sep": {
+      "type": "text",
+      "plain": " · "
+     },
+     "items": [
+      {
+       "type": "text",
+       "plain": "1 running",
+       "style": "green"
+      },
+      {
+       "type": "text",
+       "parts": [
+        "2 pending (",
+        [
+         "in 3h",
+         "cyan"
+        ],
+        ")"
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "join",
+     "sep": {
+      "type": "text",
+      "plain": ", "
+     },
+     "items": [
+      {
+       "type": "text",
+       "parts": [
+        "proj1",
+        [
+         " (default)",
+         "dim"
+        ]
+       ]
+      },
+      {
+       "type": "text",
+       "plain": "proj2"
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "stylize": [
+      [
+       "red",
+       0,
+       6
+      ],
+      [
+       "underline",
+       3,
+       20
+      ]
+     ],
+     "plain": "styled base",
+     "style": "bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "",
+     "style": "bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "end": "",
+     "plain": "end-less",
+     "style": "green"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "!"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "append": [
+      [
+       " a",
+       "bold"
+      ],
+      [
+       " b",
+       null
+      ],
+      [
+       " c",
+       "dim red"
+      ]
+     ],
+     "plain": "appended"
+    }
+   }
+  ]
+ },
+ {
+  "name": "wrap",
+  "variants": [
+   {
+    "width": 20,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free).",
+     "style": "dim"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "justify": "left",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "justify": "center",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free).",
+     "style": "bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "justify": "right",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "justify": "full",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "averyveryveryverylongwordwithoutanyspacesthatmustbefoldedsomewhereaveryveryveryverylongwordwithoutanyspacesthatmustbefoldedsomewhere"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "overflow": "ellipsis",
+     "plain": "averyveryveryverylongwordwithoutanyspacesthatmustbefoldedsomewhereaveryveryveryverylongwordwithoutanyspacesthatmustbefoldedsomewhere"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "overflow": "crop",
+     "plain": "averyveryveryverylongwordwithoutanyspacesthatmustbefoldedsomewhereaveryveryveryverylongwordwithoutanyspacesthatmustbefoldedsomewhere"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "no_wrap": true,
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    },
+    "kw": {
+     "no_wrap": true,
+     "overflow": "ellipsis"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    },
+    "kw": {
+     "soft_wrap": true
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "trailing spaces     "
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "line one\nline two  \n\nline four\n"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "tab\tseparated\tcolumns\t!",
+     "style": "bold"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "中文字符和全角字符混在一起的一行非常长的文本用于测试换行中文字符和全角字符混在一起的一行非常长的文本用于测试换行"
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "emoji 😃 and ❤️ and 👩‍💻 mixed emoji 😃 and ❤️ and 👩‍💻 mixed emoji 😃 and ❤️ and 👩‍💻 mixed emoji 😃 and ❤️ and 👩‍💻 mixed "
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "parts": [
+      [
+       "styled ",
+       "red"
+      ],
+      [
+       "words ",
+       "bold"
+      ],
+      "wrap around wrap around wrap around wrap around wrap around wrap around wrap around wrap around ",
+      [
+       "the end",
+       "green"
+      ]
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    },
+    "kw": {
+     "width": 30
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "The quick brown fox jumps over the lazy dog and keeps running past gpu101,gpu102,gpu201,gpu202,gpu203 while waiting for Resources (GPU-bound · max 3/4 free)."
+    },
+    "kw": {
+     "style": "italic"
+    }
+   }
+  ]
+ },
+ {
+  "name": "strings",
+  "variants": [
+   {
+    "width": 80,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "256",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "truecolor",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": "Left unchanged."
+   },
+   {
+    "print": "Canceled 123, 456_7."
+   },
+   {
+    "print": "Canceled 70110_3, 70111."
+   },
+   {
+    "print": "every 10s · 12:34:56 · Ctrl-C to quit"
+   },
+   {
+    "print": "every 12.5s · 01:02:03 · Ctrl-C to quit"
+   },
+   {
+    "print": "quoted 'single' and \"double\" strings"
+   },
+   {
+    "print": "path /home/alice/run.sh and /tmp/"
+   },
+   {
+    "print": "url https://example.com/x?y=1"
+   },
+   {
+    "print": "uuid 123e4567-e89b-12d3-a456-426614174000"
+   },
+   {
+    "print": "ip 10.0.0.1 and ::1 and fe80::1"
+   },
+   {
+    "print": "True False None ..."
+   },
+   {
+    "print": "call(foo) <tag attr=\"v\"> x=1"
+   },
+   {
+    "print": "numbers -1 2.5 3e10 0xff 4j 1h25m 5/12 ≤73G"
+   },
+   {
+    "print": "[bold]markup[/bold] [0-3] [123] job[abc]x"
+   },
+   {
+    "print": "escaped \\[bold] and \\\\[red]x"
+   },
+   {
+    "print": ":cat: :smiley-emoji: 12:00: x:y:"
+   },
+   {
+    "print": "[red]unclosed"
+   },
+   {
+    "print": "brackets [] {} ()"
+   },
+   {
+    "print": "ab-dev"
+   },
+   {
+    "print": "gpu[101-104]"
+   },
+   {
+    "print": ""
+   },
+   {
+    "print": "   "
+   },
+   {
+    "print": "tab\there"
+   },
+   {
+    "print": "Left unchanged.",
+    "kw": {
+     "style": "dim"
+    }
+   },
+   {
+    "print": "Canceled 123, 456_7.",
+    "kw": {
+     "style": "dim"
+    }
+   },
+   {
+    "print": "Canceled 70110_3, 70111.",
+    "kw": {
+     "style": "dim"
+    }
+   },
+   {
+    "print": "every 10s · 12:34:56 · Ctrl-C to quit",
+    "kw": {
+     "style": "dim"
+    }
+   },
+   {
+    "print": "Left unchanged.",
+    "kw": {
+     "highlight": false
+    }
+   },
+   {
+    "print": "Canceled 123, 456_7.",
+    "kw": {
+     "highlight": false
+    }
+   },
+   {
+    "print": "Canceled 70110_3, 70111.",
+    "kw": {
+     "highlight": false
+    }
+   },
+   {
+    "print": "[bold]markup[/bold] [0-3] [123] job[abc]x",
+    "kw": {
+     "markup": false
+    }
+   },
+   {
+    "print": "escaped \\[bold] and \\\\[red]x",
+    "kw": {
+     "markup": false
+    }
+   },
+   {
+    "print": ":cat: :smiley-emoji: 12:00: x:y:",
+    "kw": {
+     "markup": false
+    }
+   },
+   {
+    "print": ":cat: :smiley-emoji: 12:00: x:y:",
+    "kw": {
+     "emoji": false
+    }
+   }
+  ]
+ },
+ {
+  "name": "strings-narrow",
+  "variants": [
+   {
+    "width": 10,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": "Left unchanged."
+   },
+   {
+    "print": "Canceled 123, 456_7."
+   },
+   {
+    "print": "Canceled 70110_3, 70111."
+   },
+   {
+    "print": "every 10s · 12:34:56 · Ctrl-C to quit"
+   },
+   {
+    "print": "every 12.5s · 01:02:03 · Ctrl-C to quit"
+   },
+   {
+    "print": "quoted 'single' and \"double\" strings"
+   },
+   {
+    "print": "path /home/alice/run.sh and /tmp/"
+   },
+   {
+    "print": "url https://example.com/x?y=1"
+   },
+   {
+    "print": "uuid 123e4567-e89b-12d3-a456-426614174000"
+   },
+   {
+    "print": "ip 10.0.0.1 and ::1 and fe80::1"
+   },
+   {
+    "print": "True False None ..."
+   },
+   {
+    "print": "call(foo) <tag attr=\"v\"> x=1"
+   },
+   {
+    "print": "numbers -1 2.5 3e10 0xff 4j 1h25m 5/12 ≤73G"
+   },
+   {
+    "print": "[bold]markup[/bold] [0-3] [123] job[abc]x"
+   },
+   {
+    "print": "escaped \\[bold] and \\\\[red]x"
+   },
+   {
+    "print": ":cat: :smiley-emoji: 12:00: x:y:"
+   },
+   {
+    "print": "[red]unclosed"
+   },
+   {
+    "print": "brackets [] {} ()"
+   },
+   {
+    "print": "ab-dev"
+   },
+   {
+    "print": "gpu[101-104]"
+   },
+   {
+    "print": ""
+   },
+   {
+    "print": "   "
+   },
+   {
+    "print": "tab\there"
+   }
+  ]
+ },
+ {
+  "name": "misc",
+  "variants": [
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "newline": 1
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "x"
+    },
+    "kw": {
+     "end": ""
+    }
+   },
+   {
+    "print": "y",
+    "kw": {
+     "end": "!\n"
+    }
+   },
+   {
+    "clear": 1
+   },
+   {
+    "newline": 1
+   }
+  ]
+ },
+ {
+  "name": "table-overview",
+  "variants": [
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 160,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Resource overview",
+     "columns": [
+      {
+       "header": "Partition",
+       "justify": "left"
+      },
+      {
+       "header": "Time limit",
+       "justify": "left"
+      },
+      {
+       "header": "Idle nodes",
+       "justify": "right"
+      },
+      {
+       "header": "Free GPUs",
+       "justify": "right"
+      },
+      {
+       "header": "Free CPUs",
+       "justify": "right"
+      },
+      {
+       "header": "Free memory",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "all",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "1/5",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "5",
+           "green"
+          ],
+          [
+           "/12",
+           "dim"
+          ]
+         ]
+        },
+        "44/80",
+        "306/450G"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpumicro",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "1h"
+        },
+        "0/3",
+        "5/12",
+        "20/48",
+        "158/270G"
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "2d"
+        },
+        "0/3",
+        "5/12",
+        "20/48",
+        "158/270G"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "micro",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "1h"
+        },
+        "0/1",
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "8/16",
+        "58/90G"
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "small",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "2d2h"
+        },
+        "0/1",
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "8/16",
+        "58/90G"
+       ]
+      }
+     ],
+     "options": {}
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Resource overview",
+     "columns": [
+      {
+       "header": "Partition",
+       "justify": "left"
+      },
+      {
+       "header": "Time limit",
+       "justify": "left"
+      },
+      {
+       "header": "Idle nodes",
+       "justify": "right"
+      },
+      {
+       "header": "Free GPUs",
+       "justify": "right"
+      },
+      {
+       "header": "Free CPUs",
+       "justify": "right"
+      },
+      {
+       "header": "Free memory",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "all",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "1/5",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "5",
+           "green"
+          ],
+          [
+           "/12",
+           "dim"
+          ]
+         ]
+        },
+        "44/80",
+        "306/450G"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpumicro",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "1h"
+        },
+        "0/3",
+        "5/12",
+        "20/48",
+        "158/270G"
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "2d"
+        },
+        "0/3",
+        "5/12",
+        "20/48",
+        "158/270G"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "micro",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "1h"
+        },
+        "0/1",
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "8/16",
+        "58/90G"
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "small",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "2d2h"
+        },
+        "0/1",
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "8/16",
+        "58/90G"
+       ]
+      }
+     ],
+     "options": {}
+    },
+    "kw": {
+     "width": 60
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "free/total",
+     "style": "dim"
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-queue",
+  "variants": [
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 160,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Queue",
+     "columns": [
+      {
+       "header": "JobID",
+       "justify": "left"
+      },
+      {
+       "header": "Name",
+       "justify": "left"
+      },
+      {
+       "header": "State",
+       "justify": "left"
+      },
+      {
+       "header": "Partition",
+       "justify": "left"
+      },
+      {
+       "header": "Elapsed",
+       "justify": "right"
+      },
+      {
+       "header": "Time left",
+       "justify": "right"
+      },
+      {
+       "header": "Start",
+       "justify": "left"
+      },
+      {
+       "header": "Node/Reason",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70110",
+         "style": "cyan"
+        },
+        "ab-dev",
+        {
+         "type": "text",
+         "plain": "RUNNING",
+         "style": "green"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "1h25m"
+        },
+        {
+         "type": "text",
+         "plain": "6h35m"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "gpu101",
+         "style": "green"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70120",
+         "style": "cyan"
+        },
+        "train-large",
+        {
+         "type": "text",
+         "plain": "PENDING",
+         "style": "yellow"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "1d"
+        },
+        "in 2h10m",
+        {
+         "type": "text",
+         "plain": "GPU-bound · max 3/4 free",
+         "style": "yellow"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70122",
+         "style": "cyan"
+        },
+        "finetune-xl-with-a-really-long-name",
+        {
+         "type": "text",
+         "plain": "PENDING",
+         "style": "yellow"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "12h"
+        },
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "starts now w/ mem ≤ 73G",
+         "style": "yellow"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "71000_[1-3]",
+         "style": "cyan"
+        },
+        "task [x] :cat: [bold]b[/]",
+        {
+         "type": "text",
+         "plain": "RUNNING",
+         "style": "green"
+        },
+        {
+         "type": "text",
+         "plain": "small",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "3m"
+        },
+        {
+         "type": "text",
+         "plain": "9h57m"
+        },
+        "",
+        {
+         "type": "text",
+         "plain": "cmp201",
+         "style": "blue"
+        }
+       ]
+      }
+     ],
+     "options": {}
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Queue",
+     "columns": [
+      {
+       "header": "JobID",
+       "justify": "left"
+      },
+      {
+       "header": "Name",
+       "justify": "left"
+      },
+      {
+       "header": "State",
+       "justify": "left"
+      },
+      {
+       "header": "Partition",
+       "justify": "left"
+      },
+      {
+       "header": "Elapsed",
+       "justify": "right"
+      },
+      {
+       "header": "Time left",
+       "justify": "right"
+      },
+      {
+       "header": "Start",
+       "justify": "left"
+      },
+      {
+       "header": "Node/Reason",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70110",
+         "style": "cyan"
+        },
+        "ab-dev",
+        {
+         "type": "text",
+         "plain": "RUNNING",
+         "style": "green"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "1h25m"
+        },
+        {
+         "type": "text",
+         "plain": "6h35m"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "gpu101",
+         "style": "green"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70120",
+         "style": "cyan"
+        },
+        "train-large",
+        {
+         "type": "text",
+         "plain": "PENDING",
+         "style": "yellow"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "1d"
+        },
+        "in 2h10m",
+        {
+         "type": "text",
+         "plain": "GPU-bound · max 3/4 free",
+         "style": "yellow"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70122",
+         "style": "cyan"
+        },
+        "finetune-xl-with-a-really-long-name",
+        {
+         "type": "text",
+         "plain": "PENDING",
+         "style": "yellow"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "12h"
+        },
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "starts now w/ mem ≤ 73G",
+         "style": "yellow"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "71000_[1-3]",
+         "style": "cyan"
+        },
+        "task [x] :cat: [bold]b[/]",
+        {
+         "type": "text",
+         "plain": "RUNNING",
+         "style": "green"
+        },
+        {
+         "type": "text",
+         "plain": "small",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "3m"
+        },
+        {
+         "type": "text",
+         "plain": "9h57m"
+        },
+        "",
+        {
+         "type": "text",
+         "plain": "cmp201",
+         "style": "blue"
+        }
+       ]
+      }
+     ],
+     "options": {}
+    },
+    "kw": {
+     "width": 60
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "free/total",
+     "style": "dim"
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-reservations",
+  "variants": [
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 160,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Reservations",
+     "columns": [
+      {
+       "header": "Reservation",
+       "justify": "left"
+      },
+      {
+       "header": "Nodes",
+       "justify": "left"
+      },
+      {
+       "header": "When",
+       "justify": "left"
+      },
+      {
+       "header": "For",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "maint-nov",
+        "gpu101,gpu102,gpu201,gpu202,gpu203,gpu204,gpu205",
+        "in 6d22h, for 10h",
+        "others"
+       ]
+      }
+     ],
+     "options": {}
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Reservations",
+     "columns": [
+      {
+       "header": "Reservation",
+       "justify": "left"
+      },
+      {
+       "header": "Nodes",
+       "justify": "left"
+      },
+      {
+       "header": "When",
+       "justify": "left"
+      },
+      {
+       "header": "For",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "maint-nov",
+        "gpu101,gpu102,gpu201,gpu202,gpu203,gpu204,gpu205",
+        "in 6d22h, for 10h",
+        "others"
+       ]
+      }
+     ],
+     "options": {}
+    },
+    "kw": {
+     "width": 60
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "free/total",
+     "style": "dim"
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-untitled",
+  "variants": [
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 160,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": null,
+     "columns": [
+      {
+       "header": "Key",
+       "justify": "left"
+      },
+      {
+       "header": "Value",
+       "justify": "left"
+      },
+      {
+       "header": "Source",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "[dev] partition"
+        },
+        {
+         "type": "text",
+         "plain": "gpu"
+        },
+        {
+         "type": "text",
+         "plain": "~/.config/allegro-buddy/config.ini",
+         "style": "dim"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "[cluster] gpu_partitions"
+        },
+        {
+         "type": "text",
+         "plain": "gpumicro, gpushort, gpusmall, gpu, gpularge, gpuverylarge"
+        },
+        {
+         "type": "text",
+         "plain": "preset allegro",
+         "style": "dim"
+        }
+       ]
+      }
+     ],
+     "options": {}
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": null,
+     "columns": [
+      {
+       "header": "Key",
+       "justify": "left"
+      },
+      {
+       "header": "Value",
+       "justify": "left"
+      },
+      {
+       "header": "Source",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "[dev] partition"
+        },
+        {
+         "type": "text",
+         "plain": "gpu"
+        },
+        {
+         "type": "text",
+         "plain": "~/.config/allegro-buddy/config.ini",
+         "style": "dim"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "[cluster] gpu_partitions"
+        },
+        {
+         "type": "text",
+         "plain": "gpumicro, gpushort, gpusmall, gpu, gpularge, gpuverylarge"
+        },
+        {
+         "type": "text",
+         "plain": "preset allegro",
+         "style": "dim"
+        }
+       ]
+      }
+     ],
+     "options": {}
+    },
+    "kw": {
+     "width": 60
+    }
+   },
+   {
+    "print": {
+     "type": "text",
+     "plain": "free/total",
+     "style": "dim"
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-colors",
+  "variants": [
+   {
+    "width": 100,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 100,
+    "color": "none",
+    "no_color": true
+   },
+   {
+    "width": 100,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 100,
+    "color": "standard",
+    "no_color": true
+   },
+   {
+    "width": 100,
+    "color": "256",
+    "no_color": false
+   },
+   {
+    "width": 100,
+    "color": "256",
+    "no_color": true
+   },
+   {
+    "width": 100,
+    "color": "truecolor",
+    "no_color": false
+   },
+   {
+    "width": 100,
+    "color": "truecolor",
+    "no_color": true
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Resource overview",
+     "columns": [
+      {
+       "header": "Partition",
+       "justify": "left"
+      },
+      {
+       "header": "Time limit",
+       "justify": "left"
+      },
+      {
+       "header": "Idle nodes",
+       "justify": "right"
+      },
+      {
+       "header": "Free GPUs",
+       "justify": "right"
+      },
+      {
+       "header": "Free CPUs",
+       "justify": "right"
+      },
+      {
+       "header": "Free memory",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "all",
+         "style": "bold"
+        },
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "1/5",
+        {
+         "type": "text",
+         "parts": [
+          [
+           "5",
+           "green"
+          ],
+          [
+           "/12",
+           "dim"
+          ]
+         ]
+        },
+        "44/80",
+        "306/450G"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpumicro",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "1h"
+        },
+        "0/3",
+        "5/12",
+        "20/48",
+        "158/270G"
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "2d"
+        },
+        "0/3",
+        "5/12",
+        "20/48",
+        "158/270G"
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "micro",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "1h"
+        },
+        "0/1",
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "8/16",
+        "58/90G"
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "small",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "2d2h"
+        },
+        "0/1",
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        "8/16",
+        "58/90G"
+       ]
+      }
+     ],
+     "options": {}
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Queue",
+     "columns": [
+      {
+       "header": "JobID",
+       "justify": "left"
+      },
+      {
+       "header": "Name",
+       "justify": "left"
+      },
+      {
+       "header": "State",
+       "justify": "left"
+      },
+      {
+       "header": "Partition",
+       "justify": "left"
+      },
+      {
+       "header": "Elapsed",
+       "justify": "right"
+      },
+      {
+       "header": "Time left",
+       "justify": "right"
+      },
+      {
+       "header": "Start",
+       "justify": "left"
+      },
+      {
+       "header": "Node/Reason",
+       "justify": "left"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70110",
+         "style": "cyan"
+        },
+        "ab-dev",
+        {
+         "type": "text",
+         "plain": "RUNNING",
+         "style": "green"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": "1h25m"
+        },
+        {
+         "type": "text",
+         "plain": "6h35m"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "gpu101",
+         "style": "green"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70120",
+         "style": "cyan"
+        },
+        "train-large",
+        {
+         "type": "text",
+         "plain": "PENDING",
+         "style": "yellow"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "1d"
+        },
+        "in 2h10m",
+        {
+         "type": "text",
+         "plain": "GPU-bound · max 3/4 free",
+         "style": "yellow"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "70122",
+         "style": "cyan"
+        },
+        "finetune-xl-with-a-really-long-name",
+        {
+         "type": "text",
+         "plain": "PENDING",
+         "style": "yellow"
+        },
+        {
+         "type": "text",
+         "plain": "gpu",
+         "style": "bold green"
+        },
+        {
+         "type": "text",
+         "plain": ""
+        },
+        {
+         "type": "text",
+         "plain": "12h"
+        },
+        {
+         "type": "text",
+         "plain": "-",
+         "style": "dim"
+        },
+        {
+         "type": "text",
+         "plain": "starts now w/ mem ≤ 73G",
+         "style": "yellow"
+        }
+       ]
+      },
+      {
+       "cells": [
+        {
+         "type": "text",
+         "plain": "71000_[1-3]",
+         "style": "cyan"
+        },
+        "task [x] :cat: [bold]b[/]",
+        {
+         "type": "text",
+         "plain": "RUNNING",
+         "style": "green"
+        },
+        {
+         "type": "text",
+         "plain": "small",
+         "style": "bold blue"
+        },
+        {
+         "type": "text",
+         "plain": "3m"
+        },
+        {
+         "type": "text",
+         "plain": "9h57m"
+        },
+        "",
+        {
+         "type": "text",
+         "plain": "cmp201",
+         "style": "blue"
+        }
+       ]
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-empty",
+  "variants": [
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Empty",
+     "columns": [
+      {
+       "header": "A",
+       "justify": "left"
+      },
+      {
+       "header": "B",
+       "justify": "right"
+      }
+     ],
+     "rows": [],
+     "options": {}
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": null,
+     "columns": [],
+     "rows": [],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-center",
+  "variants": [
+   {
+    "width": 20,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "simple": true,
+     "title": "Centered title over a narrow table",
+     "columns": [
+      {
+       "header": "A",
+       "justify": "center"
+      },
+      {
+       "header": "B",
+       "justify": "right"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "x",
+        "y"
+       ]
+      },
+      {
+       "cells": [
+        "longer cell",
+        "z"
+       ]
+      }
+     ],
+     "options": {}
+    }
+   }
+  ]
+ },
+ {
+  "name": "grid-you",
+  "variants": [
+   {
+    "width": 30,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 50,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 50,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 120,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 120,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "text",
+     "plain": "You",
+     "style": "bold"
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      2
+     ],
+     "columns": [
+      {
+       "style": "dim",
+       "no_wrap": true
+      },
+      {}
+     ],
+     "rows": [
+      {
+       "cells": [
+        "user",
+        "alice"
+       ]
+      },
+      {
+       "cells": [
+        "accounts",
+        {
+         "type": "join",
+         "sep": {
+          "type": "text",
+          "plain": ", "
+         },
+         "items": [
+          {
+           "type": "text",
+           "parts": [
+            "ml-lab",
+            [
+             " (default)",
+             "dim"
+            ]
+           ]
+          },
+          {
+           "type": "text",
+           "plain": "teaching"
+          },
+          {
+           "type": "text",
+           "plain": "a-very-long-account-name"
+          },
+          {
+           "type": "text",
+           "plain": "another-account"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        "qos",
+        "long, normal, short, preempt, gpu-hog, interactive, overflow-queue"
+       ]
+      },
+      {
+       "cells": [
+        "jobs",
+        {
+         "type": "join",
+         "sep": {
+          "type": "text",
+          "plain": " · "
+         },
+         "items": [
+          {
+           "type": "text",
+           "parts": [
+            "25 running (next ends in ",
+            [
+             "6h35m",
+             "cyan"
+            ],
+            ")"
+           ]
+          },
+          {
+           "type": "text",
+           "plain": "3 pending"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "grid": [
+      0,
+      2
+     ],
+     "columns": [
+      {
+       "style": "dim",
+       "no_wrap": true
+      },
+      {}
+     ],
+     "rows": [
+      {
+       "cells": [
+        "user",
+        "alice"
+       ]
+      },
+      {
+       "cells": [
+        "accounts",
+        {
+         "type": "join",
+         "sep": {
+          "type": "text",
+          "plain": ", "
+         },
+         "items": [
+          {
+           "type": "text",
+           "parts": [
+            "ml-lab",
+            [
+             " (default)",
+             "dim"
+            ]
+           ]
+          },
+          {
+           "type": "text",
+           "plain": "teaching"
+          },
+          {
+           "type": "text",
+           "plain": "a-very-long-account-name"
+          },
+          {
+           "type": "text",
+           "plain": "another-account"
+          }
+         ]
+        }
+       ]
+      },
+      {
+       "cells": [
+        "qos",
+        "long, normal, short, preempt, gpu-hog, interactive, overflow-queue"
+       ]
+      },
+      {
+       "cells": [
+        "jobs",
+        {
+         "type": "join",
+         "sep": {
+          "type": "text",
+          "plain": " · "
+         },
+         "items": [
+          {
+           "type": "text",
+           "parts": [
+            "25 running (next ends in ",
+            [
+             "6h35m",
+             "cyan"
+            ],
+            ")"
+           ]
+          },
+          {
+           "type": "text",
+           "plain": "3 pending"
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    },
+    "kw": {
+     "width": 40
+    }
+   }
+  ]
+ },
+ {
+  "name": "help-like",
+  "variants": [
+   {
+    "width": 40,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 40,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 100,
+    "color": "none",
+    "no_color": false
+   },
+   {
+    "width": 100,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "padding",
+     "renderable": {
+      "type": "table",
+      "options": {
+       "box": "HORIZONTALS_TOP",
+       "show_header": false,
+       "expand": true,
+       "pad_edge": false,
+       "padding": [
+        0,
+        1
+       ],
+       "highlight": true
+      },
+      "columns": [
+       {
+        "style": "bold cyan",
+        "no_wrap": true
+       },
+       {
+        "style": "bold green",
+        "no_wrap": true
+       },
+       {
+        "style": "bold yellow"
+       },
+       {
+        "ratio": 1
+       }
+      ],
+      "rows": [
+       {
+        "cells": [
+         "-w",
+         "--watch",
+         "[SECONDS]",
+         {
+          "type": "text",
+          "plain": "refresh every SECONDS (default 10) until Ctrl-C"
+         }
+        ]
+       },
+       {
+        "cells": [
+         "",
+         "--all",
+         "",
+         {
+          "type": "text",
+          "plain": "show all users' jobs, which can be a lot of output on a busy cluster and wraps"
+         }
+        ]
+       },
+       {
+        "cells": [
+         "-h",
+         "--help",
+         "",
+         {
+          "type": "text",
+          "plain": "Show this message and exit."
+         }
+        ]
+       }
+      ]
+     },
+     "pad": [
+      0,
+      1,
+      0,
+      1
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "HORIZONTALS_TOP",
+      "show_header": false,
+      "expand": true,
+      "pad_edge": false,
+      "padding": [
+       0,
+       1
+      ],
+      "highlight": true
+     },
+     "columns": [
+      {
+       "style": "bold cyan",
+       "no_wrap": true
+      },
+      {
+       "style": "bold green",
+       "no_wrap": true
+      },
+      {
+       "style": "bold yellow"
+      },
+      {
+       "ratio": 1
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "-w",
+        "--watch",
+        "[SECONDS]",
+        {
+         "type": "text",
+         "plain": "refresh every SECONDS (default 10) until Ctrl-C"
+        }
+       ]
+      },
+      {
+       "cells": [
+        "",
+        "--all",
+        "",
+        {
+         "type": "text",
+         "plain": "show all users' jobs, which can be a lot of output on a busy cluster and wraps"
+        }
+       ]
+      },
+      {
+       "cells": [
+        "-h",
+        "--help",
+        "",
+        {
+         "type": "text",
+         "plain": "Show this message and exit."
+        }
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-ROUNDED",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "ROUNDED",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": true,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-SQUARE",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "SQUARE",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [
+       "dim",
+       ""
+      ],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-HEAVY_HEAD",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "HEAVY_HEAD",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": true
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-MINIMAL",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "MINIMAL",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-SIMPLE_HEAD",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "SIMPLE_HEAD",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-DOUBLE_EDGE",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "DOUBLE_EDGE",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-ASCII",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "ASCII",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-MARKDOWN",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "MARKDOWN",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "box-HORIZONTALS",
+  "variants": [
+   {
+    "width": 30,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 80,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "box": "HORIZONTALS",
+      "title": "Title",
+      "caption": "caption text",
+      "show_lines": false,
+      "row_styles": [],
+      "border_style": "blue",
+      "show_footer": false
+     },
+     "columns": [
+      {
+       "header": "Name",
+       "footer": "total"
+      },
+      {
+       "header": "Count",
+       "justify": "right",
+       "footer": "3"
+      },
+      {
+       "header": "Note",
+       "vertical": "middle"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "a",
+        "1",
+        "short"
+       ]
+      },
+      {
+       "cells": [
+        "b",
+        "2",
+        "a much longer note that will wrap on narrow widths"
+       ],
+       "style": "italic"
+      },
+      {
+       "cells": [
+        "c",
+        "3",
+        {
+         "type": "text",
+         "plain": "styled",
+         "style": "red"
+        }
+       ],
+       "end_section": true
+      },
+      {
+       "cells": [
+        "d",
+        "4",
+        ""
+       ]
+      }
+     ]
+    }
+   }
+  ]
+ },
+ {
+  "name": "table-misc",
+  "variants": [
+   {
+    "width": 25,
+    "color": "standard",
+    "no_color": false
+   },
+   {
+    "width": 60,
+    "color": "standard",
+    "no_color": false
+   }
+  ],
+  "ops": [
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "leading": 1,
+      "expand": true,
+      "min_width": 50
+     },
+     "columns": [
+      {
+       "header": "A",
+       "ratio": 2
+      },
+      {
+       "header": "B",
+       "ratio": 1,
+       "min_width": 5
+      },
+      {
+       "header": "C",
+       "width": 6,
+       "overflow": "fold"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "one",
+        "two",
+        "threefourfive"
+       ]
+      },
+      {
+       "cells": [
+        "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "y",
+        "z"
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "options": {
+      "width": 50,
+      "padding": [
+       1,
+       2
+      ],
+      "collapse_padding": true
+     },
+     "columns": [
+      {
+       "header": "L",
+       "max_width": 8
+      },
+      {
+       "header": "R",
+       "justify": "center"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "abcdefghijkl mnop",
+        "q"
+       ]
+      },
+      {
+       "cells": [
+        "r",
+        "s t u v w"
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "table",
+     "columns": [
+      {
+       "header": "Outer"
+      },
+      {
+       "header": "Nested"
+      }
+     ],
+     "rows": [
+      {
+       "cells": [
+        "n",
+        {
+         "type": "table",
+         "grid": [
+          0,
+          1
+         ],
+         "columns": [
+          {},
+          {}
+         ],
+         "rows": [
+          {
+           "cells": [
+            "k",
+            "v"
+           ]
+          }
+         ]
+        }
+       ]
+      }
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "padding",
+     "renderable": {
+      "type": "text",
+      "plain": "padded text that wraps around",
+      "style": "bold"
+     },
+     "pad": [
+      1,
+      3,
+      1,
+      2
+     ]
+    }
+   },
+   {
+    "print": {
+     "type": "padding",
+     "renderable": "unexpanded [b]str[/b]",
+     "pad": [
+      0,
+      2
+     ],
+     "expand": false
+    }
+   }
+  ]
+ }
+]
