@@ -2,15 +2,18 @@
 """Time commands on the replay fake Slurm with hyperfine (median wall time per command).
 
     bench.py --data bench/data/allegro/snapshot --bin bab=target/release/bab [--bin old=...]
-             [--ref] [--delay-ms 50] [-k REGEX] [--runs 10 --rounds 5] [--json out.json]
+             [--ref] [--realtime | --delay-ms 50] [-k REGEX] [--runs 10 --rounds 5]
+             [--json out.json]
 
 Every implementation sees the same environment as `parity.py` (warm cluster-name cache,
 frozen clock and groups via the BAB_TEST_* hooks, so time `--features test-hooks` builds),
 COLUMNS=160, stdout/stderr to /dev/null. Reported: the median wall time over `--rounds`
-hyperfine runs of `--runs` each (all implementations in every round). `--delay-ms` makes every fake Slurm call sleep
-first (REPLAY_DELAY_MS), mimicking the slurmctld round trip of a real cluster. `--ref` adds
-the Python reference (allegro-buddy 2.7, `compat/reference.py run`). `--calls` prints the
-Slurm calls of each command once instead of timing.
+hyperfine runs of `--runs` each (all implementations in every round, so bursts of load
+on a shared host hit all of them). `--realtime` makes every fake Slurm call take as long
+as it took on the cluster when recorded (REPLAY_REALTIME), `--delay-ms N` N ms per call
+(REPLAY_DELAY_MS); without either a call costs ~1 ms (sh + cat). `--ref` adds the Python
+reference (allegro-buddy 2.7, `compat/reference.py run`). `--calls` prints the Slurm
+calls of each command once instead of timing.
 """
 
 from __future__ import annotations
@@ -44,7 +47,8 @@ def find_run(index: dict, args: list[str]) -> dict:
     raise SystemExit(f'no recording of {args}')
 
 
-def environment(replay: Path, meta: dict, run: dict, work: Path, delay: int) -> dict:
+def environment(replay: Path, meta: dict, run: dict, work: Path, delay: int,
+                realtime: bool) -> dict:
     shutil.rmtree(work, ignore_errors=True)
     for sub in ('home', 'config', 'cache/allegro-buddy', 'site'):
         (work / sub).mkdir(parents=True)
@@ -70,6 +74,8 @@ def environment(replay: Path, meta: dict, run: dict, work: Path, delay: int) -> 
     }
     if delay:
         env['REPLAY_DELAY_MS'] = str(delay)
+    if realtime:
+        env['REPLAY_REALTIME'] = '1'
     return env
 
 
@@ -80,6 +86,7 @@ def main() -> int:
     ap.add_argument('--ref', action='store_true', help='also time the Python reference')
     ap.add_argument('--ref-python', default=default_python())
     ap.add_argument('--delay-ms', type=int, default=0)
+    ap.add_argument('--realtime', action='store_true')
     ap.add_argument('-k', default='')
     ap.add_argument('--runs', type=int, default=10)
     ap.add_argument('--rounds', type=int, default=5)
@@ -108,7 +115,7 @@ def main() -> int:
             continue
         run = find_run(index, cmd)
         work = out / 'bench'
-        env = environment(replay, meta, run, work, args.delay_ms)
+        env = environment(replay, meta, run, work, args.delay_ms, args.realtime)
         if args.calls:
             log = work / 'calls.log'
             env['REPLAY_LOG'] = str(log)

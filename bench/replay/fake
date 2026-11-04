@@ -4,15 +4,17 @@
 # (the calls of one recorded command), then in $REPLAY_COMMON/index.sh (fallback: first
 # recording of every argv). Unknown argv: exit 1 and log "MISS". Every call is appended
 # to $REPLAY_LOG (if set) as "<run|common|MISS><TAB><argv joined by spaces>".
-# REPLAY_DELAY_MS (benchmarks, bench.py): sleep that long first, like a slurmctld round trip.
+# Benchmarks (bench.py): REPLAY_REALTIME=1 sleeps as long as the recorded call took
+# (slurmctld round trip included), REPLAY_DELAY_MS=N sleeps N ms per call.
 key="${0##*/} $*"
 [ -z "$REPLAY_DELAY_MS" ] || sleep "$((REPLAY_DELAY_MS / 1000)).$(printf %03d $((REPLAY_DELAY_MS % 1000)))"
 for d in "$REPLAY_RUN" "$REPLAY_COMMON"; do
     [ -n "$d" ] || continue
-    n=
+    n= t=
     . "$d/index.sh"
     [ -n "$n" ] || continue
     [ -z "$REPLAY_LOG" ] || printf '%s\t%s\n' "${d##*/}" "$key" >>"$REPLAY_LOG"
+    [ -z "$REPLAY_REALTIME" ] || [ -z "$t" ] || sleep "$t"
     if [ -n "$x" ]; then
         [ -z "$o" ] || cat "$d/$n.out"
         cat "$d/$n.err" >&2

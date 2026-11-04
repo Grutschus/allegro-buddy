@@ -7,7 +7,8 @@ DATASET has calls.jsonl[.gz], runs.jsonl[.gz] and meta.json. OUT gets:
 
   bin/{squeue,scontrol,sinfo,sacct,sacctmgr,sbatch,scancel,srun,salloc,sstat}
                        symlinks to `fake` (absolute)
-  runs/<id>/           the Slurm calls of recorded command <id>: index.sh + N.out/N.err
+  runs/<id>/           the Slurm calls of recorded command <id>: index.sh (exit, output
+                       flags and recorded duration per argv) + N.out/N.err
   common/              fallback: the first recording of every argv (incl. the probe
                        `scontrol show config`)
   runs.json            [{"id", "args", "now", "exit"}], plus "meta" (copied meta.json)
@@ -59,6 +60,8 @@ def write_dir(directory: Path, calls: list[dict]) -> None:
         n = seen[key] = len(seen)
         out, err = field(call, 'stdout'), field(call, 'stderr')
         flags = f'e={int(call["exit"])} o={"1" if out else ""} x={"1" if err else ""}'
+        if 't0' in call and 't1' in call:  # the recorded latency (REPLAY_REALTIME)
+            flags += f' t={max(call["t1"] - call["t0"], 0):.3f}'
         if out:
             (directory / f'{n}.out').write_bytes(out)
         if err:
