@@ -6,7 +6,7 @@
   <picture align="center">
     <source media="(prefers-color-scheme: dark)" srcset="bench/plots/hero-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="bench/plots/hero-light.svg">
-    <img alt="Bar chart: running all 12 read-only commands once takes 0.88 s with bab and 2.96 s with ab." src="bench/plots/hero-light.svg">
+    <img alt="Bar chart: running all 12 read-only commands once takes 0.23 s with bab and 2.99 s with ab." src="bench/plots/hero-light.svg">
   </picture>
 </p>
 <p align="center">
@@ -23,7 +23,7 @@ The original is a great tool. Its only flaw: it is Python, so every call spends 
 importing itself before it asks Slurm anything. Rewriting things in Rust is a meme, so
 we did it as a joke and gave it the most modest name we could think of. Then the joke
 got a differential test harness, a benchmark suite and a CI pipeline. Now it is
-**3.4× faster** (median, live on Allegro). Same commands, flags, config and output, down
+**12× faster** (median, live on Allegro). Same commands, flags, config and output, down
 to the last ANSI escape code. Only the name changed, and it got one more `b`.
 
 ## Install
@@ -139,7 +139,9 @@ it had to pass:
   calls (mutating ones in order). Covered: every `-h`, parsing errors, colours, widths,
   themes, `why --fix` prompts (yes, no, EOF), dev start/login/stop, `--watch` with
   Ctrl-C, completion, config layers, and job names full of Rich markup, emoji and wide
-  characters.
+  characters. Since the second performance pass `bab` asks Slurm for cheaper forms of
+  the same data, so its read-only calls differ; rechecked 846/846 with the fake taught
+  to answer those forms from the same world.
 - **Replay parity: 532 of 532 cases identical** on real Allegro Slurm answers (Slurm
   24.11.5), recorded read-only, anonymised and replayed: every recorded command ×
   `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`.
@@ -156,24 +158,25 @@ That includes the quirks. `bab --version` says `2.7`, not `2.7.0`. A job named
 `[bold]x[/bold]` renders bold, because Rich would. Deliberate differences, all where the
 original falls over: inputs that crash it with a Python traceback are rejected cleanly
 (`q -w nan` is a usage error), and `bab` ignores `UNICODE_VERSION` (Rich would switch to
-an older character-width table).
+an older character-width table). Next to `ab`'s cluster-name cache it keeps one file of
+its own, `slurm-version.<host>` (which Slurm the faster queries were checked for).
 
 ## Performance
 
-Live on Allegro (login node, Slurm 24.11.5, 194 jobs, 93 nodes, 10 runs each, mean
+Live on Allegro (login node, Slurm 24.11.5, 188 jobs, 93 nodes, 10 runs each, mean
 wall time):
 
 | command | `ab` | `bab` | speedup |
 | --- | ---: | ---: | ---: |
-| `--version` | 146 ms | 1.5 ms | **98×** |
+| `--version` | 145 ms | 1.6 ms | **90×** |
 | `-h` | 161 ms | 3.5 ms | **46×** |
-| `q` | 148 ms | 16 ms | **9.3×** |
-| `q --all` | 571 ms | 181 ms | **3.2×** |
-| `free` | 230 ms | 67 ms | **3.4×** |
-| `info` | 255 ms | 88 ms | **2.9×** |
-| `why` | 361 ms | 209 ms | **1.7×** |
+| `q` | 147 ms | 15 ms | **10×** |
+| `q --all` | 571 ms | 32 ms | **18×** |
+| `free` | 229 ms | 19 ms | **12×** |
+| `info` | 255 ms | 19 ms | **13×** |
+| `why` | 364 ms | 18 ms | **21×** |
 
-Median over 13 commands: **3.4×** (geometric mean 5.7×); every call saves 130–390 ms.
+Median over 13 commands: **12×** (geometric mean 15×); every call saves 130–540 ms.
 Against an instant fake Slurm (pure tool overhead) the median is **19×**: `ab` needs
 85–222 ms per command, `bab` 0.6–15 ms.
 
@@ -182,16 +185,22 @@ Against an instant fake Slurm (pure tool overhead) the median is **19×**: `ab` 
 </p>
 
 Where it comes from: no interpreter start-up and imports (~145 ms of rich, rich-click
-and click on Allegro's login node), parsing only the 28 job fields it actually reads,
-and running independent read-only Slurm queries side by side.
+and click on Allegro's login node), starting all read-only Slurm queries of a command at
+once, and asking Slurm for the cheapest form of the same data. `scontrol --json` spends
+most of its time writing JSON: `show job` takes ~130 ms on Allegro, `show nodes` ~50 ms.
+`bab` reads the nodes from `scontrol`'s text form (~14 ms) and only the jobs it needs
+from a filtered `squeue --json` (~15 ms), converted to exactly what the JSON says.
 
 Where it stops, honestly:
 
-- **Slurm is the floor.** Rust doesn't make slurmctld answer any faster. `why` has to
-  wait ~140 ms for `scontrol --json show job` and then ~50 ms for the nodes. The second
-  call depends on the first one's result, and running both at once would change which
-  calls happen when things fail (the harness checked that too). So `why` "only" gets 1.7×.
-- These numbers come from a quiet evening. Under daytime load Slurm takes longer; the
+- **Slurm is the floor.** Rust doesn't make slurmctld answer any faster. Most commands
+  are now one Slurm round trip (~15 ms) plus a few ms of `bab`. `node` still reads every
+  job's details (~40 ms), and `q --all` lists the queue before it knows which jobs get
+  a hint.
+- The cheaper queries follow Slurm's source for 24.05 and 24.11, so only those versions
+  get them; anything else (or anything unexpected in an answer) gets `ab`'s queries,
+  about 4× faster than `ab` instead of 12×.
+- These numbers come from a quiet night. Under daytime load Slurm takes longer; the
   absolute savings stay, but the ratios of Slurm-bound commands shrink.
 - At ~0.2 s saved per call, the rewrite pays for itself after a few million `bab q`s.
   We're working on it.

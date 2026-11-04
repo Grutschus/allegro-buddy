@@ -10,45 +10,52 @@ git tag
 
 ## Summary
 
-- **Live on Allegro** (2026-11-04, 20:28 CET, Slurm 24.11.5, 194 jobs, 93 nodes,
-  10 runs + 1 warmup each): `bab` is **3.4× faster** (median over 13 commands;
-  geometric mean 5.7×). Every call saves **130–390 ms**. Slurm-bound commands: 1.7×
-  (`why`) to 11.2× (`job history`). Pure start-up: `--version` 146 → 1.5 ms (98×).
-  All 12 read-only commands once each: `ab` **2.96 s**, `bab` **0.88 s** (the README
-  header chart). A second pass 11 minutes later agreed within 4 % on most ratios.
-- **Local, instant fake Slurm** (pure tool overhead, 30 runs per command): median
-  **19×**, from 8.7× (`why`) to 154× (`--version`); `ab` needs 85–222 ms per command,
-  `bab` 0.6–15 ms. Peak RSS `ab` 23–32 MiB, `bab` 3.6–10 MiB.
+- **Live on Allegro** (2026-11-05, 00:03 CET, Slurm 24.11.5, 188 jobs, 93 nodes,
+  10 runs + 1 warmup each): `bab` is **12.2× faster** (median over 13 commands;
+  geometric mean 15.1×). Every call saves **130–540 ms**. Slurm-bound commands: 5.3×
+  (`node`) to 20.5× (`why`); most are now one Slurm round trip (~15 ms) plus a few ms.
+  Pure start-up: `--version` 145 → 1.6 ms. All 12 read-only commands once each: `ab`
+  **2.99 s**, `bab` **0.23 s** (the README header chart).
+- **Second performance pass** (Slurm side, see [below](#performance-pass-2-the-slurm-side)):
+  against the previous `bab` median 3.3× (geometric mean 2.6×), all 12 commands 0.88 →
+  0.23 s; `why` 209 → 18 ms, `q --all` 181 → 32 ms, `info` 88 → 19 ms (118 → 19 ms for
+  a user with 9 jobs).
+- **Local, instant fake Slurm** (pure tool overhead, 30 runs per command; first pass,
+  `ab`'s queries): median **19×**, from 8.7× (`why`) to 154× (`--version`); `ab` needs
+  85–222 ms per command, `bab` 0.6–15 ms. Peak RSS `ab` 23–32 MiB, `bab` 3.6–10 MiB.
 - **Local, replayed Slurm latencies** (each fake call sleeps as long as it took on
-  Allegro): median **2.7×** (1.5× `why` … 151× `--version`).
+  Allegro; first pass, the recording only has `ab`'s queries): median **2.7×** (1.5×
+  `why` … 151× `--version`).
 
 ![bab vs ab, live on Allegro](plots/live.png)
 
 ## Live on Allegro
 
-Login node (2× Xeon E5-2690 v4), quiet evening. `ab` = console script of a private venv
+Login node (2× Xeon E5-2690 v4), quiet night (load average 0.4). `ab` = console script of a private venv
 (Python 3.13.5, allegro-buddy 2.7, click 8.3.2, rich 15.0.0, rich-click 1.9.9); `bab` =
 release build without test hooks. Real clock, groups and host, no user config,
 `COLUMNS=160`, output to /dev/null, hyperfine `-N`. Speedup = mean(ab) / mean(bab).
 
 | command | ab mean ± σ (ms) | bab mean ± σ (ms) | speedup |
 |---|---:|---:|---:|
-| `--version` | 145.6 ± 1.8 | 1.48 ± 0.20 | **98.3×** |
-| `-h` | 160.6 ± 3.2 | 3.50 ± 0.32 | **45.9×** |
-| `info` | 254.6 ± 4.4 | 88.06 ± 4.48 | **2.9×** |
-| `info` (cold cache) | 275.3 ± 10.3 | 104.77 ± 4.04 | **2.6×** |
-| `free` | 230.0 ± 8.9 | 66.77 ± 1.81 | **3.4×** |
-| `free --nodes` | 267.2 ± 10.1 | 68.95 ± 2.15 | **3.9×** |
-| `q` | 148.1 ± 3.0 | 15.91 ± 1.06 | **9.3×** |
-| `q --all` | 571.0 ± 20.6 | 180.55 ± 4.40 | **3.2×** |
-| `why` | 361.1 ± 8.3 | 208.74 ± 1.81 | **1.7×** |
-| `why <pending job>` | 215.9 ± 4.5 | 78.95 ± 3.82 | **2.7×** |
-| `node gpu062` | 255.6 ± 13.2 | 102.32 ± 4.91 | **2.5×** |
-| `job history` | 145.6 ± 2.2 | 12.99 ± 0.78 | **11.2×** |
-| `config show` | 208.5 ± 3.1 | 55.17 ± 2.23 | **3.8×** |
+| `--version` | 145.4 ± 2.7 | 1.62 ± 0.45 | **89.5×** |
+| `-h` | 161.5 ± 3.5 | 3.50 ± 0.27 | **46.1×** |
+| `info` | 254.9 ± 5.7 | 18.96 ± 2.21 | **13.4×** |
+| `info` (cold cache) | 272.1 ± 7.2 | 31.15 ± 1.60 | **8.7×** |
+| `free` | 229.0 ± 8.2 | 18.85 ± 1.06 | **12.2×** |
+| `free --nodes` | 267.3 ± 10.5 | 20.68 ± 1.78 | **12.9×** |
+| `q` | 147.5 ± 3.5 | 14.63 ± 0.92 | **10.1×** |
+| `q --all` | 571.3 ± 18.9 | 31.56 ± 3.22 | **18.1×** |
+| `why` | 364.5 ± 11.4 | 17.77 ± 1.04 | **20.5×** |
+| `why <pending job>` | 222.5 ± 9.1 | 19.20 ± 1.00 | **11.6×** |
+| `node gpu062` | 275.4 ± 19.5 | 52.22 ± 6.44 | **5.3×** |
+| `job history` | 146.0 ± 2.5 | 12.99 ± 1.33 | **11.2×** |
+| `config show` | 208.8 ± 5.6 | 18.47 ± 1.09 | **11.3×** |
 
 ## Local replay
 
+First performance pass, before the Slurm-side changes: the recording only has `ab`'s
+queries, which is what `bab` still makes on Slurm versions other than 24.05/24.11.
 Workstation (Xeon W-1250P, `powersave` governor, both tools pinned to CPUs 4–7), the
 anonymised Allegro snapshot (225 jobs, `scontrol --json show job` = 2.4 MB), served by a
 `sh` + `cat` fake Slurm (~1 ms per call for both tools). 5 interleaved rounds × 6 runs.
@@ -73,13 +80,16 @@ anonymised Allegro snapshot (225 jobs, `scontrol --json show job` = 2.4 MB), ser
    node; `bab --version` 0.6 ms.
 2. **Parsing and rendering.** `q --all` (2.4 MB of job JSON, a 225-row table): `ab`
    ~130 ms of own work, `bab` 15 ms. `bab` decodes only the 28 job keys it reads.
-3. **Independent read-only Slurm queries side by side**, only where `ab` makes both
-   calls anyway (`free`, `config show`, the `q` hints, `info`'s sacctmgr + squeue), so
-   the set of Slurm calls is identical.
-4. **The floor is Slurm.** `why` must wait for `scontrol --json show job` (~140 ms live)
-   and then `show nodes` (~50 ms); the second call depends on the first one's result,
-   so it "only" gets 1.7×. Under daytime load the absolute savings stay, the ratios of
-   Slurm-bound commands shrink.
+3. **Cheaper Slurm queries with the same answer.** `scontrol --json` spends most of its
+   time writing JSON on the client: live, `show job` takes ~130 ms and `show nodes`
+   ~50 ms, the text `scontrol --oneliner --details show node` ~14 ms and a filtered
+   `squeue --json --state=PD` ~15 ms. See [pass 2](#performance-pass-2-the-slurm-side).
+4. **All read-only queries of a command at once**, evaluated in `ab`'s order, so errors
+   and output stay `ab`'s even when an earlier call fails.
+5. **The floor is Slurm.** Most commands are now one round trip (~15 ms) plus 2–5 ms of
+   `bab`. `node` still reads every job's details (~40 ms) and parses them (~10 ms);
+   `q --all` needs the queue listing before it knows which jobs get a hint. Under
+   daytime load the absolute savings stay, the ratios of Slurm-bound commands shrink.
 
 ## Performance pass
 
@@ -93,14 +103,46 @@ Slurm calls verified unchanged after every change (compat 846/846, replay 532/53
 | `free` runs the reservation and partition queries side by side | `free` realtime 110 → 95 ms |
 
 Tried and rejected: more concurrent Slurm calls (would change the calls made when an
-earlier one fails), mimalloc (+0.6 ms start-up on every command), smaller wins under
-2 % (pre-sized records, a reduced node-JSON parse), `-C target-cpu=native` (not
-portable).
+earlier one fails; done in pass 2 once only output had to match), mimalloc (+0.6 ms
+start-up on every command), smaller wins under 2 % (pre-sized records, a reduced
+node-JSON parse), `-C target-cpu=native` (not portable).
+
+## Performance pass 2: the Slurm side
+
+`bab`'s own work was 1–30 ms per command; the rest was waiting for Slurm. Measured live
+on Allegro with hyperfine (10 runs, mean); "before" is the previous `bab`, both columns
+from one back-to-back run. Output verified identical after every change: compat harness
+846/846 (its fake taught the new query forms, answered from the same world), replay
+parity 532/532 (that recording only has `ab`'s queries, so it checks the fallback path),
+and live `ab` vs old vs new `bab` byte-identical on 17 read-only commands and, for
+`info`, as each of the 8 users with jobs.
+
+| change | effect (live, each row on top of the ones above) |
+|---|---|
+| Start all read-only queries of a command at once (`core::slurm::prefetch`), consume them in `ab`'s order | `info` 89 → 54 ms, `why` 210 → 151 ms, `node` 110 → 67 ms (alone) |
+| Nodes from `scontrol --oneliner --details show node`, converted to what `--json show nodes` says (flag order, `(null)`, lists); Slurm 24.05/24.11 only | `free` 56 → 21 ms, `config show` 53 → 18 ms, `node` 67 → 47 ms; all 93 Allegro nodes identical to the JSON conversion |
+| `why`: `squeue --json --state=PD --user=U` instead of every job's JSON; `q` hints: `squeue --json --state=PD [--user=U]` (same records, same order) | `why` 151 → 18 ms (210 before the pass), `q --all` 171 → 31 ms |
+| `info`: your jobs' ETAs from one `squeue --format=%i\|%T\|%S\|%e` instead of `squeue` + one `scontrol` per job | `info` as a user with 9 / 54 jobs: 118 / 141 → 19 / 20 ms (1 + 9 calls → 1) |
+
+The cheaper forms follow Slurm's source; `bab` uses them only with a 24.05/24.11 client
+(`scontrol --version`, cached in `~/.cache/allegro-buddy/slurm-version.<host>` with the
+binary's size and mtime) and goes back to `ab`'s queries on any failure or unexpected
+answer (unknown or `BLOCKED` node flags, `Comment=`/`Extra=` on a node, a
+heterogeneous job, a hint job missing from the answer). Extra read-only calls are
+cheap: at most a query an earlier failure leaves unused, and `scontrol --version` once
+per Slurm install.
+
+Tried and rejected: `node` from `squeue -w NODE` plus one `scontrol show job` per job
+(saves ~10 ms but more calls), node GRES/CPU blocks from `squeue --json` (lossy
+conversion), speculative hint queries for `bab q` of your own jobs (three calls for
+the case without pending jobs), local CPU work (now 2–14 ms per command; `-h`'s
+remaining regex compile ~0.3 ms, `node`'s text parse ~10 ms: small gain for the code).
 
 ## Methodology notes
 
 - Same output: the measured builds pass replay parity 532/532 (every recorded command ×
-  `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`; stdout, stderr, exit code, Slurm calls).
+  `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`; stdout, stderr, exit code; Slurm calls
+  equal up to the read-only changes of pass 2).
 - hyperfine `-N` runs `venv/bin/ab` and `bab` directly (no shell, no `uv run`). The
   replay freezes clock, groups and host name for both tools (`BAB_TEST_*` hooks for
   `bab`, an equivalent patch for `ab`); measured cost within noise. Live runs use no hooks.
