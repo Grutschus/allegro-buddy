@@ -4,7 +4,7 @@
 
 Runs every scenario of compat/scenarios.py with $BAB_BIN (default: the Python reference,
 compat/ref-bab, as a self-check) and compares it with compat/golden/<scenario>/ exactly
-like `run.py check`. Set $BAB_COMPAT_WORK if ~/.cache/bab-compat is too long a path.
+like `run.py check`. Set $BAB_COMPAT_WORK if ~/.cache/babc is too long a path (max 30 characters).
 """
 
 from __future__ import annotations

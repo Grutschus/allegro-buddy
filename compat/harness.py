@@ -5,7 +5,7 @@ wraps around a path wraps the same way on every machine), a fake Slurm world in
 T/slurm-state.json, a call log in T/slurm-calls.jsonl, HOME=T/home and so on. Every
 occurrence of T in the captured bytes is replaced by `PLACEHOLDER` (same length).
 
-Scratch root: $BAB_COMPAT_WORK, else $XDG_CACHE_HOME/bab-compat (~/.cache/bab-compat).
+Scratch root: $BAB_COMPAT_WORK, else $XDG_CACHE_HOME/babc (~/.cache/babc).
 It must be short: T is `TMP_LEN` characters long.
 """
 
@@ -49,7 +49,7 @@ def work_root() -> Path:
     root = os.environ.get('BAB_COMPAT_WORK')
     if not root:
         cache = os.environ.get('XDG_CACHE_HOME') or str(Path.home() / '.cache')
-        root = f'{cache}/bab-compat'
+        root = f'{cache}/babc'
     path = Path(root).absolute()
     if len(str(path)) > TMP_LEN - 10:
         raise SystemExit(
