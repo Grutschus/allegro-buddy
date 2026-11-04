@@ -85,7 +85,7 @@ STRS = [
     'uuid 123e4567-e89b-12d3-a456-426614174000', 'ip 10.0.0.1 and ::1 and fe80::1', 'True False None ...',
     'call(foo) <tag attr="v"> x=1', 'numbers -1 2.5 3e10 0xff 4j 1h25m 5/12 ≤73G', '[bold]markup[/bold] [0-3] [123] job[abc]x',
     r'escaped \[bold] and \\[red]x', ':cat: :smiley-emoji: 12:00: x:y:', '[red]unclosed',
-    'brackets [] {} ()', 'ab-dev', 'gpu[101-104]', '', '   ', 'tab\there',
+    'brackets [] {} ()', 'ab-dev', 'k' * 60 + '=v1 a="b"c=d e=', 'dead-beef-0000-1111 ab:cd x.y.z <a>', 'gpu[101-104]', '', '   ', 'tab\there',
 ]
 case('strings', [P(s) for s in STRS] + [P(s, style='dim') for s in STRS[:4]] + [P(s, highlight=False) for s in STRS[:3]] + [P(s, markup=False) for s in STRS[13:16]] + [P(s, emoji=False) for s in STRS[15:16]], colors=COLORS)
 case('strings-narrow', [P(s) for s in STRS], widths=(10,), colors=('standard',))

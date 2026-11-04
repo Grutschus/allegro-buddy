@@ -402,7 +402,7 @@ impl Text {
             count += 1;
             for &(index, style) in &names {
                 if let Some(m) = caps.get(index) {
-                    if m.end() > m.start() && !style.is_null() {
+                    if m.end() > m.start() {
                         let start = char_count(&plain[..m.start()]);
                         let end = start + char_count(m.as_str());
                         new_spans.push(Span::new(start, end, style));

@@ -763,6 +763,12 @@
     "print": "ab-dev"
    },
    {
+    "print": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk=v1 a=\"b\"c=d e="
+   },
+   {
+    "print": "dead-beef-0000-1111 ab:cd x.y.z <a>"
+   },
+   {
     "print": "gpu[101-104]"
    },
    {
@@ -908,6 +914,12 @@
    },
    {
     "print": "ab-dev"
+   },
+   {
+    "print": "kkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkkk=v1 a=\"b\"c=d e="
+   },
+   {
+    "print": "dead-beef-0000-1111 ab:cd x.y.z <a>"
    },
    {
     "print": "gpu[101-104]"
