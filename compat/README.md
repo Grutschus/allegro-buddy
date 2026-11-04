@@ -4,7 +4,11 @@ Black-box harness that runs the Python reference (allegro-buddy 2.7 from PyPI, r
 to `bab`) and a `bab` binary against the same fake Slurm and requires identical
 stdout, stderr (bytes, ANSI included), exit code, Slurm calls and resulting files.
 
+The binary under test must be built with the test hooks (`BAB_TEST_*`, see below), which
+a normal build leaves out:
+
 ```sh
+cargo build --release --features test-hooks
 uv run --project compat compat/run.py check --bin target/release/bab      # vs goldens
 uv run --project compat compat/run.py check --bin target/release/bab -k 'why|fix'
 uv run --project compat compat/run.py diff  --bin target/release/bab      # both live
@@ -53,7 +57,9 @@ front; `\x04` is EOF. `sigint_after=3` sends SIGINT to the process (watch scenar
 
 ## Test hooks the Rust binary must implement
 
-Unset means real behaviour. The reference patches exactly these Python functions:
+Only compiled in with `--features test-hooks` (a plain `cargo build` never reads these
+variables, so every scenario that relies on them fails against such a binary). Unset
+means real behaviour. The reference patches exactly these Python functions:
 
 | variable | format | replaces in Python |
 |---|---|---|

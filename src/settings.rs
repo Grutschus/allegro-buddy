@@ -284,7 +284,14 @@ fn cluster_name_cache_path_with_env(env: Env<'_>) -> PathBuf {
     let base = non_empty(env, "XDG_CACHE_HOME")
         .map_or_else(|| home_dir_with_env(env).join(".cache"), PathBuf::from);
     base.join("allegro-buddy")
-        .join(format!("cluster-name.{}", crate::hooks::hostname()))
+        .join(cluster_name_cache_file(crate::hooks::hostname()))
+}
+
+/// `cluster-name.<host>`, always one path component. Python joins the raw hostname, so a
+/// (pathological) `/` in it would point outside the cache directory; bab writes `_`
+/// instead. Any real hostname is unchanged.
+fn cluster_name_cache_file(hostname: &str) -> String {
+    format!("cluster-name.{}", hostname.replace('/', "_"))
 }
 
 /// `cluster_name_cache_path()`.
@@ -947,6 +954,20 @@ mod tests {
         );
         assert_eq!(fake.calls().len(), 1);
         std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    #[test]
+    fn cluster_name_cache_file_is_one_path_component() {
+        assert_eq!(cluster_name_cache_file("login1.x"), "cluster-name.login1.x");
+        assert_eq!(
+            cluster_name_cache_file("../../evil/.."),
+            "cluster-name..._.._evil_.."
+        );
+        let _ctx = Ctx::default().hostname("a/../../b").install();
+        let path = cluster_name_cache_path_with_env(&|name: &str| {
+            (name == "XDG_CACHE_HOME").then(|| "/c".to_owned())
+        });
+        assert_eq!(path, Path::new("/c/allegro-buddy/cluster-name.a_.._.._b"));
     }
 
     #[test]

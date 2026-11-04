@@ -1,9 +1,11 @@
 //! Test hooks: the only sanctioned way to read the wall clock, the user, the user's groups,
 //! the hostname and whether stdin is a terminal.
 //!
-//! Each hook reads a `BAB_TEST_*` environment variable; when it is unset the real value is
-//! used, exactly as Python gets it. The compat harness patches the Python reference the
-//! same way (`compat/reference.py`), so goldens are reproducible.
+//! With the cargo feature `test-hooks` (compat harness, `tests/cli_ref.rs`; never in a
+//! normal build) each hook reads a `BAB_TEST_*` environment variable; when it is unset the
+//! real value is used, exactly as Python gets it. Without the feature the variables are
+//! never read. The compat harness patches the Python reference the same way
+//! (`compat/reference.py`), so goldens are reproducible.
 //!
 //! | hook            | env var                | real behaviour (Python)                          |
 //! |-----------------|------------------------|--------------------------------------------------|
@@ -36,6 +38,18 @@ fn env_set(name: &str) -> Option<String> {
     std::env::var_os(name).map(|v| v.to_string_lossy().into_owned())
 }
 
+/// A `BAB_TEST_*` hook variable: always `None` without the `test-hooks` feature.
+#[cfg(feature = "test-hooks")]
+fn test_hook(name: &str) -> Option<String> {
+    env_set(name)
+}
+
+#[cfg(not(feature = "test-hooks"))]
+#[inline(always)]
+fn test_hook(_name: &str) -> Option<String> {
+    None
+}
+
 /// Local wall-clock time as a naive datetime (Python `datetime.now()`, microsecond
 /// resolution), or the frozen `BAB_TEST_NOW`. Not cached: `--watch` shows the time of each
 /// refresh.
@@ -44,7 +58,7 @@ pub fn now() -> NaiveDateTime {
     if let Some(now) = testing::ctx().now {
         return now;
     }
-    if let Some(frozen) = env_set("BAB_TEST_NOW").filter(|v| !v.is_empty()) {
+    if let Some(frozen) = test_hook("BAB_TEST_NOW").filter(|v| !v.is_empty()) {
         if let Some(dt) = crate::core::timefmt::iso_to_dt(&frozen) {
             return dt;
         }
@@ -135,7 +149,7 @@ pub fn groups() -> &'static BTreeSet<String> {
         return groups;
     }
     static GROUPS: OnceLock<BTreeSet<String>> = OnceLock::new();
-    GROUPS.get_or_init(|| match env_set("BAB_TEST_GROUPS") {
+    GROUPS.get_or_init(|| match test_hook("BAB_TEST_GROUPS") {
         Some(list) => list
             .split(',')
             .filter(|g| !g.is_empty())
@@ -187,7 +201,7 @@ pub fn interactive() -> bool {
     if let Some(interactive) = testing::ctx().interactive {
         return interactive;
     }
-    match env_set("BAB_TEST_INTERACTIVE") {
+    match test_hook("BAB_TEST_INTERACTIVE") {
         Some(flag) => flag == "1",
         None => unsafe { libc::isatty(0) == 1 },
     }
@@ -200,7 +214,7 @@ pub fn hostname() -> &'static str {
         return hostname;
     }
     static HOSTNAME: OnceLock<String> = OnceLock::new();
-    HOSTNAME.get_or_init(|| env_set("BAB_TEST_HOSTNAME").unwrap_or_else(system_hostname))
+    HOSTNAME.get_or_init(|| test_hook("BAB_TEST_HOSTNAME").unwrap_or_else(system_hostname))
 }
 
 fn system_hostname() -> String {

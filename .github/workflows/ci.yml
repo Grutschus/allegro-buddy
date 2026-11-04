@@ -31,5 +31,20 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       - run: cargo fmt --all --check
       - run: cargo clippy --all-targets --locked -- -D warnings
+      - run: cargo clippy --all-targets --locked --features test-hooks -- -D warnings
       - run: cargo test --locked
-  # TODO(P5): compat job (uv-run Python reference goldens vs bab).
+  compat:
+    # Differential test against the Python reference goldens (compat/README.md). The binary
+    # under test needs the BAB_TEST_* hooks, hence `--features test-hooks`.
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: astral-sh/setup-uv@v6
+      - run: cargo build --locked --features test-hooks
+      - run: uv run --locked --project compat pytest compat -q -n auto
+        env:
+          BAB_BIN: target/debug/bab

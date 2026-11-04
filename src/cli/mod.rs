@@ -12,8 +12,8 @@
 //! * Program name: always [`crate::core::CLI_NAME`] (`bab`) in usage lines, independent
 //!   of argv[0] (the Python reference is patched to `bab` the same way). The completion
 //!   env var follows click: `_{BASENAME(argv[0])}_COMPLETE`, so `--prog` scripts work.
-//! * `BAB_TEST_STUB_HANDLERS=1` (test hook) prints the handler call instead of running
-//!   it, see tests/cli_ref.rs.
+//! * `BAB_TEST_STUB_HANDLERS=1` (test hook, only with the `test-hooks` feature) prints the
+//!   handler call instead of running it, see tests/cli_ref.rs.
 //! * `ctx.default_map`: built by [`load_default_map`] from the merged config `[dev]`
 //!   section (`settings::DEV_START_KEYS` maps config keys to `dev start` params) at the
 //!   moment click runs the main group callback; a `ConfigError` becomes
@@ -102,11 +102,14 @@ pub fn run(argv: &[String]) -> Result<()> {
             let action = command
                 .action
                 .expect("parser only returns runnable commands");
+            #[cfg(feature = "test-hooks")]
             let result = if stub_handlers() {
                 stub_dispatch(action, &args)
             } else {
                 dispatch(action, &args)
             };
+            #[cfg(not(feature = "test-hooks"))]
+            let result = dispatch(action, &args);
             result.map_err(|err| match err {
                 AbError::Usage(mut usage)
                     if usage.command_path.is_empty() && usage.show_help_hint =>
@@ -245,10 +248,18 @@ pub fn dispatch(action: Action, args: &Args) -> Result<()> {
 /// `BAB_TEST_STUB_HANDLERS=1`: print the handler call instead of running it (the
 /// reference does the same with `BAB_REF_STUB=1`, see tests/cli_ref), and answer dynamic
 /// completions from fixed job lists. Lets parsing/dispatch be compared without Slurm.
+#[cfg(feature = "test-hooks")]
 pub(crate) fn stub_handlers() -> bool {
     std::env::var_os("BAB_TEST_STUB_HANDLERS").is_some_and(|v| v == "1")
 }
 
+#[cfg(not(feature = "test-hooks"))]
+#[inline(always)]
+pub(crate) fn stub_handlers() -> bool {
+    false
+}
+
+#[cfg(feature = "test-hooks")]
 fn py_repr(value: &parser::Value) -> String {
     match value {
         parser::Value::None => "None".to_owned(),
@@ -260,6 +271,7 @@ fn py_repr(value: &parser::Value) -> String {
     }
 }
 
+#[cfg(feature = "test-hooks")]
 fn stub_dispatch(action: Action, args: &Args) -> Result<()> {
     let call = |name: &str, kwargs: &[(&str, &str)]| {
         let rendered: Vec<String> = kwargs
