@@ -13,7 +13,7 @@
 //! [`remember_nodes`] replaces it, [`loaded_node_facts`] reads without loading,
 //! [`node_facts`] loads on first use. `load_nodes` itself is NOT cached: Python calls Slurm
 //! again on every `load_nodes()` and the call log must match. Unit tests keep the facts in
-//! their [`crate::hooks::testing::Ctx`] instead.
+//! their `crate::hooks::testing::Ctx` instead.
 
 use super::Record;
 use super::gpu::GpuCounts;

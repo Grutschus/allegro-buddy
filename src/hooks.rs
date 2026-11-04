@@ -24,7 +24,7 @@
 //!
 //! Values that cannot change during a run (user, groups, hostname) are cached per process.
 //!
-//! Unit tests (`cfg(test)`) replace all of this with a per-thread [`testing::Ctx`]
+//! Unit tests (`cfg(test)`) replace all of this with a per-thread `testing::Ctx`
 //! (frozen clock, user, groups, fake Slurm, settings, node facts) that
 //! [`crate::core::slurm::parallel`] hands on to its worker threads.
 
@@ -236,6 +236,8 @@ pub mod testing {
         pub hostname: Option<&'static str>,
         /// The Slurm every command goes to; `None` panics (tests must stay hermetic).
         pub slurm: Option<Arc<FakeSlurm>>,
+        /// `settings::slurm_cluster_name()` (default `allegro`).
+        pub cluster_name: Option<&'static str>,
         /// `settings::load()`; defaults to the allegro preset alone (like conftest.py).
         pub settings: &'static Settings,
         /// `_NODE_FACTS`, shared with worker threads of `slurm::parallel`.
@@ -256,6 +258,7 @@ pub mod testing {
                 interactive: None,
                 hostname: None,
                 slurm: None,
+                cluster_name: Some("allegro"),
                 settings: allegro_settings(),
                 node_facts: Arc::default(),
             }
@@ -281,6 +284,11 @@ pub mod testing {
 
         pub fn hostname(mut self, hostname: &str) -> Ctx {
             self.hostname = Some(Box::leak(hostname.to_owned().into_boxed_str()));
+            self
+        }
+
+        pub fn cluster_name(mut self, name: Option<&'static str>) -> Ctx {
+            self.cluster_name = name;
             self
         }
 

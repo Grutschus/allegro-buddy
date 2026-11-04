@@ -34,3 +34,40 @@ pub fn user_accounts(user: &str) -> Result<Vec<Record>> {
     argv.push("format=DefaultAccount,Account,QOS".to_owned());
     super::slurm::run_parsable_rows(&argv, &["DefaultAccount", "Account", "QOS"], false)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
+    use crate::hooks::testing::Ctx;
+
+    #[test]
+    fn associations_for_the_cluster() {
+        let fake = FakeSlurm::always(ok("proj|proj|normal\n|other|long\n"));
+        let _ctx = Ctx::default().slurm(fake.clone()).install();
+        let rows = user_accounts("alice").unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[1]["Account"], "other");
+        assert_eq!(rows[1]["DefaultAccount"], "");
+        assert_eq!(
+            fake.calls()[0],
+            [
+                "sacctmgr",
+                "-nP",
+                "show",
+                "user",
+                "alice",
+                "withassoc",
+                "cluster=allegro",
+                "format=DefaultAccount,Account,QOS"
+            ]
+        );
+        let fake = FakeSlurm::always(fail(1, "down"));
+        let _ctx = Ctx::default()
+            .cluster_name(None)
+            .slurm(fake.clone())
+            .install();
+        assert!(user_accounts("bob").unwrap().is_empty());
+        assert_eq!(fake.calls()[0][6], "format=DefaultAccount,Account,QOS");
+    }
+}

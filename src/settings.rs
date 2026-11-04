@@ -28,7 +28,7 @@
 //!   missing scontrol is just None), regex `^ClusterName\s*=\s*(\S+)` multiline, rc must
 //!   be 0. Write errors ignored. Like Python, the file is read on every call (a failed
 //!   probe is repeated by the next caller).
-//! * Unit tests get their settings from [`crate::hooks::testing::Ctx`] (default: the
+//! * Unit tests get their settings from `crate::hooks::testing::Ctx` (default: the
 //!   allegro preset alone, like `tests/conftest.py`); [`load_with_env`] is the testable
 //!   core of [`load`].
 
@@ -309,9 +309,17 @@ fn slurm_cluster_name_with_env(env: Env<'_>) -> Option<String> {
     name
 }
 
-/// `slurm_cluster_name()`: Slurm's `ClusterName`, cached per host in a file.
+/// `slurm_cluster_name()`: Slurm's `ClusterName`, cached per host in a file. Unit tests
+/// get `Ctx::cluster_name` instead (never touching the real cache).
 pub fn slurm_cluster_name() -> Option<String> {
-    slurm_cluster_name_with_env(&process_env)
+    #[cfg(test)]
+    {
+        crate::hooks::testing::ctx().cluster_name.map(str::to_owned)
+    }
+    #[cfg(not(test))]
+    {
+        slurm_cluster_name_with_env(&process_env)
+    }
 }
 
 static CLUSTER_NAME_LINE: std::sync::LazyLock<regex::Regex> = std::sync::LazyLock::new(|| {

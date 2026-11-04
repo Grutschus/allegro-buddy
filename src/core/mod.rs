@@ -19,6 +19,16 @@
 //! * [`jobs`]: job details/records/history/pending, dev jobs, job output.
 //! * [`reservations`]: reservation loading and helpers.
 //! * [`ui`]: `warn`, `hint`, `render_table`, the `*_text` styling helpers.
+//!
+//! Functions that may load nodes on demand (`nodes::node_facts`,
+//! `nodes::is_gpu_partition(.., detect)`, `partitions::sort_partitions`) return `Result`:
+//! the load itself is unchecked, so the only error is Ctrl-C (`AbError::Interrupted`).
+//!
+//! Unit tests: every Slurm call, the clock/user/groups/hostname hooks, settings and the
+//! node facts come from the per-thread `crate::hooks::testing::Ctx` (with
+//! `slurm::fake::FakeSlurm`); `nodes::testing` and `fit::records` port the builders of
+//! `tests/slurm_records.py`. `difftest` compares the ports with the Python reference
+//! when `BAB_DIFF_PYTHON` points at a Python with `allegro-buddy==2.7`.
 
 pub mod gpu;
 pub mod jobs;
