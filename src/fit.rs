@@ -64,9 +64,20 @@ pub const SKIP_NOT_REQUESTED: &str = "not in requested nodes";
 pub const SKIP_OUTSIDE_RESERVATION: &str = "outside its reservation";
 pub const RESERVATION_PREFIX: &str = "reservation ";
 /// `_SHORT_SKIPS`.
-const SHORT_SKIPS: [(&str, &str); 2] = [(SKIP_DOWN, "down"), (SKIP_OUTSIDE_RESERVATION, "outside reservation")];
+const SHORT_SKIPS: [(&str, &str); 2] = [
+    (SKIP_DOWN, "down"),
+    (SKIP_OUTSIDE_RESERVATION, "outside reservation"),
+];
 /// `_UNUSABLE_FLAGS`.
-const UNUSABLE_FLAGS: [&str; 7] = ["DOWN", "DRAIN", "FAIL", "INVAL", "REBOOT", "MAINT", "NOT_RESPONDING"];
+const UNUSABLE_FLAGS: [&str; 7] = [
+    "DOWN",
+    "DRAIN",
+    "FAIL",
+    "INVAL",
+    "REBOOT",
+    "MAINT",
+    "NOT_RESPONDING",
+];
 
 static GRES_GPU: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"gres/gpu(?::(?P<type>[^:,=]+))?[:=](?P<count>\d+)").expect("_GRES_GPU")
@@ -86,7 +97,10 @@ fn number(record: &JobRecord, key: &str) -> Option<i64> {
             }
             Some(wrapper.get("number").map_or(0, json_int))
         }
-        Value::Number(n) => n.as_i64().or_else(|| n.as_u64().map(|u| u as i64)).filter(|_| !n.is_f64()),
+        Value::Number(n) => n
+            .as_i64()
+            .or_else(|| n.as_u64().map(|u| u as i64))
+            .filter(|_| !n.is_f64()),
         Value::Bool(b) => Some(i64::from(*b)),
         _ => None,
     }
@@ -130,7 +144,10 @@ fn capture_int(text: &str) -> i64 {
 /// `_gres_gpu(spec)`: `gres/gpu:RTX-A5000:4` -> `(Some("RTX-A5000"), 4)`; none -> `(None, 0)`.
 fn gres_gpu(spec: &str) -> (Option<String>, i64) {
     match GRES_GPU.captures(spec) {
-        Some(c) => (c.name("type").map(|m| m.as_str().to_owned()), capture_int(&c["count"])),
+        Some(c) => (
+            c.name("type").map(|m| m.as_str().to_owned()),
+            capture_int(&c["count"]),
+        ),
         None => (None, 0),
     }
 }
@@ -163,8 +180,16 @@ fn array_ranges(spec: &str) -> Vec<(i64, i64, i64)> {
             let (span, step) = item.split_once(':').unwrap_or((item, ""));
             let (start, end) = span.split_once('-').unwrap_or((span, ""));
             let start = pyfmt::parse_int(start)?;
-            let end = pyfmt::parse_int(if end.is_empty() { span.split('-').next().unwrap_or("") } else { end })?;
-            let step = if step.is_empty() { 1 } else { pyfmt::parse_int(step)? };
+            let end = pyfmt::parse_int(if end.is_empty() {
+                span.split('-').next().unwrap_or("")
+            } else {
+                end
+            })?;
+            let step = if step.is_empty() {
+                1
+            } else {
+                pyfmt::parse_int(step)?
+            };
             (step != 0).then_some((start, end + 1, step))
         })
         .collect()
@@ -181,14 +206,21 @@ fn range_len((start, stop, step): (i64, i64, i64)) -> i64 {
 }
 
 fn range_contains((start, stop, step): (i64, i64, i64), value: i64) -> bool {
-    let inside = if step > 0 { start <= value && value < stop } else { stop < value && value <= start };
+    let inside = if step > 0 {
+        start <= value && value < stop
+    } else {
+        stop < value && value <= start
+    };
     inside && (value - start) % step == 0
 }
 
 /// `_SIMPLE_FEATURE.match(token)`: `^[A-Za-z0-9_.-]+$` (`$` also before a final `\n`).
 fn simple_feature(token: &str) -> bool {
     let token = token.strip_suffix('\n').unwrap_or(token);
-    !token.is_empty() && token.bytes().all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'.' | b'-'))
+    !token.is_empty()
+        && token
+            .bytes()
+            .all(|b| b.is_ascii_alphanumeric() || matches!(b, b'_' | b'.' | b'-'))
 }
 
 /// `_features(spec)`: alternatives of required features (see [`JobRequest::features`]).
@@ -202,10 +234,12 @@ fn features(spec: &str) -> Option<Vec<BTreeSet<String>>> {
     }
     if text.contains('|') {
         let tokens: Vec<&str> = text.split('|').collect();
-        return tokens
-            .iter()
-            .all(|t| simple_feature(t))
-            .then(|| tokens.iter().map(|t| BTreeSet::from([t.to_string()])).collect());
+        return tokens.iter().all(|t| simple_feature(t)).then(|| {
+            tokens
+                .iter()
+                .map(|t| BTreeSet::from([t.to_string()]))
+                .collect()
+        });
     }
     let tokens: Vec<&str> = text.split(['&', ',']).collect();
     tokens
@@ -301,7 +335,11 @@ impl NodeCapacity {
 
     /// GPUs of one canonical type (all for None), free or total.
     pub fn gpus(&self, kind: Option<&str>, free: bool) -> i64 {
-        let counts = if free { &self.gpus_free } else { &self.gpus_total };
+        let counts = if free {
+            &self.gpus_free
+        } else {
+            &self.gpus_total
+        };
         counts
             .iter()
             .filter(|(gpu_kind, _)| kind.is_none_or(|k| k == gpu_kind))
@@ -347,12 +385,18 @@ pub struct JobRequest {
 impl JobRequest {
     /// `JobRequest.from_record(record)`.
     pub fn from_record(record: &JobRecord) -> JobRequest {
-        let job_id = record.get("job_id").map_or_else(String::new, pyfmt::json_str);
+        let job_id = record
+            .get("job_id")
+            .map_or_else(String::new, pyfmt::json_str);
         let array_job = number(record, "array_job_id").unwrap_or(0);
         let array_task = number(record, "array_task_id");
         let task_spec = text(record, "array_task_string");
         let (display_id, update_id, pending_tasks) = if !task_spec.is_empty() {
-            (format!("{array_job}_[{task_spec}]"), array_job.to_string(), count_array_tasks(&task_spec))
+            (
+                format!("{array_job}_[{task_spec}]"),
+                array_job.to_string(),
+                count_array_tasks(&task_spec),
+            )
         } else if let (true, Some(task)) = (array_job != 0, array_task) {
             let id = format!("{array_job}_{task}");
             (id.clone(), id, 1)
@@ -360,7 +404,10 @@ impl JobRequest {
             (job_id.clone(), job_id.clone(), 1)
         };
 
-        let node_count = number(record, "node_count").filter(|&n| n != 0).unwrap_or(1).max(1);
+        let node_count = number(record, "node_count")
+            .filter(|&n| n != 0)
+            .unwrap_or(1)
+            .max(1);
         let tres_per_node = text(record, "tres_per_node").into_owned();
         let (gpu_type, mut gpus) = gres_gpu(&tres_per_node);
         let mut gpus_per_job = false;
@@ -368,7 +415,11 @@ impl JobRequest {
             let (_, per_job) = gres_gpu(&text(record, "tres_per_job"));
             let (_, per_task) = gres_gpu(&text(record, "tres_per_task"));
             let tasks = number(record, "tasks").filter(|&t| t != 0).unwrap_or(1);
-            let wanted = if per_job != 0 { per_job } else { per_task * tasks };
+            let wanted = if per_job != 0 {
+                per_job
+            } else {
+                per_task * tasks
+            };
             gpus = pyfmt::ceil_div(wanted, node_count);
             gpus_per_job = gpus > 0;
         }
@@ -384,7 +435,9 @@ impl JobRequest {
         let total_cpus = number(record, "cpus")
             .filter(|&c| c != 0)
             .unwrap_or_else(|| parse_int(tres.get("cpu").map(String::as_str), 1));
-        let min_cpus = number(record, "minimum_cpus_per_node").filter(|&c| c != 0).unwrap_or(1);
+        let min_cpus = number(record, "minimum_cpus_per_node")
+            .filter(|&c| c != 0)
+            .unwrap_or(1);
         let cpus = pyfmt::ceil_div(total_cpus, node_count)
             .max(min_cpus)
             .max(cpus_per_gpu * gpus);
@@ -408,7 +461,10 @@ impl JobRequest {
             display_id,
             update_id,
             user: text(record, "user_name").into_owned(),
-            state: string_list(record, "job_state").into_iter().next().unwrap_or_default(),
+            state: string_list(record, "job_state")
+                .into_iter()
+                .next()
+                .unwrap_or_default(),
             reason: text(record, "state_reason").into_owned(),
             partitions: text(record, "partition")
                 .split(',')
@@ -472,7 +528,11 @@ impl JobRequest {
         if let Some(limit) = mem_per_cpu_limit.filter(|&l| l != 0) {
             cpus = cpus.max(pyfmt::ceil_div(mem, limit));
         }
-        let need = Amount { gpus: self.gpus, cpus, mem };
+        let need = Amount {
+            gpus: self.gpus,
+            cpus,
+            mem,
+        };
         if self.exclusive {
             let total = self.total_on(node);
             return Amount {
@@ -485,13 +545,29 @@ impl JobRequest {
     }
 
     pub fn free_on(&self, node: &NodeCapacity) -> Amount {
-        let gpus = if self.gpus != 0 { node.gpus(self.gpu_kind.as_deref(), true) } else { 0 };
-        Amount { gpus, cpus: node.cpus_free, mem: node.mem_free }
+        let gpus = if self.gpus != 0 {
+            node.gpus(self.gpu_kind.as_deref(), true)
+        } else {
+            0
+        };
+        Amount {
+            gpus,
+            cpus: node.cpus_free,
+            mem: node.mem_free,
+        }
     }
 
     pub fn total_on(&self, node: &NodeCapacity) -> Amount {
-        let gpus = if self.gpus != 0 { node.gpus(self.gpu_kind.as_deref(), false) } else { 0 };
-        Amount { gpus, cpus: node.cpus_total, mem: node.mem_total }
+        let gpus = if self.gpus != 0 {
+            node.gpus(self.gpu_kind.as_deref(), false)
+        } else {
+            0
+        };
+        Amount {
+            gpus,
+            cpus: node.cpus_total,
+            mem: node.mem_total,
+        }
     }
 
     /// The current value in the unit the job was submitted with.
@@ -678,21 +754,36 @@ impl Diagnosis {
     }
 
     pub fn short_count(&self, dim: Dim) -> i64 {
-        self.rows.iter().filter(|row| row.short().contains(&dim)).count() as i64
+        self.rows
+            .iter()
+            .filter(|row| row.short().contains(&dim))
+            .count() as i64
     }
 
     pub fn best_free(&self, dim: Dim) -> i64 {
-        self.rows.iter().map(|row| row.free.get(dim)).max().unwrap_or(0)
+        self.rows
+            .iter()
+            .map(|row| row.free.get(dim))
+            .max()
+            .unwrap_or(0)
     }
 
     pub fn max_total(&self, dim: Dim) -> i64 {
-        self.rows.iter().map(|row| row.total.get(dim)).max().unwrap_or(0)
+        self.rows
+            .iter()
+            .map(|row| row.total.get(dim))
+            .max()
+            .unwrap_or(0)
     }
 
     /// The resource short on the most eligible nodes (ties: [`BOTTLENECK_ORDER`]).
     pub fn bottleneck(&self) -> Dim {
         let dims = self.dims();
-        let order: Vec<Dim> = BOTTLENECK_ORDER.iter().copied().filter(|d| dims.contains(d)).collect();
+        let order: Vec<Dim> = BOTTLENECK_ORDER
+            .iter()
+            .copied()
+            .filter(|d| dims.contains(d))
+            .collect();
         let mut best = order[0];
         for &dim in &order[1..] {
             if self.short_count(dim) > self.short_count(best) {
@@ -780,7 +871,11 @@ pub fn mem_per_cpu_limits(partitions: &[Partition]) -> MemLimits {
 /// `find_record(records, jobid)`: by id, else array match (pending first).
 pub fn find_record<'a>(records: &'a [JobRecord], jobid: &str) -> Option<&'a JobRecord> {
     let wanted = pyfmt::strip(jobid);
-    let id_of = |record: &JobRecord| record.get("job_id").map_or_else(String::new, pyfmt::json_str);
+    let id_of = |record: &JobRecord| {
+        record
+            .get("job_id")
+            .map_or_else(String::new, pyfmt::json_str)
+    };
     if let Some(record) = records.iter().find(|r| id_of(r) == wanted) {
         return Some(record);
     }
@@ -802,7 +897,9 @@ pub fn find_record<'a>(records: &'a [JobRecord], jobid: &str) -> Option<&'a JobR
                     && !task.is_empty()
                     && task.bytes().all(|b| b.is_ascii_digit())
                     && task.parse::<i64>().is_ok_and(|t| {
-                        array_ranges(&spec).into_iter().any(|r| range_contains(r, t))
+                        array_ranges(&spec)
+                            .into_iter()
+                            .any(|r| range_contains(r, t))
                     }))
         })
         .collect();
@@ -860,7 +957,9 @@ fn limit_for(node: &NodeCapacity, partitions: &[String], limits: &MemLimits) -> 
 }
 
 fn fits_with(request: &JobRequest, row: &NodeFit) -> bool {
-    request.free_on(&row.node).covers(&request.need_on(&row.node, row.limit))
+    request
+        .free_on(&row.node)
+        .covers(&request.need_on(&row.node, row.limit))
 }
 
 /// `_candidates(request, rows, knob)`: values below the current one, largest first.
@@ -1017,11 +1116,19 @@ pub fn format_free(dim: Dim, value: i64) -> String {
 
 /// `format_need(dim, value)`.
 pub fn format_need(dim: Dim, value: i64) -> String {
-    if dim == Dim::Mem { format_mem(value) } else { value.to_string() }
+    if dim == Dim::Mem {
+        format_mem(value)
+    } else {
+        value.to_string()
+    }
 }
 
 fn plural(count: i64, word: &str) -> String {
-    if count == 1 { format!("{count} {word}") } else { format!("{count} {word}s") }
+    if count == 1 {
+        format!("{count} {word}")
+    } else {
+        format!("{count} {word}s")
+    }
 }
 
 /// `skip_summary(skipped, short=)`: `2 reserved, 1 down` (short) or
@@ -1042,7 +1149,11 @@ pub fn skip_summary(skipped: &[(String, i64)], short: bool) -> String {
     }
     let mut totals: Vec<(String, i64)> = Vec::new();
     for (reason, count) in skipped {
-        let label = if reason.starts_with(RESERVATION_PREFIX) { "reserved" } else { reason.as_str() };
+        let label = if reason.starts_with(RESERVATION_PREFIX) {
+            "reserved"
+        } else {
+            reason.as_str()
+        };
         let label = SHORT_SKIPS
             .iter()
             .find(|(long, _)| *long == label)
@@ -1070,7 +1181,10 @@ pub fn never_fits_reason(diagnosis: &Diagnosis) -> String {
                 Dim::Cpus => " CPUs",
                 Dim::Mem => "",
             };
-            return format!("max {}{unit}/node", format_free(dim, diagnosis.max_total(dim)));
+            return format!(
+                "max {}{unit}/node",
+                format_free(dim, diagnosis.max_total(dim))
+            );
         }
     }
     if diagnosis.request.node_count > 1 {
@@ -1272,7 +1386,13 @@ mod tests {
         NodeCapacity::from_node(&a5000_dict(name, gpus_free, cpus_free, mem_free, "MIXED"))
     }
 
-    fn a5000_in(name: &str, gpus_free: i64, cpus_free: i64, mem_free: i64, state: &'static str) -> NodeCapacity {
+    fn a5000_in(
+        name: &str,
+        gpus_free: i64,
+        cpus_free: i64,
+        mem_free: i64,
+        state: &'static str,
+    ) -> NodeCapacity {
         NodeCapacity::from_node(&a5000_dict(name, gpus_free, cpus_free, mem_free, state))
     }
 
@@ -1295,7 +1415,13 @@ mod tests {
     // TestHelpers
     #[test]
     fn helpers() {
-        for (token, mb) in [("40G", 40960), ("4096M", 4096), ("1.5G", 1536), ("2T", 2097152), ("512K", 1)] {
+        for (token, mb) in [
+            ("40G", 40960),
+            ("4096M", 4096),
+            ("1.5G", 1536),
+            ("2T", 2097152),
+            ("512K", 1),
+        ] {
             assert_eq!(mem_to_mb(token), mb, "{token}");
         }
         assert_eq!(mem_to_mb("12g"), 12288);
@@ -1308,16 +1434,28 @@ mod tests {
         }
         let partitions: Vec<Partition> = [
             vec![("PartitionName", "small"), ("MaxMemPerCPU", "3000")],
-            vec![("PartitionName", "gpu"), ("MaxMemPerCPU", "9223372036854775807")],
+            vec![
+                ("PartitionName", "gpu"),
+                ("MaxMemPerCPU", "9223372036854775807"),
+            ],
             vec![("PartitionName", "big"), ("MaxMemPerNode", "UNLIMITED")],
         ]
         .iter()
-        .map(|pairs| pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect())
+        .map(|pairs| {
+            pairs
+                .iter()
+                .map(|(k, v)| (k.to_string(), v.to_string()))
+                .collect()
+        })
         .collect();
         let limits = mem_per_cpu_limits(&partitions);
         assert_eq!(
             limits,
-            MemLimits::from([("small".into(), Some(3000)), ("gpu".into(), None), ("big".into(), None)])
+            MemLimits::from([
+                ("small".into(), Some(3000)),
+                ("gpu".into(), None),
+                ("big".into(), None)
+            ])
         );
         assert_eq!(count_array_tasks("0-11"), 12);
         assert_eq!(count_array_tasks("1,3,5-7"), 5);
@@ -1333,7 +1471,10 @@ mod tests {
     #[test]
     fn per_gpu_job() {
         let r = req();
-        assert_eq!((r.gpus, r.gpu_type.as_deref(), r.gpu_kind.as_deref()), (4, Some("RTX-A5000"), Some("rtx_a5000")));
+        assert_eq!(
+            (r.gpus, r.gpu_type.as_deref(), r.gpu_kind.as_deref()),
+            (4, Some("RTX-A5000"), Some("rtx_a5000"))
+        );
         assert_eq!((r.cpus, r.cpus_per_gpu), (16, Some(4)));
         assert_eq!((r.mem_mode, r.mem_value), (MemMode::Gpu, 10240));
         assert_eq!(r.amount(), amount(4, 16, 40960));
@@ -1346,11 +1487,20 @@ mod tests {
         assert_eq!(r.display_id, "65177_[0-11]");
         assert_eq!(r.update_id, "65177");
         assert_eq!(r.pending_tasks, 12);
-        let r = request(array_job(), json!({"job_id": 64268, "array_job_id": n(Some(64267)), "array_task_id": n(Some(3)), "array_task_string": ""}));
-        assert_eq!((r.display_id.as_str(), r.update_id.as_str()), ("64267_3", "64267_3"));
+        let r = request(
+            array_job(),
+            json!({"job_id": 64268, "array_job_id": n(Some(64267)), "array_task_id": n(Some(3)), "array_task_string": ""}),
+        );
+        assert_eq!(
+            (r.display_id.as_str(), r.update_id.as_str()),
+            ("64267_3", "64267_3")
+        );
         assert_eq!(r.pending_tasks, 1);
         let r = JobRequest::from_record(&plain_gpu_job());
-        assert_eq!((r.display_id.as_str(), r.update_id.as_str()), ("65160", "65160"));
+        assert_eq!(
+            (r.display_id.as_str(), r.update_id.as_str()),
+            ("65160", "65160")
+        );
     }
 
     #[test]
@@ -1363,18 +1513,29 @@ mod tests {
 
     #[test]
     fn memory_requests() {
-        let r = request(cpu_job(), json!({"cpus": n(Some(2)), "memory_per_node": n(None), "memory_per_cpu": n(Some(2048)), "tres_req_str": "cpu=2,mem=8G,node=1,billing=2"}));
+        let r = request(
+            cpu_job(),
+            json!({"cpus": n(Some(2)), "memory_per_node": n(None), "memory_per_cpu": n(Some(2048)), "tres_req_str": "cpu=2,mem=8G,node=1,billing=2"}),
+        );
         assert_eq!(r.mem_mode, MemMode::Cpu);
         assert_eq!(r.amount(), amount(0, 2, 4096));
         let r = JobRequest::from_record(&cpu_job());
         assert_eq!((r.gpus, r.gpu_kind.as_deref()), (0, None));
         assert_eq!(r.amount(), amount(0, 4, 57344));
-        assert_eq!(request(cpu_job(), json!({"memory_per_node": n(None)})).amount().mem, 57344);
+        assert_eq!(
+            request(cpu_job(), json!({"memory_per_node": n(None)}))
+                .amount()
+                .mem,
+            57344
+        );
     }
 
     #[test]
     fn gpus_per_job_exclusive_het_and_plan() {
-        let r = request(array_job(), json!({"tres_per_node": "", "tres_per_job": "gres/gpu:2", "cpus": n(Some(8))}));
+        let r = request(
+            array_job(),
+            json!({"tres_per_node": "", "tres_per_job": "gres/gpu:2", "cpus": n(Some(8))}),
+        );
         assert_eq!(r.gpus, 2);
         assert!(r.gpus_per_job);
         assert!(request(array_job(), json!({"shared": ["none"]})).exclusive);
@@ -1385,9 +1546,18 @@ mod tests {
         assert_eq!(r.partitions, strings(&["gpu", "gpushort"]));
         assert_eq!(r.reason, "Resources");
         assert_eq!(r.state, "PENDING");
-        assert_eq!((r.planned_nodes.as_str(), r.planned_start), ("gpu127", Some(1791411962)));
-        assert_eq!(JobRequest::from_record(&plain_gpu_job()).planned_start, None);
-        let r = request(array_job(), json!({"resv_name": "lab", "excluded_nodes": "gpu[101-102]", "required_nodes": "gpu105"}));
+        assert_eq!(
+            (r.planned_nodes.as_str(), r.planned_start),
+            ("gpu127", Some(1791411962))
+        );
+        assert_eq!(
+            JobRequest::from_record(&plain_gpu_job()).planned_start,
+            None
+        );
+        let r = request(
+            array_job(),
+            json!({"resv_name": "lab", "excluded_nodes": "gpu[101-102]", "required_nodes": "gpu105"}),
+        );
         assert_eq!(r.reservation, "lab");
         assert_eq!(r.excluded, set(&["gpu101", "gpu102"]));
         assert_eq!(r.required, set(&["gpu105"]));
@@ -1397,8 +1567,14 @@ mod tests {
     fn feature_expressions() {
         let f = |spec: &str| request(array_job(), json!({"features": spec})).features;
         assert_eq!(f(""), Some(vec![]));
-        assert_eq!(f("Intel&RTX-A5000"), Some(vec![set(&["Intel", "RTX-A5000"])]));
-        assert_eq!(f("RTX-A5000|GTX-1080ti"), Some(vec![set(&["RTX-A5000"]), set(&["GTX-1080ti"])]));
+        assert_eq!(
+            f("Intel&RTX-A5000"),
+            Some(vec![set(&["Intel", "RTX-A5000"])])
+        );
+        assert_eq!(
+            f("RTX-A5000|GTX-1080ti"),
+            Some(vec![set(&["RTX-A5000"]), set(&["GTX-1080ti"])])
+        );
         assert_eq!(f("[RTX-A5000|GTX-1080ti]*2"), None);
         assert_eq!(f("a&b|c"), None);
         let r = request(plain_gpu_job(), json!({"features": "RTX-A5000|GTX-1080ti"}));
@@ -1411,51 +1587,106 @@ mod tests {
         assert_eq!(req().with_knob(Dim::Gpus, 2).amount(), amount(2, 8, 20480));
         assert_eq!(req().knob_value(Dim::Cpus), 4);
         assert_eq!(req().with_knob(Dim::Cpus, 3).amount(), amount(4, 12, 40960));
-        let per_cpu = request(cpu_job(), json!({"memory_per_node": n(None), "memory_per_cpu": n(Some(2048))}));
+        let per_cpu = request(
+            cpu_job(),
+            json!({"memory_per_node": n(None), "memory_per_cpu": n(Some(2048))}),
+        );
         assert_eq!(per_cpu.with_knob(Dim::Cpus, 2).amount(), amount(0, 2, 4096));
-        assert_eq!(req().with_knob(Dim::Mem, 2048).amount(), amount(4, 16, 8192));
-        assert_eq!(JobRequest::from_record(&plain_gpu_job()).with_knob(Dim::Mem, 9216).amount().mem, 9216);
-        let flags: Vec<&str> = [Dim::Mem, Dim::Cpus, Dim::Gpus].iter().map(|&k| req().knob_flag(k)).collect();
+        assert_eq!(
+            req().with_knob(Dim::Mem, 2048).amount(),
+            amount(4, 16, 8192)
+        );
+        assert_eq!(
+            JobRequest::from_record(&plain_gpu_job())
+                .with_knob(Dim::Mem, 9216)
+                .amount()
+                .mem,
+            9216
+        );
+        let flags: Vec<&str> = [Dim::Mem, Dim::Cpus, Dim::Gpus]
+            .iter()
+            .map(|&k| req().knob_flag(k))
+            .collect();
         assert_eq!(flags, ["--mem-per-gpu", "--cpus-per-gpu", "GPUs"]);
         let plain = request(plain_gpu_job(), json!({"cpus_per_tres": ""}));
-        assert_eq!([plain.knob_flag(Dim::Mem), plain.knob_flag(Dim::Cpus)], ["--mem", "CPUs"]);
+        assert_eq!(
+            [plain.knob_flag(Dim::Mem), plain.knob_flag(Dim::Cpus)],
+            ["--mem", "CPUs"]
+        );
         assert_eq!(per_cpu.knob_flag(Dim::Mem), "--mem-per-cpu");
     }
 
     // TestUpdateCommand
     #[test]
     fn update_commands() {
-        let per_cpu = with(&cpu_job(), json!({"memory_per_node": n(None), "memory_per_cpu": n(Some(2048))}));
+        let per_cpu = with(
+            &cpu_job(),
+            json!({"memory_per_node": n(None), "memory_per_cpu": n(Some(2048))}),
+        );
         let cases = [
             (array_job(), Dim::Mem, 2048, "MemPerTres=gres/gpu:2048"),
             (array_job(), Dim::Cpus, 3, "CpusPerTres=gres/gpu:3"),
-            (array_job(), Dim::Gpus, 2, "TresPerNode=gres/gpu:RTX-A5000:2"),
+            (
+                array_job(),
+                Dim::Gpus,
+                2,
+                "TresPerNode=gres/gpu:RTX-A5000:2",
+            ),
             (plain_gpu_job(), Dim::Mem, 9216, "MinMemoryNode=9216"),
             (per_cpu, Dim::Mem, 1024, "MinMemoryCPU=1024"),
         ];
         for (record, knob, value, field) in cases {
-            let command = JobRequest::from_record(&record).update_command(knob, value).unwrap();
+            let command = JobRequest::from_record(&record)
+                .update_command(knob, value)
+                .unwrap();
             assert_eq!(&command[..2], ["scontrol", "update"]);
             assert_eq!(command[3], field);
         }
-        assert_eq!(req().update_command(Dim::Mem, 2048).unwrap()[2], "JobId=65177");
-        let r = request(array_job(), json!({"tres_per_node": "gres/gpu:RTX-A5000:4,gres/tmp:10G"}));
-        assert_eq!(r.update_command(Dim::Gpus, 2).unwrap()[3], "TresPerNode=gres/gpu:RTX-A5000:2,gres/tmp:10G");
-        let r = request(array_job(), json!({"tres_per_node": "", "tres_per_job": "gres/gpu:4"}));
+        assert_eq!(
+            req().update_command(Dim::Mem, 2048).unwrap()[2],
+            "JobId=65177"
+        );
+        let r = request(
+            array_job(),
+            json!({"tres_per_node": "gres/gpu:RTX-A5000:4,gres/tmp:10G"}),
+        );
+        assert_eq!(
+            r.update_command(Dim::Gpus, 2).unwrap()[3],
+            "TresPerNode=gres/gpu:RTX-A5000:2,gres/tmp:10G"
+        );
+        let r = request(
+            array_job(),
+            json!({"tres_per_node": "", "tres_per_job": "gres/gpu:4"}),
+        );
         assert_eq!(r.update_command(Dim::Gpus, 2), None);
-        let cpus_per_task = with(&cpu_job(), json!({"minimum_cpus_per_node": n(Some(4)), "cpus_per_task": n(Some(4)), "tres_per_task": "cpu=4"}));
-        let plain = with(&plain_gpu_job(), json!({"cpus_per_tres": "", "node_count": n(Some(2)), "cpus": n(Some(8))}));
+        let cpus_per_task = with(
+            &cpu_job(),
+            json!({"minimum_cpus_per_node": n(Some(4)), "cpus_per_task": n(Some(4)), "tres_per_task": "cpu=4"}),
+        );
+        let plain = with(
+            &plain_gpu_job(),
+            json!({"cpus_per_tres": "", "node_count": n(Some(2)), "cpus": n(Some(8))}),
+        );
         for record in [cpus_per_task, plain] {
-            assert_eq!(JobRequest::from_record(&record).update_command(Dim::Cpus, 2), None);
+            assert_eq!(
+                JobRequest::from_record(&record).update_command(Dim::Cpus, 2),
+                None
+            );
         }
     }
 
     // TestCpuFloor
     #[test]
     fn cpu_floor() {
-        let r = request(plain_gpu_job(), json!({"cpus": n(Some(2)), "minimum_cpus_per_node": n(Some(2))}));
+        let r = request(
+            plain_gpu_job(),
+            json!({"cpus": n(Some(2)), "minimum_cpus_per_node": n(Some(2))}),
+        );
         assert_eq!(r.amount().cpus, 4);
-        let r = request(array_job(), json!({"cpus_per_tres": "gres/gpu:1", "cpus": n(Some(4)), "minimum_cpus_per_node": n(Some(4))}));
+        let r = request(
+            array_job(),
+            json!({"cpus_per_tres": "gres/gpu:1", "cpus": n(Some(4)), "minimum_cpus_per_node": n(Some(4))}),
+        );
         assert_eq!(r.with_knob(Dim::Gpus, 2).amount().cpus, 4);
         let r = request(array_job(), json!({"minimum_cpus_per_node": n(Some(12))}));
         assert_eq!(r.with_knob(Dim::Cpus, 2).amount().cpus, 12);
@@ -1464,7 +1695,10 @@ mod tests {
     // TestFindRecord
     #[test]
     fn find_records() {
-        let split_task = with(&cpu_job(), json!({"job_id": 64268, "array_task_id": n(Some(3)), "array_task_string": "", "job_state": ["RUNNING"]}));
+        let split_task = with(
+            &cpu_job(),
+            json!({"job_id": 64268, "array_task_id": n(Some(3)), "array_task_string": "", "job_state": ["RUNNING"]}),
+        );
         let records = vec![plain_gpu_job(), array_job(), split_task.clone(), cpu_job()];
         for jobid in ["65177", "65177_[0-11]", "65177_3", " 65177 "] {
             assert_eq!(find_record(&records, jobid), Some(&records[1]), "{jobid}");
@@ -1479,16 +1713,45 @@ mod tests {
     // TestNodeCapacity
     #[test]
     fn node_capacity() {
-        let n = node("gpu105", NodeSpec { gpus_used: 3, cpus_alloc: 6, mem_alloc: 87040, ..NodeSpec::default() });
+        let n = node(
+            "gpu105",
+            NodeSpec {
+                gpus_used: 3,
+                cpus_alloc: 6,
+                mem_alloc: 87040,
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!((n.cpus_free, n.mem_free), (10, 4960));
         assert_eq!(n.gpus(Some("rtx_a5000"), true), 1);
         assert_eq!(n.gpus(None, false), 4);
         assert_eq!(n.gpus(Some("gtx_1080ti"), false), 0);
-        let n = node("gpu105", NodeSpec { spec_mem: 2048, ..NodeSpec::default() });
+        let n = node(
+            "gpu105",
+            NodeSpec {
+                spec_mem: 2048,
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!((n.mem_total, n.mem_free), (89952, 89952));
-        let n = node("gpu105", NodeSpec { gres_used: Some("gpu:2".into()), ..NodeSpec::default() });
+        let n = node(
+            "gpu105",
+            NodeSpec {
+                gres_used: Some("gpu:2".into()),
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!(n.gpus(Some("rtx_a5000"), true), 2);
-        assert!(node("gpu105", NodeSpec { state: "MIXED+PLANNED", ..NodeSpec::default() }).planned());
+        assert!(
+            node(
+                "gpu105",
+                NodeSpec {
+                    state: "MIXED+PLANNED",
+                    ..NodeSpec::default()
+                }
+            )
+            .planned()
+        );
         assert!(!gpu105().planned());
         assert_eq!(cpu_node("cmp221", cpu_spec()).gpus(None, false), 0);
     }
@@ -1497,62 +1760,225 @@ mod tests {
     #[test]
     fn eligibility() {
         assert_eq!(skip_reason(&req(), &gpu105()), None);
-        let reserved = node("gpu105", NodeSpec { state: "IDLE+RESERVED+MAINTENANCE", reservation: "maint", ..NodeSpec::default() });
-        assert_eq!(skip_reason(&req(), &reserved).as_deref(), Some("reservation maint"));
-        let down = node("gpu105", NodeSpec { state: "DOWN+DRAIN+NOT_RESPONDING", ..NodeSpec::default() });
+        let reserved = node(
+            "gpu105",
+            NodeSpec {
+                state: "IDLE+RESERVED+MAINTENANCE",
+                reservation: "maint",
+                ..NodeSpec::default()
+            },
+        );
+        assert_eq!(
+            skip_reason(&req(), &reserved).as_deref(),
+            Some("reservation maint")
+        );
+        let down = node(
+            "gpu105",
+            NodeSpec {
+                state: "DOWN+DRAIN+NOT_RESPONDING",
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!(skip_reason(&req(), &down).as_deref(), Some(SKIP_DOWN));
-        let gtx = node("gpu105", NodeSpec { gres: "gpu:GTX-1080ti:4".into(), features: "Intel,GTX-1080ti", ..NodeSpec::default() });
+        let gtx = node(
+            "gpu105",
+            NodeSpec {
+                gres: "gpu:GTX-1080ti:4".into(),
+                features: "Intel,GTX-1080ti",
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!(skip_reason(&req(), &gtx).as_deref(), Some(SKIP_GPU));
-        let cpu = cpu_node("cmp221", NodeSpec { partitions: "big", ..cpu_spec() });
-        assert_eq!(skip_reason(&request(array_job(), json!({"partition": "gpu,big"})), &cpu).as_deref(), Some(SKIP_GPU));
+        let cpu = cpu_node(
+            "cmp221",
+            NodeSpec {
+                partitions: "big",
+                ..cpu_spec()
+            },
+        );
+        assert_eq!(
+            skip_reason(&request(array_job(), json!({"partition": "gpu,big"})), &cpu).as_deref(),
+            Some(SKIP_GPU)
+        );
         let r = request(plain_gpu_job(), json!({"features": "Intel&X4112"}));
-        let n = node("gpu105", NodeSpec { features: "Intel,RTX-A5000", ..NodeSpec::default() });
+        let n = node(
+            "gpu105",
+            NodeSpec {
+                features: "Intel,RTX-A5000",
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!(skip_reason(&r, &n).as_deref(), Some(SKIP_FEATURE));
         assert_eq!(skip_reason(&r, &gpu105()), None);
         let r = request(plain_gpu_job(), json!({"features": "[Intel|AMD]*2"}));
-        assert_eq!(skip_reason(&r, &node("gpu105", NodeSpec { features: "", ..NodeSpec::default() })), None);
-        assert_eq!(skip_reason(&request(array_job(), json!({"excluded_nodes": "gpu105"})), &gpu105()).as_deref(), Some(SKIP_EXCLUDED));
-        assert_eq!(skip_reason(&request(array_job(), json!({"required_nodes": "gpu106"})), &gpu105()).as_deref(), Some(SKIP_NOT_REQUESTED));
+        assert_eq!(
+            skip_reason(
+                &r,
+                &node(
+                    "gpu105",
+                    NodeSpec {
+                        features: "",
+                        ..NodeSpec::default()
+                    }
+                )
+            ),
+            None
+        );
+        assert_eq!(
+            skip_reason(
+                &request(array_job(), json!({"excluded_nodes": "gpu105"})),
+                &gpu105()
+            )
+            .as_deref(),
+            Some(SKIP_EXCLUDED)
+        );
+        assert_eq!(
+            skip_reason(
+                &request(array_job(), json!({"required_nodes": "gpu106"})),
+                &gpu105()
+            )
+            .as_deref(),
+            Some(SKIP_NOT_REQUESTED)
+        );
         let lab = request(array_job(), json!({"resv_name": "lab"}));
-        assert_eq!(skip_reason(&lab, &gpu105()).as_deref(), Some(SKIP_OUTSIDE_RESERVATION));
-        let n = node("gpu105", NodeSpec { state: "IDLE+RESERVED+MAINTENANCE", reservation: "lab", ..NodeSpec::default() });
+        assert_eq!(
+            skip_reason(&lab, &gpu105()).as_deref(),
+            Some(SKIP_OUTSIDE_RESERVATION)
+        );
+        let n = node(
+            "gpu105",
+            NodeSpec {
+                state: "IDLE+RESERVED+MAINTENANCE",
+                reservation: "lab",
+                ..NodeSpec::default()
+            },
+        );
         assert_eq!(skip_reason(&lab, &n), None);
     }
 
     #[test]
     fn skipped_and_unavailable() {
-        let gtx = node("gpu084", NodeSpec { gres: "gpu:GTX-1080ti:4".into(), features: "Intel,GTX-1080ti", ..NodeSpec::default() });
-        let d = diag(&req(), &[gtx, node("gpu061", NodeSpec { reservation: "maint", ..NodeSpec::default() })]);
-        assert_eq!(d.skipped, [(SKIP_GPU.to_owned(), 1), ("reservation maint".to_owned(), 1)]);
+        let gtx = node(
+            "gpu084",
+            NodeSpec {
+                gres: "gpu:GTX-1080ti:4".into(),
+                features: "Intel,GTX-1080ti",
+                ..NodeSpec::default()
+            },
+        );
+        let d = diag(
+            &req(),
+            &[
+                gtx,
+                node(
+                    "gpu061",
+                    NodeSpec {
+                        reservation: "maint",
+                        ..NodeSpec::default()
+                    },
+                ),
+            ],
+        );
+        assert_eq!(
+            d.skipped,
+            [
+                (SKIP_GPU.to_owned(), 1),
+                ("reservation maint".to_owned(), 1)
+            ]
+        );
         assert_eq!(d.unavailable(), [("reservation maint".to_owned(), 1)]);
         let d = diag(&req(), &[gpu105(), cpu_node("cmp221", cpu_spec())]);
-        assert_eq!(d.rows.iter().map(|r| r.node.name.as_str()).collect::<Vec<_>>(), ["gpu105"]);
+        assert_eq!(
+            d.rows
+                .iter()
+                .map(|r| r.node.name.as_str())
+                .collect::<Vec<_>>(),
+            ["gpu105"]
+        );
         assert!(d.skipped.is_empty());
         let nodes = [
-            node("gpu061", NodeSpec { reservation: "maint", ..NodeSpec::default() }),
-            node("gpu064", NodeSpec { reservation: "maint", ..NodeSpec::default() }),
-            node("gpu067", NodeSpec { state: "DOWN", ..NodeSpec::default() }),
+            node(
+                "gpu061",
+                NodeSpec {
+                    reservation: "maint",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "gpu064",
+                NodeSpec {
+                    reservation: "maint",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "gpu067",
+                NodeSpec {
+                    state: "DOWN",
+                    ..NodeSpec::default()
+                },
+            ),
         ];
         let d = diag(&req(), &nodes);
-        assert_eq!(d.skipped, [("reservation maint".to_owned(), 2), (SKIP_DOWN.to_owned(), 1)]);
+        assert_eq!(
+            d.skipped,
+            [
+                ("reservation maint".to_owned(), 2),
+                (SKIP_DOWN.to_owned(), 1)
+            ]
+        );
         assert_eq!(d.unavailable(), d.skipped);
         assert_eq!(skip_summary(&d.skipped, true), "2 reserved, 1 down");
-        assert_eq!(skip_summary(&d.skipped, false), "2 in reservation maint, 1 down or drained");
+        assert_eq!(
+            skip_summary(&d.skipped, false),
+            "2 in reservation maint, 1 down or drained"
+        );
         let mixed = [
             (SKIP_DOWN.to_owned(), 1),
             ("reservation a".to_owned(), 3),
             (SKIP_OUTSIDE_RESERVATION.to_owned(), 1),
             ("reservation b".to_owned(), 1),
         ];
-        assert_eq!(skip_summary(&mixed, true), "1 down, 4 reserved, 1 outside reservation");
+        assert_eq!(
+            skip_summary(&mixed, true),
+            "1 down, 4 reserved, 1 outside reservation"
+        );
         // most_common: ties keep first-seen order.
         let nodes = [
-            node("a", NodeSpec { state: "DOWN", ..NodeSpec::default() }),
-            node("b", NodeSpec { reservation: "x", ..NodeSpec::default() }),
-            node("c", NodeSpec { reservation: "y", ..NodeSpec::default() }),
-            node("d", NodeSpec { reservation: "y", ..NodeSpec::default() }),
+            node(
+                "a",
+                NodeSpec {
+                    state: "DOWN",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "b",
+                NodeSpec {
+                    reservation: "x",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "c",
+                NodeSpec {
+                    reservation: "y",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "d",
+                NodeSpec {
+                    reservation: "y",
+                    ..NodeSpec::default()
+                },
+            ),
         ];
-        let reasons: Vec<String> = diag(&req(), &nodes).skipped.into_iter().map(|(r, _)| r).collect();
+        let reasons: Vec<String> = diag(&req(), &nodes)
+            .skipped
+            .into_iter()
+            .map(|(r, _)| r)
+            .collect();
         assert_eq!(reasons, ["reservation y", SKIP_DOWN, "reservation x"]);
     }
 
@@ -1565,7 +1991,13 @@ mod tests {
     }
 
     fn idle(name: &str) -> NodeCapacity {
-        node(name, NodeSpec { state: "IDLE", ..NodeSpec::default() })
+        node(
+            name,
+            NodeSpec {
+                state: "IDLE",
+                ..NodeSpec::default()
+            },
+        )
     }
 
     // TestFitsNow
@@ -1579,23 +2011,37 @@ mod tests {
         let nodes: Vec<NodeCapacity> = (0..3).map(|i| idle(&format!("gpu11{i}"))).collect();
         assert_eq!(queue_hint(&diag(&req(), &nodes)), "fits now on gpu110 +2");
         let plain = JobRequest::from_record(&plain_gpu_job());
-        assert_eq!(queue_hint(&diag(&plain, &[idle("gpu105")])), "fits now · held for higher prio");
+        assert_eq!(
+            queue_hint(&diag(&plain, &[idle("gpu105")])),
+            "fits now · held for higher prio"
+        );
     }
 
     #[test]
     fn multi_node_and_exclusive() {
-        let r = request(plain_gpu_job(), json!({"node_count": n(Some(2)), "cpus": n(Some(8))}));
+        let r = request(
+            plain_gpu_job(),
+            json!({"node_count": n(Some(2)), "cpus": n(Some(8))}),
+        );
         let full = a5000("gpu111", 0, 16, 92000);
         assert!(!diag(&r, &[idle("gpu110"), full]).fits_now());
         assert!(diag(&r, &[idle("gpu110"), idle("gpu111")]).fits_now());
         let r = request(cpu_job(), json!({"shared": ["none"], "cpus": n(Some(56))}));
-        let small = cpu_node("cmp201", NodeSpec { partitions: "big", cpus: 16, mem: 126000, ..cpu_spec() });
+        let small = cpu_node(
+            "cmp201",
+            NodeSpec {
+                partitions: "big",
+                cpus: 16,
+                mem: 126000,
+                ..cpu_spec()
+            },
+        );
         let d = diag(&r, &[small]);
         assert!(!d.fits_now());
         assert!(d.never_fits());
         let r = request(plain_gpu_job(), json!({"shared": ["none"]}));
         let busy = a5000("gpu105", 3, 12, 80000);
-        assert!(!diag(&r, &[busy.clone()]).fits_now());
+        assert!(!diag(&r, std::slice::from_ref(&busy)).fits_now());
         assert!(diag(&r, &[busy]).fixes.is_empty());
         assert!(diag(&r, &[idle("gpu110")]).fits_now());
     }
@@ -1610,12 +2056,24 @@ mod tests {
         assert_eq!(d.bottleneck(), Dim::Gpus);
         assert!(d.fixes.is_empty());
         assert_eq!(queue_hint(&d), "GPU-bound · max 2/4 free");
-        let d = diag(&req(), &[a5000("gpu105", 2, 16, 5000), a5000("gpu110", 4, 8, 10080)]);
+        let d = diag(
+            &req(),
+            &[a5000("gpu105", 2, 16, 5000), a5000("gpu110", 4, 8, 10080)],
+        );
         assert!(d.fixes.is_empty());
         assert_eq!(d.bottleneck(), Dim::Mem);
         assert_eq!(queue_hint(&d), "mem-bound · max 9G/40G free");
         assert_eq!(diag(&req(), &live_a5000()).planned(), set(&["gpu106"]));
-        let d = diag(&JobRequest::from_record(&cpu_job()), &[cpu_node("cmp221", NodeSpec { partitions: "big", ..cpu_spec() })]);
+        let d = diag(
+            &JobRequest::from_record(&cpu_job()),
+            &[cpu_node(
+                "cmp221",
+                NodeSpec {
+                    partitions: "big",
+                    ..cpu_spec()
+                },
+            )],
+        );
         assert_eq!(d.dims(), [Dim::Cpus, Dim::Mem]);
     }
 
@@ -1624,21 +2082,59 @@ mod tests {
     fn never_fits() {
         let r = request(cpu_job(), json!({"cpus": n(Some(20))}));
         let nodes = [
-            cpu_node("cmp221", NodeSpec { partitions: "big", cpus: 16, ..cpu_spec() }),
-            cpu_node("cmp222", NodeSpec { partitions: "big", cpus: 16, ..cpu_spec() }),
+            cpu_node(
+                "cmp221",
+                NodeSpec {
+                    partitions: "big",
+                    cpus: 16,
+                    ..cpu_spec()
+                },
+            ),
+            cpu_node(
+                "cmp222",
+                NodeSpec {
+                    partitions: "big",
+                    cpus: 16,
+                    ..cpu_spec()
+                },
+            ),
         ];
         let d = diag(&r, &nodes);
         assert!(d.never_fits());
         assert_eq!(queue_hint(&d), "never fits: max 16 CPUs/node");
         assert_eq!(d.fix_for(Dim::Cpus).unwrap().new, 16);
         let nodes = [
-            node("gpu061", NodeSpec { reservation: "maint", ..NodeSpec::default() }),
-            node("gpu064", NodeSpec { reservation: "maint", ..NodeSpec::default() }),
-            node("gpu067", NodeSpec { state: "DOWN", ..NodeSpec::default() }),
+            node(
+                "gpu061",
+                NodeSpec {
+                    reservation: "maint",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "gpu064",
+                NodeSpec {
+                    reservation: "maint",
+                    ..NodeSpec::default()
+                },
+            ),
+            node(
+                "gpu067",
+                NodeSpec {
+                    state: "DOWN",
+                    ..NodeSpec::default()
+                },
+            ),
         ];
-        assert_eq!(queue_hint(&diag(&req(), &nodes)), "no usable nodes (2 reserved, 1 down)");
+        assert_eq!(
+            queue_hint(&diag(&req(), &nodes)),
+            "no usable nodes (2 reserved, 1 down)"
+        );
         assert_eq!(queue_hint(&diag(&req(), &[])), "no usable nodes");
-        let r = request(plain_gpu_job(), json!({"node_count": n(Some(3)), "cpus": n(Some(12))}));
+        let r = request(
+            plain_gpu_job(),
+            json!({"node_count": n(Some(3)), "cpus": n(Some(12))}),
+        );
         let d = diag(&r, &[idle("a"), idle("b")]);
         assert_eq!(never_fits_reason(&d), "needs 3 nodes, 2 are big enough");
     }
@@ -1646,10 +2142,24 @@ mod tests {
     // TestFixes
     #[test]
     fn memory_fix_rounds_down() {
-        let d = diag(&JobRequest::from_record(&plain_gpu_job()), &[live_a5000()[1].clone()]);
+        let d = diag(
+            &JobRequest::from_record(&plain_gpu_job()),
+            &[live_a5000()[1].clone()],
+        );
         let fix = d.fix_for(Dim::Mem).unwrap();
-        assert_eq!((fix.old, fix.new, fix.nodes.clone()), (12288, 9216, strings(&["gpu106"])));
-        assert_eq!(fix.command, Some(strings(&["scontrol", "update", "JobId=65160", "MinMemoryNode=9216"])));
+        assert_eq!(
+            (fix.old, fix.new, fix.nodes.clone()),
+            (12288, 9216, strings(&["gpu106"]))
+        );
+        assert_eq!(
+            fix.command,
+            Some(strings(&[
+                "scontrol",
+                "update",
+                "JobId=65160",
+                "MinMemoryNode=9216"
+            ]))
+        );
         assert_eq!(queue_hint(&d), "starts now w/ mem ≤ 9G");
     }
 
@@ -1659,7 +2169,15 @@ mod tests {
         let fix = d.fix_for(Dim::Gpus).unwrap();
         assert_eq!(fix.new, 2);
         assert_eq!(fix.request.amount(), amount(2, 8, 20480));
-        assert_eq!(fix.command, Some(strings(&["scontrol", "update", "JobId=65177", "TresPerNode=gres/gpu:RTX-A5000:2"])));
+        assert_eq!(
+            fix.command,
+            Some(strings(&[
+                "scontrol",
+                "update",
+                "JobId=65177",
+                "TresPerNode=gres/gpu:RTX-A5000:2"
+            ]))
+        );
         assert_eq!(d.lead_fix(), Some(fix));
         assert_eq!(queue_hint(&d), "starts now w/ ≤ 2 GPUs");
     }
@@ -1669,12 +2187,24 @@ mod tests {
         let d = diag(&req(), &[a5000("gpu110", 4, 16, 9000)]);
         let fix = d.fix_for(Dim::Mem).unwrap();
         assert_eq!(fix.new, 2048);
-        assert_eq!(fix.command.as_ref().unwrap().last().unwrap(), "MemPerTres=gres/gpu:2048");
+        assert_eq!(
+            fix.command.as_ref().unwrap().last().unwrap(),
+            "MemPerTres=gres/gpu:2048"
+        );
         assert_eq!(queue_hint(&d), "starts now w/ mem ≤ 2G/GPU");
-        let fix = diag(&req(), &[a5000("gpu110", 4, 12, 92000)]).fix_for(Dim::Cpus).cloned().unwrap();
+        let fix = diag(&req(), &[a5000("gpu110", 4, 12, 92000)])
+            .fix_for(Dim::Cpus)
+            .cloned()
+            .unwrap();
         assert_eq!(fix.new, 3);
-        assert_eq!(fix.command.unwrap().last().unwrap(), "CpusPerTres=gres/gpu:3");
-        assert_eq!(fix_phrase(&diag(&req(), &[a5000("gpu110", 4, 12, 92000)]).fixes[0]), "≤ 3 CPUs/GPU");
+        assert_eq!(
+            fix.command.unwrap().last().unwrap(),
+            "CpusPerTres=gres/gpu:3"
+        );
+        assert_eq!(
+            fix_phrase(&diag(&req(), &[a5000("gpu110", 4, 12, 92000)]).fixes[0]),
+            "≤ 3 CPUs/GPU"
+        );
     }
 
     #[test]
@@ -1684,26 +2214,52 @@ mod tests {
         let fix = d.fix_for(Dim::Cpus).unwrap();
         assert_eq!((fix.new, fix.command.clone()), (2, None));
         assert_eq!(queue_hint(&d), "starts now w/ ≤ 2 CPUs");
-        let r = request(cpu_job(), json!({"minimum_cpus_per_node": n(Some(4)), "cpus_per_task": n(Some(4)), "tres_per_task": "cpu=4", "memory_per_node": n(Some(8192))}));
-        let cpu = cpu_node("cmp221", NodeSpec { partitions: "big", cpus: 48, cpus_alloc: 46, ..cpu_spec() });
+        let r = request(
+            cpu_job(),
+            json!({"minimum_cpus_per_node": n(Some(4)), "cpus_per_task": n(Some(4)), "tres_per_task": "cpu=4", "memory_per_node": n(Some(8192))}),
+        );
+        let cpu = cpu_node(
+            "cmp221",
+            NodeSpec {
+                partitions: "big",
+                cpus: 48,
+                cpus_alloc: 46,
+                ..cpu_spec()
+            },
+        );
         let fix = diag(&r, &[cpu]).fix_for(Dim::Cpus).cloned().unwrap();
         assert_eq!((fix.new, fix.command), (2, None));
-        let r = request(plain_gpu_job(), json!({"cpus": n(Some(2)), "minimum_cpus_per_node": n(Some(2))}));
+        let r = request(
+            plain_gpu_job(),
+            json!({"cpus": n(Some(2)), "minimum_cpus_per_node": n(Some(2))}),
+        );
         assert!(!diag(&r, &[a5000("gpu110", 1, 2, 92000)]).fits_now());
     }
 
     #[test]
     fn lead_fix_choice() {
-        let r = request(plain_gpu_job(), json!({"cpus_per_tres": "", "cpus": n(Some(8))}));
-        let d = diag(&r, &[a5000("gpu110", 1, 8, 10080), a5000("gpu111", 1, 2, 92000)]);
+        let r = request(
+            plain_gpu_job(),
+            json!({"cpus_per_tres": "", "cpus": n(Some(8))}),
+        );
+        let d = diag(
+            &r,
+            &[a5000("gpu110", 1, 8, 10080), a5000("gpu111", 1, 2, 92000)],
+        );
         assert_eq!(d.lead_fix().unwrap().knob, Dim::Mem);
-        let d = diag(&r, &[a5000("gpu110", 1, 8, 6144), a5000("gpu111", 1, 6, 92000)]);
+        let d = diag(
+            &r,
+            &[a5000("gpu110", 1, 8, 6144), a5000("gpu111", 1, 6, 92000)],
+        );
         let (cpu_fix, lead) = (d.fix_for(Dim::Cpus).unwrap(), d.lead_fix().unwrap());
         assert_eq!(cpu_fix.command, None);
         assert_eq!(lead.knob, Dim::Mem);
         assert!(cpu_fix.cut() < lead.cut());
         assert!(!queue_hint(&d).contains("CPU"));
-        let d = diag(&req(), &[a5000("gpu110", 4, 16, 30000), a5000("gpu111", 3, 12, 30720)]);
+        let d = diag(
+            &req(),
+            &[a5000("gpu110", 4, 16, 30000), a5000("gpu111", 3, 12, 30720)],
+        );
         let (gpu_fix, default) = (d.fix_for(Dim::Gpus).unwrap(), d.lead_fix().unwrap());
         assert!(gpu_fix.cut() < default.cut());
         assert_eq!(default.knob, Dim::Mem);
@@ -1711,11 +2267,29 @@ mod tests {
 
     #[test]
     fn multi_node_and_special_fixes() {
-        let r = request(plain_gpu_job(), json!({"node_count": n(Some(2)), "cpus": n(Some(8))}));
-        let fix = diag(&r, &[a5000("gpu110", 1, 8, 10080), a5000("gpu111", 1, 8, 8000)]).fix_for(Dim::Mem).cloned().unwrap();
+        let r = request(
+            plain_gpu_job(),
+            json!({"node_count": n(Some(2)), "cpus": n(Some(8))}),
+        );
+        let fix = diag(
+            &r,
+            &[a5000("gpu110", 1, 8, 10080), a5000("gpu111", 1, 8, 8000)],
+        )
+        .fix_for(Dim::Mem)
+        .cloned()
+        .unwrap();
         assert_eq!(fix.new, 7168);
-        let r = request(array_job(), json!({"tres_per_node": "", "tres_per_job": "gres/gpu:4"}));
-        assert_eq!(diag(&r, &[a5000("gpu110", 2, 8, 20480)]).fix_for(Dim::Gpus).unwrap().command, None);
+        let r = request(
+            array_job(),
+            json!({"tres_per_node": "", "tres_per_job": "gres/gpu:4"}),
+        );
+        assert_eq!(
+            diag(&r, &[a5000("gpu110", 2, 8, 20480)])
+                .fix_for(Dim::Gpus)
+                .unwrap()
+                .command,
+            None
+        );
         let r = request(plain_gpu_job(), json!({"memory_per_node": n(Some(0))}));
         let d = diag(&r, &[a5000("gpu110", 4, 16, 80000)]);
         assert_eq!(d.rows[0].short(), [Dim::Mem]);
@@ -1724,10 +2298,24 @@ mod tests {
 
     #[test]
     fn max_mem_per_cpu_raises_the_cpu_need() {
-        let r = request(cpu_job(), json!({"partition": "small", "memory_per_node": n(Some(16384))}));
-        let cpu = cpu_node("cmp221", NodeSpec { cpus: 48, cpus_alloc: 44, ..cpu_spec() });
-        assert!(diag(&r, &[cpu.clone()]).fits_now());
-        let d = diagnose(&r, &[cpu], &MemLimits::from([("small".to_owned(), Some(3000))]));
+        let r = request(
+            cpu_job(),
+            json!({"partition": "small", "memory_per_node": n(Some(16384))}),
+        );
+        let cpu = cpu_node(
+            "cmp221",
+            NodeSpec {
+                cpus: 48,
+                cpus_alloc: 44,
+                ..cpu_spec()
+            },
+        );
+        assert!(diag(&r, std::slice::from_ref(&cpu)).fits_now());
+        let d = diagnose(
+            &r,
+            &[cpu],
+            &MemLimits::from([("small".to_owned(), Some(3000))]),
+        );
         assert_eq!(d.rows[0].need.cpus, 6);
         assert_eq!(d.rows[0].short(), [Dim::Cpus]);
     }
@@ -1742,9 +2330,23 @@ mod tests {
             a5000("d", 0, 0, 36704),
             a5000("e", 2, 12, 10200),
         ];
-        assert_eq!(diag(&req(), &nodes).slots, [Slot { free: amount(2, 12, 9216), nodes: strings(&["a", "e"]) }]);
-        let nodes = [a5000("a", 1, 16, 90000), a5000("b", 2, 4, 8000), a5000("c", 3, 1, 2000)];
-        let gpus: Vec<i64> = diag(&req(), &nodes).slots.iter().map(|s| s.free.gpus).collect();
+        assert_eq!(
+            diag(&req(), &nodes).slots,
+            [Slot {
+                free: amount(2, 12, 9216),
+                nodes: strings(&["a", "e"])
+            }]
+        );
+        let nodes = [
+            a5000("a", 1, 16, 90000),
+            a5000("b", 2, 4, 8000),
+            a5000("c", 3, 1, 2000),
+        ];
+        let gpus: Vec<i64> = diag(&req(), &nodes)
+            .slots
+            .iter()
+            .map(|s| s.free.gpus)
+            .collect();
         assert_eq!(gpus, [3, 2, 1]);
     }
 }

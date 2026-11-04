@@ -23,7 +23,15 @@ pub fn split_whitespace(s: &str) -> impl Iterator<Item = &str> {
 fn is_line_break(c: char) -> bool {
     matches!(
         c,
-        '\n' | '\r' | '\x0b' | '\x0c' | '\x1c' | '\x1d' | '\x1e' | '\u{85}' | '\u{2028}' | '\u{2029}'
+        '\n' | '\r'
+            | '\x0b'
+            | '\x0c'
+            | '\x1c'
+            | '\x1d'
+            | '\x1e'
+            | '\u{85}'
+            | '\u{2028}'
+            | '\u{2029}'
     )
 }
 
@@ -88,7 +96,10 @@ fn without_digit_underscores(s: &str) -> Option<std::borrow::Cow<'_, str>> {
     let bytes = s.as_bytes();
     for (i, &b) in bytes.iter().enumerate() {
         if b == b'_'
-            && (i == 0 || i + 1 == bytes.len() || !bytes[i - 1].is_ascii_digit() || !bytes[i + 1].is_ascii_digit())
+            && (i == 0
+                || i + 1 == bytes.len()
+                || !bytes[i - 1].is_ascii_digit()
+                || !bytes[i + 1].is_ascii_digit())
         {
             return None;
         }
@@ -126,7 +137,10 @@ pub fn parse_float(s: &str) -> Option<f64> {
     if matches!(lower.as_str(), "inf" | "infinity" | "nan") {
         return cleaned.parse().ok();
     }
-    if !body.bytes().all(|b| b.is_ascii_digit() || matches!(b, b'.' | b'e' | b'E' | b'+' | b'-')) {
+    if !body
+        .bytes()
+        .all(|b| b.is_ascii_digit() || matches!(b, b'.' | b'e' | b'E' | b'+' | b'-'))
+    {
         return None;
     }
     cleaned.parse().ok()
@@ -181,7 +195,11 @@ fn is_unprintable(c: char) -> bool {
 /// `\xNN` / `\uNNNN` / `\UNNNNNNNN`. Used by `{x!r}` in messages, e.g.
 /// `unknown --gpu-type 'foo'`.
 pub fn repr_str(s: &str) -> String {
-    let quote = if s.contains('\'') && !s.contains('"') { '"' } else { '\'' };
+    let quote = if s.contains('\'') && !s.contains('"') {
+        '"'
+    } else {
+        '\''
+    };
     let mut out = String::with_capacity(s.len() + 2);
     out.push(quote);
     for c in s.chars() {
@@ -402,7 +420,10 @@ mod tests {
         assert_eq!(repr_str("it's"), "\"it's\"");
         assert_eq!(repr_str("a'b\"c"), "'a\\'b\"c'");
         assert_eq!(repr_str("gpus\n"), "'gpus\\n'");
-        assert_eq!(repr_str("t\tb\\\x07\u{a0}é\u{200b}"), "'t\\tb\\\\\\x07\\xa0é\\u200b'");
+        assert_eq!(
+            repr_str("t\tb\\\x07\u{a0}é\u{200b}"),
+            "'t\\tb\\\\\\x07\\xa0é\\u200b'"
+        );
         assert_eq!(repr_list(&["cluster", "dev"]), "['cluster', 'dev']");
         assert_eq!(repr_list::<&str>(&[]), "[]");
     }
@@ -487,11 +508,17 @@ mod tests {
 
     #[test]
     fn splitlines_like_python() {
-        assert_eq!(splitlines("a\nb\r\nc\rd\x0be\u{2028}f\n"), ["a", "b", "c", "d", "e", "f"]);
+        assert_eq!(
+            splitlines("a\nb\r\nc\rd\x0be\u{2028}f\n"),
+            ["a", "b", "c", "d", "e", "f"]
+        );
         assert_eq!(splitlines("\n\nx"), ["", "", "x"]);
         assert!(splitlines("").is_empty());
         assert_eq!(decode_text(b"a\r\nb\rc\xff".to_vec()), "a\nb\nc\u{fffd}");
-        assert_eq!(split_whitespace(" 1\t2\x1c3 ").collect::<Vec<_>>(), ["1", "2", "3"]);
+        assert_eq!(
+            split_whitespace(" 1\t2\x1c3 ").collect::<Vec<_>>(),
+            ["1", "2", "3"]
+        );
     }
 
     #[test]

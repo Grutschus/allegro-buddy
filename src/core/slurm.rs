@@ -117,7 +117,9 @@ fn spawn<S: AsRef<str>>(argv: &[S], capture: bool) -> io::Result<Output> {
             return Err(io::ErrorKind::NotFound.into());
         };
         let mut command = Command::new(program.as_ref());
-        command.args(args.iter().map(AsRef::as_ref)).stdin(Stdio::inherit());
+        command
+            .args(args.iter().map(AsRef::as_ref))
+            .stdin(Stdio::inherit());
         if capture {
             let output = command.output()?;
             Ok(Output {
@@ -147,11 +149,17 @@ fn exit_status(status: std::process::ExitStatus) -> i32 {
 /// (EACCES, ...) end up on the same path here instead of a traceback.
 fn not_found<S: AsRef<str>>(argv: &[S]) -> RunError {
     RunError::NotFound {
-        argv0: argv.first().map(|a| a.as_ref().to_owned()).unwrap_or_default(),
+        argv0: argv
+            .first()
+            .map(|a| a.as_ref().to_owned())
+            .unwrap_or_default(),
     }
 }
 
-fn check_output<S: AsRef<str>>(argv: &[S], output: Output) -> std::result::Result<Output, RunError> {
+fn check_output<S: AsRef<str>>(
+    argv: &[S],
+    output: Output,
+) -> std::result::Result<Output, RunError> {
     if output.success() {
         return Ok(output);
     }
@@ -275,8 +283,13 @@ pub fn parallel<'a, T: Send>(tasks: Vec<Task<'a, T>>) -> Vec<T> {
         return tasks.into_iter().map(|task| task()).collect();
     }
     let count = tasks.len();
-    let queue: std::sync::Mutex<std::vec::IntoIter<(usize, Task<'a, T>)>> =
-        std::sync::Mutex::new(tasks.into_iter().enumerate().collect::<Vec<_>>().into_iter());
+    let queue: std::sync::Mutex<std::vec::IntoIter<(usize, Task<'a, T>)>> = std::sync::Mutex::new(
+        tasks
+            .into_iter()
+            .enumerate()
+            .collect::<Vec<_>>()
+            .into_iter(),
+    );
     let results: std::sync::Mutex<Vec<Option<T>>> =
         std::sync::Mutex::new((0..count).map(|_| None).collect());
     #[cfg(test)]
@@ -348,7 +361,9 @@ pub mod fake {
     }
 
     impl FakeSlurm {
-        pub fn new(handler: impl Fn(&[String]) -> Option<Output> + Send + Sync + 'static) -> Arc<FakeSlurm> {
+        pub fn new(
+            handler: impl Fn(&[String]) -> Option<Output> + Send + Sync + 'static,
+        ) -> Arc<FakeSlurm> {
             Arc::new(FakeSlurm {
                 handler: Box::new(handler),
                 calls: Mutex::default(),
@@ -400,18 +415,33 @@ mod tests {
     #[test]
     fn returns_completed_process_on_success() {
         let _ctx = Ctx::default().slurm(FakeSlurm::always(ok("ok"))).install();
-        assert_eq!(run(&["scontrol", "show", "partition"], true).unwrap().stdout, "ok");
+        assert_eq!(
+            run(&["scontrol", "show", "partition"], true)
+                .unwrap()
+                .stdout,
+            "ok"
+        );
     }
 
     #[test]
     fn nonzero_returncode_fails_with_the_python_message() {
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(fail(1, "bad\n"))).install();
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(fail(1, "bad\n")))
+            .install();
         let err = try_run(&["scontrol", "show", "bad thing"], true).unwrap_err();
         assert_eq!(err.message(), "scontrol show 'bad thing' failed: bad");
-        let quiet = FakeSlurm::always(Output { status: 3, ..ok(" out ") });
+        let quiet = FakeSlurm::always(Output {
+            status: 3,
+            ..ok(" out ")
+        });
         let _ctx = Ctx::default().slurm(quiet).install();
-        assert_eq!(try_run(&["x"], true).unwrap_err().message(), "x failed: out");
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(fail(-9, ""))).install();
+        assert_eq!(
+            try_run(&["x"], true).unwrap_err().message(),
+            "x failed: out"
+        );
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(fail(-9, "")))
+            .install();
         assert_eq!(
             try_run(&["x"], true).unwrap_err().message(),
             "x failed: command failed with exit code -9"
@@ -420,7 +450,9 @@ mod tests {
 
     #[test]
     fn check_false_allows_nonzero_returncode() {
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(fail(1, ""))).install();
+        let _ctx = Ctx::default()
+            .slurm(FakeSlurm::always(fail(1, "")))
+            .install();
         assert_eq!(run(&["sacct"], false).unwrap().status, 1);
     }
 
@@ -428,7 +460,9 @@ mod tests {
     fn file_not_found() {
         let _ctx = Ctx::default().slurm(FakeSlurm::new(|_| None)).install();
         assert_eq!(
-            try_run(&["nonexistent_command"], true).unwrap_err().message(),
+            try_run(&["nonexistent_command"], true)
+                .unwrap_err()
+                .message(),
             "required command not found: nonexistent_command"
         );
         assert_eq!(
@@ -447,13 +481,17 @@ mod tests {
         let _ctx = Ctx::default().slurm(fake.clone()).install();
         let tasks: Vec<Task<'_, String>> = (0..20)
             .map(|i| -> Task<'_, String> {
-                Box::new(move || run(&["echo".to_owned(), i.to_string()], true).unwrap().stdout)
+                Box::new(move || {
+                    run(&["echo".to_owned(), i.to_string()], true)
+                        .unwrap()
+                        .stdout
+                })
             })
             .collect();
         let expected: Vec<String> = (0..20).map(|i| i.to_string()).collect();
         assert_eq!(parallel(tasks), expected);
         assert_eq!(fake.calls().len(), 20);
-        let (a, b, c) = join3(|| 1, || crate::hooks::user(), || "c");
+        let (a, b, c) = join3(|| 1, crate::hooks::user, || "c");
         assert_eq!((a, b, c), (1, "alice", "c"));
     }
 }

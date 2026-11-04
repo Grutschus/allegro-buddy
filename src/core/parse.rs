@@ -188,6 +188,9 @@ fn split_top_level(spec: &str) -> Vec<&str> {
 fn hostlist_part(part: &str) -> Option<(&str, &str, &str)> {
     let open = part.find('[')?;
     let prefix = &part[..open];
+    if prefix.contains(']') {
+        return None;
+    }
     let rest = &part[open + 1..];
     let close = rest.find(']')?;
     let ranges = &rest[..close];
@@ -276,22 +279,34 @@ mod tests {
     use super::*;
 
     fn rec(pairs: &[(&str, &str)]) -> Record {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     #[test]
     fn prop_line_basics() {
-        assert_eq!(parse_prop_line("PartitionName=gpu"), rec(&[("PartitionName", "gpu")]));
+        assert_eq!(
+            parse_prop_line("PartitionName=gpu"),
+            rec(&[("PartitionName", "gpu")])
+        );
         let r = parse_prop_line("PartitionName=gpu AllowGroups=ALL State=UP");
         assert_eq!(r["PartitionName"], "gpu");
         assert_eq!(r["AllowGroups"], "ALL");
         assert_eq!(r["State"], "UP");
         let r = parse_prop_line("PartitionName=gpu TRESBillingWeights=CPU=1.0,Mem=0.1G State=UP");
         assert_eq!(r["TRESBillingWeights"], "CPU=1.0,Mem=0.1G");
-        assert_eq!(parse_prop_line("PartitionName=gpu DenyUsers= State=UP")["DenyUsers"], "");
+        assert_eq!(
+            parse_prop_line("PartitionName=gpu DenyUsers= State=UP")["DenyUsers"],
+            ""
+        );
         assert!(parse_prop_line("").is_empty());
         assert!(parse_prop_line("   ").is_empty());
-        assert_eq!(parse_prop_line("  PartitionName=gpu  ")["PartitionName"], "gpu");
+        assert_eq!(
+            parse_prop_line("  PartitionName=gpu  ")["PartitionName"],
+            "gpu"
+        );
     }
 
     #[test]
@@ -329,7 +344,13 @@ mod tests {
         let r = parse_prop_line("junk A=1 =x B=2 =C=3 D==4 E=5  ");
         assert_eq!(
             r,
-            rec(&[("A", "1 =x"), ("B", "2"), ("=C", "3"), ("D", "=4"), ("E", "5")])
+            rec(&[
+                ("A", "1 =x"),
+                ("B", "2"),
+                ("=C", "3"),
+                ("D", "=4"),
+                ("E", "5")
+            ])
         );
         let r = parse_prop_line("A=1 x =y z");
         assert_eq!(r, rec(&[("A", "1 x =y z")]));
@@ -344,7 +365,10 @@ mod tests {
     #[test]
     fn pipe_rows() {
         let headers = ["JobIDRaw", "JobName", "State", "ExitCode", "End", "Reason"];
-        let rows = parse_pipe_rows("12345|training|COMPLETED|0:0|2024-01-01T10:00:00|None", &headers);
+        let rows = parse_pipe_rows(
+            "12345|training|COMPLETED|0:0|2024-01-01T10:00:00|None",
+            &headers,
+        );
         assert_eq!(rows.len(), 1);
         assert_eq!(rows[0]["JobIDRaw"], "12345");
         assert_eq!(rows[0]["State"], "COMPLETED");
@@ -356,14 +380,22 @@ mod tests {
         assert_eq!(rows.len(), 2);
         assert_eq!(rows[1]["JobIDRaw"], "12346");
         assert!(parse_pipe_rows("", &["A", "B", "C"]).is_empty());
-        assert_eq!(parse_pipe_rows("\n\n12345|job|COMPLETED|0:0\n\n", &["A", "B", "C", "D"]).len(), 1);
+        assert_eq!(
+            parse_pipe_rows("\n\n12345|job|COMPLETED|0:0\n\n", &["A", "B", "C", "D"]).len(),
+            1
+        );
         let rows = parse_pipe_rows("val1|val2", &["A", "B", "C", "D"]);
-        assert_eq!(rows[0], rec(&[("A", "val1"), ("B", "val2"), ("C", ""), ("D", "")]));
+        assert_eq!(
+            rows[0],
+            rec(&[("A", "val1"), ("B", "val2"), ("C", ""), ("D", "")])
+        );
         assert_eq!(parse_pipe_rows("val1||val3", &["A", "B", "C"])[0]["B"], "");
         let output = "12345|12345|training|COMPLETED|0:0|2024-05-01T10:00:00|None\n\
             12346|12346|inference|FAILED|137:0|2024-05-02T11:30:00|None\n\
             12347|12347|data_prep|CANCELLED by 12000|0:9|2024-05-03T09:00:00|None\n";
-        let headers = ["JobIDRaw", "JobID", "JobName", "State", "ExitCode", "End", "Reason"];
+        let headers = [
+            "JobIDRaw", "JobID", "JobName", "State", "ExitCode", "End", "Reason",
+        ];
         let rows = parse_pipe_rows(output, &headers);
         assert_eq!(rows.len(), 3);
         assert_eq!(rows[2]["State"], "CANCELLED by 12000");
@@ -430,7 +462,15 @@ mod tests {
         assert_eq!(normalize_sacct_state("RUNNING+"), "RUNNING");
         assert_eq!(normalize_sacct_state("  FAILED  "), "FAILED");
         assert_eq!(normalize_sacct_state("NODE_FAIL"), "NODE_FAIL");
-        for state in ["COMPLETED", "FAILED", "CANCELLED", "TIMEOUT", "OUT_OF_MEMORY", "NODE_FAIL", "PREEMPTED"] {
+        for state in [
+            "COMPLETED",
+            "FAILED",
+            "CANCELLED",
+            "TIMEOUT",
+            "OUT_OF_MEMORY",
+            "NODE_FAIL",
+            "PREEMPTED",
+        ] {
             assert!(job_state_is_finished(state), "{state}");
         }
         for state in ["RUNNING", "PENDING", "SUSPENDED", "COMPLETING", ""] {
@@ -473,24 +513,34 @@ mod tests {
     #[test]
     fn nodelists() {
         assert_eq!(expand_nodelist("gpu001"), ["gpu001"]);
-        assert_eq!(expand_nodelist("gpu001,gpu002,gpu003"), ["gpu001", "gpu002", "gpu003"]);
+        assert_eq!(
+            expand_nodelist("gpu001,gpu002,gpu003"),
+            ["gpu001", "gpu002", "gpu003"]
+        );
         assert!(expand_nodelist("").is_empty());
         assert!(expand_nodelist("(null)").is_empty());
         assert!(expand_nodelist("None").is_empty());
-        assert_eq!(expand_nodelist("gpu[001-003]"), ["gpu001", "gpu002", "gpu003"]);
+        assert_eq!(
+            expand_nodelist("gpu[001-003]"),
+            ["gpu001", "gpu002", "gpu003"]
+        );
         let set = expand_hostlist(Some("gpu[101-103,105],cmp001"));
         assert_eq!(
             set.into_iter().collect::<Vec<_>>(),
             ["cmp001", "gpu101", "gpu102", "gpu103", "gpu105"]
         );
         assert_eq!(
-            expand_hostlist(Some("gpu[060-061]")).into_iter().collect::<Vec<_>>(),
+            expand_hostlist(Some("gpu[060-061]"))
+                .into_iter()
+                .collect::<Vec<_>>(),
             ["gpu060", "gpu061"]
         );
         assert!(expand_hostlist(Some("")).is_empty());
         assert!(expand_hostlist(None).is_empty());
         assert_eq!(
-            expand_hostlist(Some("n[1-2,x]a, m[9]-ib ,k[a]b[c]")).into_iter().collect::<Vec<_>>(),
+            expand_hostlist(Some("n[1-2,x]a, m[9]-ib ,k[a]b[c]"))
+                .into_iter()
+                .collect::<Vec<_>>(),
             ["k[a]b[c]", "m9-ib", "n[1-2,x]a"]
         );
     }

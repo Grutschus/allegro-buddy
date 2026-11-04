@@ -51,7 +51,8 @@ pub fn now() -> NaiveDateTime {
     }
     let now = chrono::Local::now().naive_local();
     use chrono::Timelike;
-    now.with_nanosecond(now.nanosecond() / 1000 * 1000).unwrap_or(now)
+    now.with_nanosecond(now.nanosecond() / 1000 * 1000)
+        .unwrap_or(now)
 }
 
 /// Python `getpass.getuser()`: first non-empty of `LOGNAME`, `USER`, `LNAME`, `USERNAME`,
@@ -88,8 +89,20 @@ fn passwd_entry(user: Option<&str>) -> Option<(String, String)> {
         let mut result: *mut libc::passwd = std::ptr::null_mut();
         let rc = unsafe {
             match &c_user {
-                Some(name) => libc::getpwnam_r(name.as_ptr(), &mut pwd, buf.as_mut_ptr(), buf.len(), &mut result),
-                None => libc::getpwuid_r(libc::getuid(), &mut pwd, buf.as_mut_ptr(), buf.len(), &mut result),
+                Some(name) => libc::getpwnam_r(
+                    name.as_ptr(),
+                    &mut pwd,
+                    buf.as_mut_ptr(),
+                    buf.len(),
+                    &mut result,
+                ),
+                None => libc::getpwuid_r(
+                    libc::getuid(),
+                    &mut pwd,
+                    buf.as_mut_ptr(),
+                    buf.len(),
+                    &mut result,
+                ),
             }
         };
         if rc == libc::ERANGE && buf.len() < 1 << 20 {
@@ -99,7 +112,11 @@ fn passwd_entry(user: Option<&str>) -> Option<(String, String)> {
         if rc != 0 || result.is_null() {
             return None;
         }
-        let text = |ptr: *const libc::c_char| unsafe { std::ffi::CStr::from_ptr(ptr) }.to_string_lossy().into_owned();
+        let text = |ptr: *const libc::c_char| {
+            unsafe { std::ffi::CStr::from_ptr(ptr) }
+                .to_string_lossy()
+                .into_owned()
+        };
         return Some((text(pwd.pw_name), text(pwd.pw_dir)));
     }
 }
@@ -147,7 +164,8 @@ fn group_name(gid: libc::gid_t) -> Option<String> {
     loop {
         let mut grp: libc::group = unsafe { std::mem::zeroed() };
         let mut result: *mut libc::group = std::ptr::null_mut();
-        let rc = unsafe { libc::getgrgid_r(gid, &mut grp, buf.as_mut_ptr(), buf.len(), &mut result) };
+        let rc =
+            unsafe { libc::getgrgid_r(gid, &mut grp, buf.as_mut_ptr(), buf.len(), &mut result) };
         if rc == libc::ERANGE && buf.len() < 1 << 24 {
             buf.resize(buf.len() * 2, 0);
             continue;

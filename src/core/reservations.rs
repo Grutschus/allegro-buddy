@@ -6,8 +6,8 @@
 use super::parse::{expand_nodelist, is_nullish, parse_prop_line};
 use super::timefmt::{delta_micros, iso_to_dt};
 use super::{Record, RecordExt};
-use crate::pyfmt;
 use crate::error::Result;
+use crate::pyfmt;
 use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, HashMap};
 
@@ -125,7 +125,10 @@ mod tests {
     use chrono::TimeDelta;
 
     fn rec(pairs: &[(&str, &str)]) -> Record {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     fn set(items: &[&str]) -> BTreeSet<String> {
@@ -139,19 +142,37 @@ mod tests {
         let r = rec(&[("Users", "alice,bob"), ("Groups", "")]);
         assert!(!user_can_use_reservation(&r, "carol", &set(&[])));
         let r = rec(&[("Users", ""), ("Groups", "researchers")]);
-        assert!(user_can_use_reservation(&r, "alice", &set(&["researchers"])));
+        assert!(user_can_use_reservation(
+            &r,
+            "alice",
+            &set(&["researchers"])
+        ));
         assert!(!user_can_use_reservation(&r, "alice", &set(&["students"])));
         let r = rec(&[("Users", "(null)"), ("Groups", "researchers")]);
-        assert!(user_can_use_reservation(&r, "alice", &set(&["researchers"])));
+        assert!(user_can_use_reservation(
+            &r,
+            "alice",
+            &set(&["researchers"])
+        ));
         let r = rec(&[("Users", "(null)"), ("Groups", "(null)")]);
         assert!(!user_can_use_reservation(&r, "alice", &set(&["everyone"])));
     }
 
     #[test]
     fn active() {
-        assert_eq!(active_reservations(&[rec(&[("ReservationName", "maint1"), ("State", "ACTIVE")])]).len(), 1);
-        assert!(active_reservations(&[rec(&[("ReservationName", "future"), ("State", "INACTIVE")])]).is_empty());
-        assert_eq!(active_reservations(&[rec(&[("ReservationName", "x"), ("State", "active")])]).len(), 1);
+        assert_eq!(
+            active_reservations(&[rec(&[("ReservationName", "maint1"), ("State", "ACTIVE")])])
+                .len(),
+            1
+        );
+        assert!(
+            active_reservations(&[rec(&[("ReservationName", "future"), ("State", "INACTIVE")])])
+                .is_empty()
+        );
+        assert_eq!(
+            active_reservations(&[rec(&[("ReservationName", "x"), ("State", "active")])]).len(),
+            1
+        );
         let mixed = [
             rec(&[("ReservationName", "maint"), ("State", "ACTIVE")]),
             rec(&[("ReservationName", "future"), ("State", "INACTIVE")]),
@@ -165,27 +186,80 @@ mod tests {
     fn upcoming_and_recent() {
         let now = crate::hooks::now();
         let at = |days: i64| isoformat(now + TimeDelta::days(days));
-        assert_eq!(upcoming_reservations(&[rec(&[("State", "INACTIVE"), ("StartTime", &at(1))])], now).len(), 1);
-        assert!(upcoming_reservations(&[rec(&[("State", "INACTIVE"), ("StartTime", &at(-1))])], now).is_empty());
-        assert!(upcoming_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(1))])], now).is_empty());
-        assert_eq!(recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(0))])], now).len(), 1);
-        assert!(recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(-60))])], now).is_empty());
-        assert_eq!(recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(-30))])], now).len(), 1);
-        assert_eq!(recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", "")])], now).len(), 1);
+        assert_eq!(
+            upcoming_reservations(&[rec(&[("State", "INACTIVE"), ("StartTime", &at(1))])], now)
+                .len(),
+            1
+        );
+        assert!(
+            upcoming_reservations(
+                &[rec(&[("State", "INACTIVE"), ("StartTime", &at(-1))])],
+                now
+            )
+            .is_empty()
+        );
+        assert!(
+            upcoming_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(1))])], now)
+                .is_empty()
+        );
+        assert_eq!(
+            recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(0))])], now)
+                .len(),
+            1
+        );
+        assert!(
+            recent_active_reservations(
+                &[rec(&[("State", "ACTIVE"), ("StartTime", &at(-60))])],
+                now
+            )
+            .is_empty()
+        );
+        assert_eq!(
+            recent_active_reservations(
+                &[rec(&[("State", "ACTIVE"), ("StartTime", &at(-30))])],
+                now
+            )
+            .len(),
+            1
+        );
+        assert_eq!(
+            recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", "")])], now)
+                .len(),
+            1
+        );
     }
 
     #[test]
     fn blocked_pending_jobs() {
-        let jobs = [rec(&[("JobID", "101"), ("Reason", "reserved for maintenance")])];
+        let jobs = [rec(&[
+            ("JobID", "101"),
+            ("Reason", "reserved for maintenance"),
+        ])];
         assert_eq!(reservation_blocked_pending_jobs(&[], &jobs).len(), 1);
-        let jobs = [rec(&[("JobID", "102"), ("Reason", "ReqNodeNotAvail,maint2025")])];
-        assert_eq!(reservation_blocked_pending_jobs(&[rec(&[("ReservationName", "maint2025")])], &jobs).len(), 1);
+        let jobs = [rec(&[
+            ("JobID", "102"),
+            ("Reason", "ReqNodeNotAvail,maint2025"),
+        ])];
+        assert_eq!(
+            reservation_blocked_pending_jobs(&[rec(&[("ReservationName", "maint2025")])], &jobs)
+                .len(),
+            1
+        );
         let jobs = [rec(&[("JobID", "103"), ("Reason", "Resources")])];
-        assert!(reservation_blocked_pending_jobs(&[rec(&[("ReservationName", "maintenance")])], &jobs).is_empty());
+        assert!(
+            reservation_blocked_pending_jobs(&[rec(&[("ReservationName", "maintenance")])], &jobs)
+                .is_empty()
+        );
         assert!(reservation_blocked_pending_jobs(&[], &[]).is_empty());
-        for (name, reason) in [("res", "Resources"), ("gpu", "ReqNodeNotAvail, UnavailableNodes:gpu[101-102]")] {
+        for (name, reason) in [
+            ("res", "Resources"),
+            ("gpu", "ReqNodeNotAvail, UnavailableNodes:gpu[101-102]"),
+        ] {
             let jobs = [rec(&[("JobID", "104"), ("Reason", reason)])];
-            assert!(reservation_blocked_pending_jobs(&[rec(&[("ReservationName", name)])], &jobs).is_empty());
+            assert!(
+                reservation_blocked_pending_jobs(&[rec(&[("ReservationName", name)])], &jobs)
+                    .is_empty()
+            );
         }
     }
 
