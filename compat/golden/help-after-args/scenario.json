@@ -1,0 +1,23 @@
+{
+ "name": "help-after-args",
+ "category": "help",
+ "argv": [
+  "q",
+  "-p",
+  "gpu",
+  "-h"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

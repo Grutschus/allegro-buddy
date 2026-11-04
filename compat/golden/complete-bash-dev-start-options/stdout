@@ -1,0 +1,16 @@
+plain,--partition
+plain,--time
+plain,--gpu
+plain,--gpu-type
+plain,--cpus
+plain,--mem
+plain,--account
+plain,--constraint
+plain,--exclude
+plain,--node
+plain,--replace
+plain,--no-wait
+plain,--login
+plain,--timeout
+plain,--poll-interval
+plain,--help

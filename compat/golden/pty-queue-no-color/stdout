@@ -1,0 +1,8 @@
+[1m                                                Queue                                                [0m
+[1mJobID[0m[1m [0m [1m [0m[1mName       [0m[1m [0m [1m [0m[1mState  [0m[1m [0m [1m [0m[1mPartition[0m[1m [0m [1m [0m[1mElapsed[0m[1m [0m [1m [0m[1mTime left[0m[1m [0m [1m [0m[1mStart   [0m[1m [0m [1m [0m[1mNode/Reason             [0m
+─────────────────────────────────────────────────────────────────────────────────────────────────────
+70110   ab-dev        [1mRUNNING[0m   [1mgpu      [0m     1h25m       6h35m              gpu101                  
+70120   train-large   [1mPENDING[0m   [1mgpu      [0m                    1d   in 2h10m   GPU-bound · max 3/4 free
+70121   eval-1080     [1mPENDING[0m   [1mgpusmall [0m                    4h   [2m-       [0m   GPU-bound · max 0/1 free
+70122   finetune-xl   [1mPENDING[0m   [1mgpu      [0m                   12h   [2m-       [0m   starts now w/ mem ≤ 73G 
+[2mⓘ `bab why` shows what is short and what would start now[0m

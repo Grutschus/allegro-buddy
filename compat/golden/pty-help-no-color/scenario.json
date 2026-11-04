@@ -1,0 +1,21 @@
+{
+ "name": "pty-help-no-color",
+ "category": "color",
+ "argv": [
+  "-h"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "NO_COLOR": "1"
+ },
+ "stdin": null,
+ "tty": "pty",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

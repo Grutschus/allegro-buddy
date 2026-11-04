@@ -1,0 +1,28 @@
+{
+ "name": "dev-start-config-gpu-zero-cpu-partition",
+ "category": "dev",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "-p",
+  "micro",
+  "-t",
+  "30"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "config/allegro-buddy/config.ini"
+ ],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

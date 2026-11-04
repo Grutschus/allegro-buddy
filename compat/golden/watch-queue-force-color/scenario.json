@@ -1,0 +1,22 @@
+{
+ "name": "watch-queue-force-color",
+ "category": "watch",
+ "argv": [
+  "q",
+  "-w"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "FORCE_COLOR": "1"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": 3.0,
+ "path_without_slurm": false,
+ "normalize": []
+}

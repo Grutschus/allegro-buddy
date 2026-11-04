@@ -1,0 +1,21 @@
+{
+ "name": "job-history-c80",
+ "category": "job",
+ "argv": [
+  "job",
+  "history"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "80"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

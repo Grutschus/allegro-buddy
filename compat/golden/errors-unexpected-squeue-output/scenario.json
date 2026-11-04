@@ -1,0 +1,20 @@
+{
+ "name": "errors-unexpected-squeue-output",
+ "category": "errors",
+ "argv": [
+  "q"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

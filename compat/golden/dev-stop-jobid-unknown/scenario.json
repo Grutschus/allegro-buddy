@@ -1,0 +1,23 @@
+{
+ "name": "dev-stop-jobid-unknown",
+ "category": "dev",
+ "argv": [
+  "dev",
+  "stop",
+  "--jobid",
+  "999"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

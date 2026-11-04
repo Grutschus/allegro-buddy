@@ -1,0 +1,21 @@
+                                                                                                    
+ Usage: [37mbab[0m [[37mOPTIONS[0m] [37mCOMMAND[0m [[37mARGS[0m]...                                                             
+                                                                                                    
+ [37mAllegro Buddy: a friendly Slurm helper.[0m                                                            
+                                                                                                    
+[90m╭─[0m[90m [0m[1;39mOptions[0m[90m [0m[90m───────────────────────────────────────────────────────────────────────────────────────[0m[90m─╮[0m
+[90m│[0m [37m--version[0m      [39mShow the version and exit.[0m                                                        [90m│[0m
+[90m│[0m [37m--help   [0m  [37m-h[0m  [39mShow this message and exit.[0m                                                       [90m│[0m
+[90m╰──────────────────────────────────────────────────────────────────────────────────────────────────╯[0m
+[90m╭─[0m[90m [0m[1;39mCommands[0m[90m [0m[90m──────────────────────────────────────────────────────────────────────────────────────[0m[90m─╮[0m
+[90m│[0m [37mcompletion       [0m[37m [0m [39mgenerate or install shell completion                                         [0m [90m│[0m
+[90m│[0m [37mconfig           [0m[37m [0m [39mshow where settings come from                                                [0m [90m│[0m
+[90m│[0m [37mdev              [0m[37m [0m [39mstart, join and stop a dev job                                               [0m [90m│[0m
+[90m│[0m [37ml                [0m[37m [0m [39mjoin a running dev job (short for bab dev login)                             [0m [90m│[0m
+[90m│[0m [37mfree             [0m[37m [0m [39mshow free GPUs and cluster resources                                         [0m [90m│[0m
+[90m│[0m [37minfo             [0m[37m [0m [39mshow your partitions and a cluster summary                                   [0m [90m│[0m
+[90m│[0m [37mjob              [0m[37m [0m [39mshow finished jobs and their output                                          [0m [90m│[0m
+[90m│[0m [37mnode             [0m[37m [0m [39mshow which jobs use a node's GPUs, CPUs and memory                           [0m [90m│[0m
+[90m│[0m [37mqueue[0m[39m,[0m[37mq[0m[37m          [0m[37m [0m [39mshow your jobs in the queue                                                  [0m [90m│[0m
+[90m│[0m [37mwhy              [0m[37m [0m [39mexplain what a pending job is waiting for                                    [0m [90m│[0m
+[90m╰──────────────────────────────────────────────────────────────────────────────────────────────────╯[0m

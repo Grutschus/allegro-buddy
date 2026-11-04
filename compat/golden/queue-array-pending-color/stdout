@@ -1,0 +1,5 @@
+[1m                                           Queue                                            [0m
+[1mJobID       [0m[1m [0m [1m [0m[1mName [0m[1m [0m [1m [0m[1mState  [0m[1m [0m [1m [0m[1mPartition[0m[1m [0m [1m [0m[1mTime left[0m[1m [0m [1m [0m[1mStart   [0m[1m [0m [1m [0m[1mNode/Reason             [0m
+────────────────────────────────────────────────────────────────────────────────────────────
+[36m65177_[0-11][0m   sweep   [1;33mPENDING[0m   [1;32mgpu      [0m          2h   in 3h10m   [33mGPU-bound · max 2/4 free[0m
+[2mⓘ `bab why` shows what is short and what would start now[0m

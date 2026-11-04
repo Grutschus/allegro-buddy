@@ -1,0 +1,7 @@
+#!/bin/sh
+# The Python reference (allegro-buddy 2.7 renamed to bab) with the BAB_TEST_* hooks.
+here=$(cd "$(dirname "$0")" && pwd)
+if [ -x "$here/.venv/bin/python" ]; then
+    exec "$here/.venv/bin/python" "$here/reference.py" run "$@"
+fi
+exec uv run --quiet --frozen --project "$here" python "$here/reference.py" run "$@"

@@ -1,0 +1,1 @@
+error: `--no-wait` cannot be used together with `--login`

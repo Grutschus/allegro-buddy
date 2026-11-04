@@ -1,0 +1,22 @@
+{
+ "name": "queue-empty-other-user",
+ "category": "queue",
+ "argv": [
+  "q",
+  "--user",
+  "bob"
+ ],
+ "then": [],
+ "world": "custom",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "200"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

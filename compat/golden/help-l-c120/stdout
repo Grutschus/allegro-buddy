@@ -1,0 +1,15 @@
+                                                                                                    
+  Usage: bab l [OPTIONS]                                                                            
+                                                                                                    
+  Options                                                                                           
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+       --jobid           TEXT                 pick one dev job by id                                
+       --wait                                 wait until the job is RUNNING                         
+       --timeout         INTEGER              max seconds to wait (with --wait)                     
+       --poll-interval   FLOAT RANGE [x>=1]   seconds between checks while waiting [default=5.0]    
+       --srun                                 use srun --overlap instead of ssh (keeps the job's    
+                                              GPU setup)                                            
+       --command         TEXT                 run a command instead of opening a shell              
+  -h   --help                                 Show this message and exit.                           
+                                                                                                    
+                                                                                                    

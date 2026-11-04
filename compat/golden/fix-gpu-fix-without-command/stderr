@@ -1,0 +1,2 @@
+error: GPUs 4 → 2 (→ 8 CPU, 20G) would start 65177_[0-11], but Slurm cannot change that in place; change the job script 
+and resubmit

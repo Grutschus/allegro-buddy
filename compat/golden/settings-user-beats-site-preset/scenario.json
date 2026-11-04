@@ -1,0 +1,24 @@
+{
+ "name": "settings-user-beats-site-preset",
+ "category": "settings",
+ "argv": [
+  "config",
+  "show"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "config/allegro-buddy/config.ini",
+  "site/config.ini"
+ ],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

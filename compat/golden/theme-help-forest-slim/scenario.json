@@ -1,0 +1,22 @@
+{
+ "name": "theme-help-forest-slim",
+ "category": "theme",
+ "argv": [
+  "-h"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "FORCE_COLOR": "1",
+  "RICH_CLICK_THEME": "forest-slim"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

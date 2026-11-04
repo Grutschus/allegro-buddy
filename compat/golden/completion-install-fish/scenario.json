@@ -1,0 +1,32 @@
+{
+ "name": "completion-install-fish",
+ "category": "completion",
+ "argv": [
+  "completion",
+  "--install",
+  "--prog",
+  "allegro-buddy"
+ ],
+ "then": [
+  [
+   "completion",
+   "fish",
+   "--install"
+  ]
+ ],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "SHELL": "/usr/bin/fish"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [
+  "config/fish/completions/allegro-buddy.fish"
+ ],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

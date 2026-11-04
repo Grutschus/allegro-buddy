@@ -1,0 +1,13 @@
+[1m                                              Queue · all users                                              [0m
+[1mJobID[0m[1m [0m [1m [0m[1mUser [0m[1m [0m [1m [0m[1mName       [0m[1m [0m [1m [0m[1mState  [0m[1m [0m [1m [0m[1mPartition[0m[1m [0m [1m [0m[1mElapsed[0m[1m [0m [1m [0m[1mTime left[0m[1m [0m [1m [0m[1mStart   [0m[1m [0m [1m [0m[1mNode/Reason             [0m
+─────────────────────────────────────────────────────────────────────────────────────────────────────────────
+[36m70110[0m   alice   ab-dev        [1;32mRUNNING[0m   [1;32mgpu      [0m     1h25m       6h35m              [32mgpu101                  [0m
+[36m70102[0m   bob     sweep         [1;32mRUNNING[0m   [1;32mgpu      [0m        5h         19h              [32mgpu201                  [0m
+[36m70103[0m   bob     sweep         [1;32mRUNNING[0m   [1;32mgpu      [0m     2h10m      21h50m              [32mgpu201                  [0m
+[36m70104[0m   bob     finetune      [1;32mRUNNING[0m   [1;32mgpu      [0m       40m    1d23h20m              [32mgpu102                  [0m
+[36m70130[0m   bob     preprocess    [1;32mRUNNING[0m   [1;34msmall    [0m       15m       1h45m              [34mcmp201                  [0m
+[36m70120[0m   alice   train-large   [1;33mPENDING[0m   [1;32mgpu      [0m                    1d   in 2h10m   [33mGPU-bound · max 3/4 free[0m
+[36m70121[0m   alice   eval-1080     [1;33mPENDING[0m   [1;32mgpusmall [0m                    4h   [2m-       [0m   [33mGPU-bound · max 0/1 free[0m
+[36m70122[0m   alice   finetune-xl   [1;33mPENDING[0m   [1;32mgpu      [0m                   12h   [2m-       [0m   [33mstarts now w/ mem ≤ 73G [0m
+[36m70131[0m   bob     merge         [1;33mPENDING[0m   [1;34mbig      [0m                    3d   [2m-       [0m   [33mDependency              [0m
+[2mⓘ `bab why` shows what is short and what would start now[0m

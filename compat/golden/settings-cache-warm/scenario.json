@@ -1,0 +1,25 @@
+{
+ "name": "settings-cache-warm",
+ "category": "settings",
+ "argv": [
+  "config",
+  "show"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "cache/allegro-buddy/cluster-name.login1"
+ ],
+ "capture": [
+  "cache/allegro-buddy/cluster-name.login1"
+ ],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

@@ -1,0 +1,6 @@
+gpu13  free 2/4 GPU · 16/16 CPUs · 90/90G mem
+                      Jobs on gpu13                       
+JobID   User    Name      GPUs   CPUs   Memory   Time left
+──────────────────────────────────────────────────────────
+80004   alice   running   0         2       4G       9h30m
+free GPUs: 1,3 · GPUs 2 in use, owner unknown

@@ -1,0 +1,3 @@
+error: sbatch --parsable --job-name=ab-dev --partition=gpu --time=08:00:00 --mem=8G 
+--output=@TMP@___________________________________/home/slurm-output/ab-dev-%j.out '--wrap=trap : TERM INT; sleep 
+infinity & wait' --cpus-per-gpu=2 --gres=gpu:1 failed: sbatch: error: QOSMaxSubmitJobPerUserLimit

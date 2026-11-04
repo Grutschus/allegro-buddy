@@ -1,0 +1,2 @@
+[2J[H[2mevery 10s · [0m[1;2;92m10:00:00[0m[2m · Ctrl-C to quit[0m
+[1;31merror: [0mscontrol --oneliner show node failed: slurm_load_partitions: Unable to contact slurm controller (connect failure)

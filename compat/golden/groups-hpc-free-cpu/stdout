@@ -1,0 +1,7 @@
+                        CPU nodes                         
+Node     State   Partitions        Free CPUs   Free memory
+──────────────────────────────────────────────────────────
+cmp201   MIXED   micro,small,big       16/16        90/90G
+                                                          
+total                                  16/16        90/90G
+free/total

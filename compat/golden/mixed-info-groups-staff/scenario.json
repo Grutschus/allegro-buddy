@@ -1,0 +1,21 @@
+{
+ "name": "mixed-info-groups-staff",
+ "category": "gpu",
+ "argv": [
+  "info"
+ ],
+ "then": [],
+ "world": "custom",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "BAB_TEST_GROUPS": "staff"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

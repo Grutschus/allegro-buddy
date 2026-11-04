@@ -1,0 +1,23 @@
+{
+ "name": "cli-why-fix-equals",
+ "category": "cli",
+ "argv": [
+  "why",
+  "70122",
+  "--fix=mem",
+  "-y"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

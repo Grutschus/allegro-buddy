@@ -1,0 +1,22 @@
+{
+ "name": "cli-queue-user-empty",
+ "category": "cli",
+ "argv": [
+  "queue",
+  "--user",
+  "nobody"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

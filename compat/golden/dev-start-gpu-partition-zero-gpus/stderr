@@ -1,0 +1,1 @@
+error: GPU partitions require `--gpu` to be at least 1

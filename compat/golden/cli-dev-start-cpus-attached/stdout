@@ -1,0 +1,3 @@
+Canceled 70110.
+Submitted dev job 70140 on gpu (1 GPU, 4 CPUs, 8G, 8h)
+ⓘ `bab l --wait` joins it once it runs (short for `bab dev login --wait`)

@@ -1,0 +1,24 @@
+{
+ "name": "cli-dev-start-cpus-attached",
+ "category": "cli",
+ "argv": [
+  "dev",
+  "start",
+  "-c4",
+  "--no-wait",
+  "--replace"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}
