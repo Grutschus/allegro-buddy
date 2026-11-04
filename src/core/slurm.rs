@@ -22,8 +22,11 @@
 //! * [`exec_replace`]: `os.execvp`; on ENOENT `die("command not found: {argv[0]}")`.
 //!   Flushes both consoles and restores default signal dispositions first
 //!   ([`crate::signals::restore_default`]).
-//! * Ctrl-C: if SIGINT arrived while waiting, return `Err(AbError::Interrupted)` after the
-//!   child exits (Python raises KeyboardInterrupt).
+//! * Ctrl-C: if SIGINT arrives while waiting, the wait ends at once (self-pipe of
+//!   [`crate::signals`]); like Python's `subprocess.run` the child gets 0.25 s to exit
+//!   (the tty sent it SIGINT too), then it is killed and reaped, and the call returns
+//!   `Err(AbError::Interrupted)` (Python raises KeyboardInterrupt). After that no command
+//!   is started any more, so queued [`parallel`] tasks finish without running anything.
 //!
 //! # Concurrency
 //!
@@ -44,8 +47,9 @@
 use crate::error::{AbError, Result};
 use crate::pyfmt;
 use std::io;
-#[cfg(not(test))]
-use std::process::{Command, Stdio};
+use std::os::fd::{AsRawFd, RawFd};
+use std::process::{Child, Command, Stdio};
+use std::time::Duration;
 
 /// `subprocess.CompletedProcess` subset.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
@@ -101,6 +105,8 @@ pub const MAX_PARALLEL: usize = 8;
 /// Spawn `argv`, wait, and capture its output (or inherit stdout/stderr). `Err` only when
 /// it could not be started.
 fn spawn<S: AsRef<str>>(argv: &[S], capture: bool) -> io::Result<Output> {
+    // Python's subprocess looks the name up via os.get_exec_path (warnings.catch_warnings)
+    crate::cli::help::python_warning_filters_mutated();
     #[cfg(test)]
     {
         let _ = capture;
@@ -116,25 +122,161 @@ fn spawn<S: AsRef<str>>(argv: &[S], capture: bool) -> io::Result<Output> {
         let Some((program, args)) = argv.split_first() else {
             return Err(io::ErrorKind::NotFound.into());
         };
+        if crate::signals::interrupted() {
+            return Err(io::ErrorKind::Interrupted.into());
+        }
         let mut command = Command::new(program.as_ref());
-        command
-            .args(args.iter().map(AsRef::as_ref))
-            .stdin(Stdio::inherit());
+        command.args(args.iter().map(AsRef::as_ref));
+        run_child(command, capture, crate::signals::wake_fd())
+    }
+}
+
+/// How long an interrupted child may take to exit before it is killed (Python's
+/// `Popen._sigint_wait_secs`).
+const SIGINT_GRACE: Duration = Duration::from_millis(250);
+
+/// Spawn `command` (stdin inherited; stdout/stderr captured or inherited) and wait for it.
+/// `wake` becoming readable means Ctrl-C: the child is terminated and reaped and the result
+/// is `Err(Interrupted)`.
+fn run_child(mut command: Command, capture: bool, wake: Option<RawFd>) -> io::Result<Output> {
+    let stdio = || {
         if capture {
-            let output = command.output()?;
-            Ok(Output {
-                status: exit_status(output.status),
-                stdout: pyfmt::decode_text(output.stdout),
-                stderr: pyfmt::decode_text(output.stderr),
-            })
+            Stdio::piped()
         } else {
-            let status = command.status()?;
-            Ok(Output {
-                status: exit_status(status),
-                ..Output::default()
-            })
+            Stdio::inherit()
+        }
+    };
+    command
+        .stdin(Stdio::inherit())
+        .stdout(stdio())
+        .stderr(stdio());
+    let mut child = command.spawn()?;
+    let (stdout, stderr) = if capture {
+        match read_pipes(&mut child, wake) {
+            Ok(Some(streams)) => streams,
+            Ok(None) => return Err(stop_child(child)),
+            Err(err) => {
+                let _ = child.kill();
+                let _ = child.wait();
+                return Err(err);
+            }
+        }
+    } else {
+        (Vec::new(), Vec::new())
+    };
+    match wait_child(&mut child, wake)? {
+        Some(status) => Ok(Output {
+            status: exit_status(status),
+            stdout: pyfmt::decode_text(stdout),
+            stderr: pyfmt::decode_text(stderr),
+        }),
+        None => Err(stop_child(child)),
+    }
+}
+
+fn pollfd(fd: RawFd) -> libc::pollfd {
+    libc::pollfd {
+        fd,
+        events: libc::POLLIN,
+        revents: 0,
+    }
+}
+
+/// Read the child's stdout and stderr to EOF; `None` when `wake` fired first.
+fn read_pipes(child: &mut Child, wake: Option<RawFd>) -> io::Result<Option<(Vec<u8>, Vec<u8>)>> {
+    use std::io::Read;
+    let mut pipes: [Option<Box<dyn ReadFd>>; 2] = [
+        child.stdout.take().map(|p| Box::new(p) as Box<dyn ReadFd>),
+        child.stderr.take().map(|p| Box::new(p) as Box<dyn ReadFd>),
+    ];
+    let mut buffers = [Vec::new(), Vec::new()];
+    let mut chunk = vec![0u8; 64 * 1024];
+    loop {
+        let open: Vec<usize> = (0..2).filter(|&i| pipes[i].is_some()).collect();
+        if open.is_empty() {
+            let [out, err] = buffers;
+            return Ok(Some((out, err)));
+        }
+        let mut polled: Vec<libc::pollfd> = open
+            .iter()
+            .map(|&i| pollfd(pipes[i].as_ref().expect("open pipe").as_raw_fd()))
+            .collect();
+        polled.extend(wake.map(pollfd));
+        crate::signals::poll(&mut polled, None)?;
+        if wake.is_some() && polled[open.len()].revents != 0 {
+            return Ok(None);
+        }
+        for (slot, &i) in open.iter().enumerate() {
+            if polled[slot].revents == 0 {
+                continue;
+            }
+            let pipe = pipes[i].as_mut().expect("open pipe");
+            match pipe.read(&mut chunk) {
+                Ok(0) => pipes[i] = None,
+                Ok(n) => buffers[i].extend_from_slice(&chunk[..n]),
+                Err(err) if err.kind() == io::ErrorKind::Interrupted => {}
+                Err(err) => return Err(err),
+            }
         }
     }
+}
+
+/// A child's stdout or stderr pipe.
+trait ReadFd: std::io::Read + AsRawFd {}
+impl<T: std::io::Read + AsRawFd> ReadFd for T {}
+
+/// `pidfd_open(2)` (Linux 5.3+): becomes readable when the process exits.
+fn pidfd_open(child: &Child) -> Option<std::os::fd::OwnedFd> {
+    use std::os::fd::FromRawFd;
+    let fd = unsafe { libc::syscall(libc::SYS_pidfd_open, child.id() as libc::pid_t, 0) };
+    (fd >= 0).then(|| unsafe { std::os::fd::OwnedFd::from_raw_fd(fd as RawFd) })
+}
+
+/// Wait for the child to exit; `None` when `wake` fired first. Waits on a pidfd so any
+/// thread's Ctrl-C ends the wait; without pidfds (old kernels) a blocking wait (the child
+/// got the terminal's SIGINT as well).
+fn wait_child(
+    child: &mut Child,
+    wake: Option<RawFd>,
+) -> io::Result<Option<std::process::ExitStatus>> {
+    if let (Some(wake), Some(pidfd)) = (wake, pidfd_open(child)) {
+        let mut polled = [pollfd(pidfd.as_raw_fd()), pollfd(wake)];
+        crate::signals::poll(&mut polled, None)?;
+        if polled[0].revents == 0 {
+            return Ok(None);
+        }
+    }
+    child.wait().map(Some)
+}
+
+/// Ctrl-C while waiting: give the child [`SIGINT_GRACE`] to exit, then kill it; always
+/// reap it. Returns the `Interrupted` error to propagate.
+fn stop_child(mut child: Child) -> io::Error {
+    drop(child.stdout.take());
+    drop(child.stderr.take());
+    let exited = match pidfd_open(&child) {
+        Some(pidfd) => {
+            let mut polled = [pollfd(pidfd.as_raw_fd())];
+            crate::signals::poll(&mut polled, Some(SIGINT_GRACE)).unwrap_or(false)
+        }
+        None => {
+            let deadline = std::time::Instant::now() + SIGINT_GRACE;
+            loop {
+                match child.try_wait() {
+                    Ok(None) if std::time::Instant::now() < deadline => {
+                        std::thread::sleep(Duration::from_millis(10))
+                    }
+                    Ok(Some(_)) => break true,
+                    _ => break false,
+                }
+            }
+        }
+    };
+    if !exited {
+        let _ = child.kill();
+    }
+    let _ = child.wait();
+    io::ErrorKind::Interrupted.into()
 }
 
 /// Python's `returncode`: the exit code, or `-signum` when killed by a signal.
@@ -493,5 +635,65 @@ mod tests {
         assert_eq!(fake.calls().len(), 20);
         let (a, b, c) = join3(|| 1, crate::hooks::user, || "c");
         assert_eq!((a, b, c), (1, "alice", "c"));
+    }
+
+    fn sh(script: &str) -> Command {
+        let mut command = Command::new("sh");
+        command.args(["-c", script]);
+        command
+    }
+
+    /// A private self-pipe: (read end, write end).
+    fn wake_pipe() -> (std::os::fd::OwnedFd, std::os::fd::OwnedFd) {
+        use std::os::fd::FromRawFd;
+        let mut fds = [-1; 2];
+        assert_eq!(unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC) }, 0);
+        unsafe {
+            (
+                std::os::fd::OwnedFd::from_raw_fd(fds[0]),
+                std::os::fd::OwnedFd::from_raw_fd(fds[1]),
+            )
+        }
+    }
+
+    #[test]
+    fn real_child_output_and_status() {
+        let (wake, _keep) = wake_pipe();
+        let output = run_child(
+            sh("head -c 200000 /dev/zero; printf 'e\\r\\n' >&2; head -c 100000 /dev/zero >&2; exit 3"),
+            true,
+            Some(wake.as_raw_fd()),
+        )
+        .unwrap();
+        assert_eq!(output.status, 3);
+        assert_eq!(output.stdout.len(), 200000);
+        assert_eq!(output.stderr.len(), 100002);
+        assert!(output.stderr.starts_with("e\n"));
+        let output = run_child(sh("kill -TERM $$"), true, None).unwrap();
+        assert_eq!(output.status, -libc::SIGTERM);
+        let output = run_child(sh("exit 4"), false, Some(wake.as_raw_fd())).unwrap();
+        assert_eq!(output.status, 4);
+    }
+
+    #[test]
+    fn ctrl_c_ends_the_wait_and_kills_the_child() {
+        use std::io::Write;
+        // `trap '' INT`: the child survives SIGINT, so the grace period ends with a kill
+        for (capture, script) in [
+            (true, "sleep 30"),
+            (false, "sleep 30"),
+            (true, "trap '' INT; exec sleep 30"),
+        ] {
+            let (wake, write_end) = wake_pipe();
+            let started = std::time::Instant::now();
+            let waker = std::thread::spawn(move || {
+                std::thread::sleep(Duration::from_millis(100));
+                std::fs::File::from(write_end).write_all(b"!").unwrap();
+            });
+            let err = run_child(sh(script), capture, Some(wake.as_raw_fd())).unwrap_err();
+            waker.join().unwrap();
+            assert_eq!(err.kind(), io::ErrorKind::Interrupted, "{script}");
+            assert!(started.elapsed() < Duration::from_secs(5), "{script}");
+        }
     }
 }

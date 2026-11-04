@@ -17,7 +17,8 @@
 //!   `println!`, so `--watch` can capture it. Exception: `click.echo` equivalents in
 //!   [`cli`] (completion scripts) which are plain writes, like click.
 //! * **Test hooks** in [`hooks`] replace wall clock, groups, hostname and isatty(stdin) when
-//!   the `BAB_TEST_*` variables are set; real behaviour otherwise. Never read the clock,
+//!   the `BAB_TEST_*` variables are set (only with the `test-hooks` cargo feature); real
+//!   behaviour otherwise. Never read the clock,
 //!   groups, user, hostname or stdin-tty state any other way.
 //! * **Slurm calls** only through [`core::slurm`]. Concurrency only for read-only queries
 //!   Python issues anyway; never parallelize mutations or conditional fallbacks; output and

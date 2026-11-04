@@ -1,6 +1,7 @@
 //! Differential test of the click/rich-click layer: replays tests/cli_ref/cases.json
 //! (recorded from the Python reference by tests/cli_ref/gen.py) against the `bab` binary
-//! with stubbed handlers (`BAB_TEST_STUB_HANDLERS=1`).
+//! with stubbed handlers (`BAB_TEST_STUB_HANDLERS=1`, a `test-hooks` feature hook that
+//! `cargo test` turns on through the self dev-dependency in Cargo.toml).
 //!
 //! * `BAB_CLI_REF_PYTHON=/path/to/venv/bin/python cargo test --test cli_ref` regenerates
 //!   the fixtures first (venv with allegro-buddy==2.7, click==8.3.2, rich==15.0.0,

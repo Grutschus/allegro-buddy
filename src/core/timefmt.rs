@@ -129,19 +129,13 @@ fn parse_iso_time(s: &str) -> Option<NaiveTime> {
 /// optionally followed by any one separator character and a time.
 fn from_isoformat(s: &str) -> Option<NaiveDateTime> {
     let bytes = s.as_bytes();
+    // `s.get`: a slice that is not on char boundaries holds a non-ASCII digit -> None
+    let field = |range: std::ops::Range<usize>| s.get(range).and_then(digits);
     let (date, date_len) = if bytes.len() >= 10 && bytes[4] == b'-' && bytes[7] == b'-' {
-        let date = NaiveDate::from_ymd_opt(
-            digits(&s[0..4])? as i32,
-            digits(&s[5..7])?,
-            digits(&s[8..10])?,
-        )?;
+        let date = NaiveDate::from_ymd_opt(field(0..4)? as i32, field(5..7)?, field(8..10)?)?;
         (date, 10)
-    } else if bytes.len() >= 8 && s.is_char_boundary(8) {
-        let date = NaiveDate::from_ymd_opt(
-            digits(&s[0..4])? as i32,
-            digits(&s[4..6])?,
-            digits(&s[6..8])?,
-        )?;
+    } else if bytes.len() >= 8 {
+        let date = NaiveDate::from_ymd_opt(field(0..4)? as i32, field(4..6)?, field(6..8)?)?;
         (date, 8)
     } else {
         return None;
@@ -384,6 +378,15 @@ mod tests {
             "2024-1-15",
             "2024-01-15T10:30:00.",
             "2024-02-30",
+            // non-ASCII where a digit belongs (used to panic slicing inside a char)
+            "2026-01-\u{2603}",
+            "2026\u{2603}x",
+            "20\u{e9}6-01-01",
+            "2026-0\u{e9}-01",
+            "\u{2603}\u{2603}\u{2603}",
+            "2026-01-01T1\u{2603}",
+            "2026-01-01T10:3\u{e9}",
+            "2026-01-01T10:30:00.\u{2603}",
         ] {
             assert_eq!(iso_to_dt(bad), None, "{bad}");
         }

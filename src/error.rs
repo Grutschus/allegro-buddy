@@ -98,6 +98,12 @@ pub fn die(message: impl Into<Text>) -> AbError {
 /// `die(message, exit_code=code)`; Python uses code 2 once (`load_job_records`).
 #[must_use = "die() only prints; return the error it gives you"]
 pub fn die_with_code(message: impl Into<Text>, code: i32) -> AbError {
+    // After Ctrl-C Python is already unwinding with KeyboardInterrupt: a failure that only
+    // follows from the interrupted (or never started) command is not reported.
+    #[cfg(not(test))]
+    if crate::signals::interrupted() {
+        return AbError::Interrupted;
+    }
     let line = Text::assemble([("error: ", "bold red").into(), message.into().into()]);
     crate::render::console::stderr().print(&line);
     AbError::Exit(code)

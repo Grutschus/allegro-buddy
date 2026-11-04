@@ -4,7 +4,11 @@ Black-box harness that runs the Python reference (allegro-buddy 2.7 from PyPI, r
 to `bab`) and a `bab` binary against the same fake Slurm and requires identical
 stdout, stderr (bytes, ANSI included), exit code, Slurm calls and resulting files.
 
+The binary under test must be built with the test hooks (`BAB_TEST_*`, see below), which
+a normal build leaves out:
+
 ```sh
+cargo build --release --features test-hooks
 uv run --project compat compat/run.py check --bin target/release/bab      # vs goldens
 uv run --project compat compat/run.py check --bin target/release/bab -k 'why|fix'
 uv run --project compat compat/run.py diff  --bin target/release/bab      # both live
@@ -36,7 +40,14 @@ Scratch dir `T` with a fixed path length of 40 characters (`$BAB_COMPAT_WORK/<ra
 so output that wraps around a path wraps identically on every machine; every `T` in
 captured bytes becomes `@TMP@___...` (same length). Nothing else is normalised, except
 the spinner frames of `Console.status` in the three pty scenarios that wait for a dev
-job (`normalize` in the scenario: frame count depends on timing).
+job (`normalize` in the scenario: frame count depends on timing), and the install path
+of a Python warning raised inside rich-click: on a line
+`<prefix>rich_click/<module>.py:<line>: <Category>Warning: ...` the `<prefix>` (Python:
+`<venv>/lib/python3.12/site-packages/`; bab prints none) becomes `@PYLIB@/` on both
+sides (stdout and stderr). That is rich-click's `RichClickTheme '<name>' not found.`
+`UserWarning` for an unknown `RICH_CLICK_THEME` (`theme-help-*bogus`); bab prints it at
+the same points (import, then each help/error formatter after Python's warnings registry
+was reset by a subprocess or the lazy `_compat_click` import).
 
 Environment (nothing inherited): `PATH=<fake_slurm/bin>:/usr/bin:/bin`, `HOME=T/home`
 (also the cwd), `USER=LOGNAME=alice`, `TZ=UTC`, `LANG=C.UTF-8`,
@@ -53,7 +64,9 @@ front; `\x04` is EOF. `sigint_after=3` sends SIGINT to the process (watch scenar
 
 ## Test hooks the Rust binary must implement
 
-Unset means real behaviour. The reference patches exactly these Python functions:
+Only compiled in with `--features test-hooks` (a plain `cargo build` never reads these
+variables, so every scenario that relies on them fails against such a binary). Unset
+means real behaviour. The reference patches exactly these Python functions:
 
 | variable | format | replaces in Python |
 |---|---|---|

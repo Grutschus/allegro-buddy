@@ -37,16 +37,17 @@
 //!
 //! (the venv needs rich==15.0.0 and rich-click==1.9.9). `BAB_RANDOM_TABLES=600
 //! BAB_RANDOM_TEXTS=300` on `make_cases.py` produces a much larger seeded random set for
-//! one-off checks. `tools/render/gen_rich_data.py` regenerates [`data`]/[`emoji_data`].
+//! one-off checks. `tools/render/gen_rich_data.py` regenerates [`data`], [`cell_tables`]
+//! and [`emoji_data`].
 //!
 //! # Known divergences
 //!
-//! Links/meta styles are ignored (Rich's link ids are random); `UNICODE_VERSION` is not
-//! honoured (Rich's latest table, 17.0.0, is always used); ASCII-only encodings (Rich
+//! Links/meta styles are ignored (Rich's link ids are random); ASCII-only encodings (Rich
 //! substitutes ASCII boxes) and legacy Windows are not supported; see [`console`] for the
 //! console-level ones.
 
 pub mod boxes;
+pub mod cell_tables;
 pub mod cells;
 pub mod color;
 pub mod console;

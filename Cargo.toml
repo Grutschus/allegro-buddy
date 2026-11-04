@@ -30,6 +30,16 @@ fancy-regex = { version = "0.20.0", default-features = false, features = ["unico
 # `scontrol --json` output; untyped Value access only, so no serde derive.
 serde_json = "1.0.154"
 
+[features]
+# The BAB_TEST_* environment hooks (frozen clock, groups, hostname, interactive stdin,
+# stubbed handlers) for the compat harness and tests/cli_ref.rs. Off by default: a normal
+# build never reads these variables. `cargo test` turns it on via the dev-dependency below.
+test-hooks = []
+
+[dev-dependencies]
+# Self-reference so integration tests get a `bab` binary with the test hooks.
+better-allegro-buddy = { path = ".", features = ["test-hooks"] }
+
 [profile.release]
 opt-level = 3
 lto = "fat"

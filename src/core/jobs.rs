@@ -607,25 +607,66 @@ pub fn resolve_job_output_path(
 
 /// `read_log_tail(path, max_lines=)`: last N lines (UTF-8, errors replaced, universal
 /// newlines; 0 = all); OSError -> `die("could not read {path}: {exc}")` with Python's
-/// `str(OSError)` format (`[Errno 13] Permission denied: '/path'`).
+/// `str(OSError)` format (`[Errno 13] Permission denied: '/path'`). Python keeps the last
+/// N lines in a deque; bab reads the file backwards from the end, so memory is bounded by
+/// the size of those lines as well (and a huge log is not read in full).
 pub fn read_log_tail(path: &Path, max_lines: usize) -> Result<String> {
-    let bytes = std::fs::read(path).map_err(|err| {
+    let fail = |err: std::io::Error| {
         die(format!(
             "could not read {}: {}",
             path.display(),
             pyfmt::os_error_str(&err, path)
         ))
-    })?;
-    let text = pyfmt::decode_text(bytes);
-    if max_lines == 0 {
-        return Ok(text);
+    };
+    let bytes = if max_lines == 0 {
+        std::fs::read(path).map_err(fail)?
+    } else {
+        let mut file = std::fs::File::open(path).map_err(fail)?;
+        tail_lines_bytes(&mut file, max_lines).map_err(fail)?
+    };
+    Ok(pyfmt::decode_text(bytes))
+}
+
+/// The bytes of the last `max_lines` (> 0) lines of `file`, line ends as in Python's
+/// universal newlines mode (`\n`, `\r\n`, `\r`; a final line may lack one). The bytes
+/// `\r`/`\n` never occur inside a UTF-8 sequence and end any invalid one, so decoding
+/// these bytes gives exactly the tail of the decoded file.
+fn tail_lines_bytes(
+    file: &mut (impl std::io::Read + std::io::Seek),
+    max_lines: usize,
+) -> std::io::Result<Vec<u8>> {
+    use std::io::SeekFrom;
+    const BLOCK: u64 = 64 * 1024;
+    let end = file.seek(SeekFrom::End(0))?;
+    let mut pos = end;
+    // blocks from the end of the file backwards
+    let mut blocks: Vec<Vec<u8>> = Vec::new();
+    let mut after: Option<u8> = None;
+    let mut found = 0;
+    'scan: while pos > 0 {
+        let start = pos.saturating_sub(BLOCK);
+        let mut block = vec![0u8; (pos - start) as usize];
+        file.seek(SeekFrom::Start(start))?;
+        file.read_exact(&mut block)?;
+        for i in (0..block.len()).rev() {
+            let byte = block[i];
+            let line_end = byte == b'\n' || (byte == b'\r' && after != Some(b'\n'));
+            after = Some(byte);
+            // the line end of the last line does not start another line
+            if line_end && start + i as u64 + 1 != end {
+                found += 1;
+                if found == max_lines {
+                    block.drain(..=i);
+                    blocks.push(block);
+                    break 'scan;
+                }
+            }
+        }
+        blocks.push(block);
+        pos = start;
     }
-    let body = text.strip_suffix('\n').unwrap_or(&text);
-    let start = body
-        .rmatch_indices('\n')
-        .nth(max_lines - 1)
-        .map_or(0, |(i, _)| i + 1);
-    Ok(text[start..].to_owned())
+    blocks.reverse();
+    Ok(blocks.concat())
 }
 
 /// `get_job_output(job_id, stream=, tail_lines=, user=)` -> (path, text), with the
@@ -1124,5 +1165,67 @@ MinCPUsNode=1";
         assert_eq!(read_log_tail(&path, 1).unwrap(), "y\n");
         assert_eq!(read_log_tail(&path, 2).unwrap(), "x\ny\n");
         std::fs::remove_dir_all(dir).unwrap();
+    }
+
+    /// Python's `"".join(deque(open(..., errors="replace"), maxlen=n))`, over the whole
+    /// decoded text (what bab did before reading backwards).
+    fn deque_tail(bytes: &[u8], n: usize) -> String {
+        let text = pyfmt::decode_text(bytes.to_vec());
+        let mut lines: Vec<&str> = text.split_inclusive('\n').collect();
+        let keep = lines.len().saturating_sub(n);
+        lines.drain(..keep);
+        lines.concat()
+    }
+
+    #[test]
+    fn log_tail_read_backwards_matches_the_whole_file_tail() {
+        let mut cases: Vec<Vec<u8>> = [
+            &b""[..],
+            b"\n",
+            b"\r",
+            b"\r\n",
+            b"\n\n\r\r\n\n",
+            b"a",
+            b"a\rb",
+            b"a\r\n\r\nb\r",
+            b"\xe2\x82\ra\xe2\n\xff\xfe\r\n\xf0\x9f\x98",
+            "snow \u{2603}\r\nline\n".as_bytes(),
+        ]
+        .iter()
+        .map(|b| b.to_vec())
+        .collect();
+        // line ends and a split \r\n around the 64 KiB block boundary
+        for at in [65534usize, 65535, 65536, 65537] {
+            let mut big = vec![b'x'; 70000];
+            big[at] = b'\r';
+            big[at + 1] = b'\n';
+            big[3] = b'\n';
+            cases.push(big.clone());
+            big[at + 1] = b'\r';
+            cases.push(big);
+        }
+        let mut seed = 7u64;
+        for _ in 0..200 {
+            let len = (seed % 300) as usize;
+            let bytes = (0..len)
+                .map(|_| {
+                    seed = seed
+                        .wrapping_mul(6364136223846793005)
+                        .wrapping_add(1442695040888963407);
+                    b"ab\r\n\xe2\x98\x83\xff"[(seed >> 33) as usize % 8]
+                })
+                .collect();
+            cases.push(bytes);
+        }
+        for bytes in &cases {
+            for n in [1, 2, 3, 5, 100, 100_000] {
+                let tail = tail_lines_bytes(&mut std::io::Cursor::new(bytes), n).unwrap();
+                assert_eq!(
+                    pyfmt::decode_text(tail),
+                    deque_tail(bytes, n),
+                    "{bytes:?} n={n}"
+                );
+            }
+        }
     }
 }

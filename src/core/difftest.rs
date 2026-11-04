@@ -51,7 +51,15 @@ def diag(arg):
         'amount': [req.amount.gpus, req.amount.cpus, req.amount.mem],
         'ids': [req.display_id, req.update_id, req.pending_tasks],
     }
+def tail(arg):
+    data, n = arg
+    path = os.path.join(os.environ['BAB_DIFF_SCRATCH'], 'py-tail.log')
+    with open(path, 'wb') as f:
+        f.write(bytes.fromhex(data))
+    from pathlib import Path
+    return core.read_log_tail(Path(path), max_lines=n)
 F = {
+    'tail': tail,
     'diagnose': diag,
     'prop': lambda s: core.parse_prop_line(s),
     'pipe': lambda s: core.parse_pipe_rows(s, ['A', 'B', 'C']),
@@ -168,6 +176,17 @@ fn rust_eval(name: &str, arg: &Value) -> Value {
             timefmt::iso_to_dt("2026-10-06T14:30:00").unwrap()
         )),
         "diagnose" => rust_diagnose(arg),
+        "tail" => {
+            let hex = arg[0].as_str().unwrap();
+            let bytes: Vec<u8> = (0..hex.len())
+                .step_by(2)
+                .map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap())
+                .collect();
+            let path = scratch_dir().join("rs-tail.log");
+            std::fs::write(&path, bytes).unwrap();
+            let n = arg[1].as_u64().unwrap() as usize;
+            json!(crate::core::jobs::read_log_tail(&path, n).unwrap())
+        }
         other => panic!("unknown function {other}"),
     }
 }
@@ -507,7 +526,7 @@ fn cases() -> Vec<(&'static str, Value)> {
     }
     let iso = [
         "2024", "-", "01", "15", "T", " ", "10", ":", "30", "00", ".", ",", "5", "1234567", "24",
-        "60", "Z", "x",
+        "60", "Z", "x", "\u{2603}", "\u{e9}",
     ];
     for _ in 0..4000 {
         let s = g.string(&iso, 10);
@@ -602,6 +621,25 @@ fn cases() -> Vec<(&'static str, Value)> {
     for _ in 0..4000 {
         out.push(("diagnose", random_diagnosis_case(&mut gd)));
     }
+    let tail_bytes: [&[u8]; 8] = [
+        b"a",
+        b"bc",
+        b"\n",
+        b"\r",
+        b"\r\n",
+        b"\xe2\x98",
+        b"\x83",
+        b"\xff",
+    ];
+    for _ in 0..1500 {
+        let count = g.below(40);
+        let hex: String = (0..count)
+            .flat_map(|_| tail_bytes[g.below(tail_bytes.len())].iter())
+            .map(|b| format!("{b:02x}"))
+            .collect();
+        let n = [0, 1, 2, 3, 7, 50][g.below(6)];
+        out.push(("tail", json!([hex, n])));
+    }
     let lines = [
         "a", "\n", "\r", "\r\n", "\x0b", "\x0c", "\x1c", "\x1d", "\x1e", "\u{85}", "\u{2028}",
         "\u{2029}", " ",
@@ -620,6 +658,17 @@ fn cases() -> Vec<(&'static str, Value)> {
     out
 }
 
+/// Where both sides write the `tail` test files.
+fn scratch_dir() -> std::path::PathBuf {
+    let dir = std::env::current_exe()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .join(format!("bab-difftest-scratch-{}", std::process::id()));
+    std::fs::create_dir_all(&dir).unwrap();
+    dir
+}
+
 #[test]
 fn rust_ports_match_python() {
     let Some(python) = std::env::var_os("BAB_DIFF_PYTHON") else {
@@ -633,6 +682,7 @@ fn rust_ports_match_python() {
         .join("bab-difftest-empty");
     let mut child = Command::new(python)
         .args(["-c", PY_SERVER])
+        .env("BAB_DIFF_SCRATCH", scratch_dir())
         .env("AB_CLUSTER", "allegro")
         .env("XDG_CONFIG_HOME", &empty)
         .env("XDG_CACHE_HOME", &empty)
@@ -672,6 +722,7 @@ fn rust_ports_match_python() {
         }
     }
     writer.join().unwrap();
+    let _ = std::fs::remove_dir_all(scratch_dir());
     assert!(
         hint_kinds.len() >= 6,
         "diagnosis cases too uniform: {hint_kinds:?}"
