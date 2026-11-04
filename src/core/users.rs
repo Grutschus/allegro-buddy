@@ -20,5 +20,17 @@ pub fn current_groups() -> &'static BTreeSet<String> {
 /// `Account`, `QOS`. The cluster name comes from `settings::slurm_cluster_name()` (cached
 /// file / `scontrol show config`).
 pub fn user_accounts(user: &str) -> Result<Vec<Record>> {
-    todo!()
+    let mut argv = vec![
+        "sacctmgr".to_owned(),
+        "-nP".to_owned(),
+        "show".to_owned(),
+        "user".to_owned(),
+        user.to_owned(),
+        "withassoc".to_owned(),
+    ];
+    if let Some(cluster) = crate::settings::slurm_cluster_name() {
+        argv.push(format!("cluster={cluster}"));
+    }
+    argv.push("format=DefaultAccount,Account,QOS".to_owned());
+    super::slurm::run_parsable_rows(&argv, &["DefaultAccount", "Account", "QOS"], false)
 }
