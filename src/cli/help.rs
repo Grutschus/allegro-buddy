@@ -19,8 +19,9 @@
 use super::commands::Command;
 use crate::error::UsageError;
 
-/// Print the help page of the command at `path` (`["bab", "dev"]`) to stdout.
-pub fn print_help(path: &[String], command: &Command) {
+/// Print the help page of the command at `path` (`["bab", "dev"]`) to stdout;
+/// `default_map` is the `[dev]` config map of `bab dev start` (shown as defaults).
+pub fn print_help(path: &[String], default_map: Option<&[(&'static str, String)]>) {
     todo!()
 }
 
@@ -34,7 +35,7 @@ pub fn print_click_exception(message: &str) {
     todo!()
 }
 
-/// Print click's `Aborted!` to stderr.
+/// Print rich-click's `Aborted.` (style `red`) to stderr.
 pub fn print_aborted() {
     todo!()
 }

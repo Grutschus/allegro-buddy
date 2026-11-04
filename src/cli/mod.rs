@@ -32,10 +32,15 @@ use commands::Action;
 use parser::{Args, DefaultMap, Parsed};
 use std::ffi::OsString;
 
+
 /// Entry point: returns the exit code (only `main.rs` exits).
 pub fn main(argv: Vec<OsString>) -> i32 {
     crate::signals::install();
-    if let Some(code) = completion::handle_env_request(crate::core::CLI_NAME) {
+    let prog_name = argv
+        .first()
+        .map(|a| program_name(&a.to_string_lossy()))
+        .unwrap_or_else(|| crate::core::CLI_NAME.to_owned());
+    if let Some(code) = completion::handle_env_request(&prog_name) {
         return code;
     }
     let args: Vec<String> = argv
@@ -43,20 +48,60 @@ pub fn main(argv: Vec<OsString>) -> i32 {
         .skip(1)
         .map(|a| a.to_string_lossy().into_owned())
         .collect();
-    match run(&args) {
+    let result = run(&args).and_then(|()| crate::signals::check());
+    match result {
         Ok(()) => 0,
         Err(err) => report(err),
+    }
+}
+
+/// click's `_detect_program_name`: the basename of argv[0].
+fn program_name(argv0: &str) -> String {
+    let name = argv0.rsplit('/').next().unwrap_or(argv0);
+    if name.is_empty() {
+        crate::core::CLI_NAME.to_owned()
+    } else {
+        name.to_owned()
     }
 }
 
 /// Parse and run (no exit-code mapping).
 pub fn run(argv: &[String]) -> Result<()> {
     match parser::parse(argv, &load_default_map)? {
-        Parsed::Done => Ok(()),
-        Parsed::Run { command, args, .. } => match command.action {
-            Some(action) => dispatch(action, &args),
-            None => unreachable!("parser only returns runnable commands"),
-        },
+        Parsed::Help {
+            path,
+            default_map,
+            code,
+        } => {
+            help::print_help(&path, default_map.as_deref());
+            if code == 0 {
+                Ok(())
+            } else {
+                Err(AbError::Exit(code))
+            }
+        }
+        Parsed::Version => {
+            echo(&format!(
+                "{}, version {}",
+                crate::core::CLI_NAME,
+                crate::VERSION_DISPLAY
+            ));
+            Ok(())
+        }
+        Parsed::Run {
+            path,
+            command,
+            args,
+        } => {
+            let action = command.action.expect("parser only returns runnable commands");
+            dispatch(action, &args).map_err(|err| match err {
+                AbError::Usage(mut usage) if usage.command_path.is_empty() => {
+                    usage.command_path = path;
+                    AbError::Usage(usage)
+                }
+                other => other,
+            })
+        }
     }
 }
 
@@ -66,7 +111,11 @@ pub fn report(err: AbError) -> i32 {
         AbError::Exit(_) => {}
         AbError::Usage(usage) => help::print_usage_error(usage),
         AbError::Click(message) => help::print_click_exception(message),
-        AbError::Abort | AbError::Interrupted => help::print_aborted(),
+        AbError::Abort => help::print_aborted(),
+        AbError::Interrupted => {
+            write_stream(&mut std::io::stderr(), "\n");
+            help::print_aborted();
+        }
     }
     err.exit_code()
 }
@@ -88,7 +137,13 @@ pub fn load_default_map() -> Result<DefaultMap> {
 
 /// `click.echo(text)`: plain stdout write plus newline.
 pub fn echo(text: &str) {
-    todo!()
+    write_stream(&mut std::io::stdout(), &format!("{text}\n"));
+}
+
+/// Write and flush, ignoring errors (a closed pipe ends the process via SIGPIPE).
+pub(crate) fn write_stream(stream: &mut dyn std::io::Write, text: &str) {
+    let _ = stream.write_all(text.as_bytes());
+    let _ = stream.flush();
 }
 
 /// Run the handler for `action` with typed arguments (Python's `*_command` functions).
