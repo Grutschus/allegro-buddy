@@ -311,18 +311,75 @@ pub fn load_user_pending_jobs(user: Option<&str>) -> Result<Vec<Record>> {
 /// Time deltas in seconds (`timedelta.total_seconds()`; None when unknown).
 pub type Etas = Vec<Option<f64>>;
 
+/// The first query of [`get_user_job_etas`] (for [`slurm::prefetch`]).
+pub fn user_etas_argv(user: &str) -> Vec<String> {
+    if super::fast::enabled() {
+        job_times_argv(user)
+    } else {
+        user_jobs_argv(user, None)
+    }
+}
+
+/// `squeue -h --user=U --format=%i|%T|%S|%e`: per job record what [`get_user_job_etas`]
+/// reads of `scontrol --oneliner --details show job` (Slurm prints `JobState` and
+/// `%T` with `job_state_string`, `StartTime`/`EndTime` and `%S`/`%e` with
+/// `slurm_make_time_str`; only an unknown time is spelled differently, `Unknown`/`N/A`/
+/// `NONE`, which never parses). squeue lists the records `ab` gets from one
+/// `scontrol show job ID` per array or job id, except for heterogeneous jobs (`%i` =
+/// `123+0`), whose leader's listing repeats the components.
+fn job_times_argv(user: &str) -> Vec<String> {
+    vec![
+        "squeue".to_owned(),
+        "-h".to_owned(),
+        format!("--user={user}"),
+        "--format=%i|%T|%S|%e".to_owned(),
+    ]
+}
+
+/// `JobState`, `StartTime`, `EndTime` of each line of [`job_times_argv`]; None for a
+/// heterogeneous job or a line of another shape.
+fn job_times(stdout: &str) -> Option<Vec<(&str, &str, &str)>> {
+    data_lines(stdout)
+        .map(|line| {
+            let mut fields = line.split('|');
+            let id = fields.next()?;
+            let times = (fields.next()?, fields.next()?, fields.next()?);
+            (fields.next().is_none() && !id.contains('+')).then_some(times)
+        })
+        .collect()
+}
+
 /// `get_user_job_etas(user, now=now)`: (pending start deltas, running end deltas).
-/// Consumers truncate with `int()`.
+/// Consumers truncate with `int()` and only count them and take the minimum. With
+/// [`super::fast`], one [`job_times_argv`] instead of `squeue` plus one `scontrol` per job.
 pub fn get_user_job_etas(user: Option<&str>, now: NaiveDateTime) -> Result<(Etas, Etas)> {
     let user = user_or_current(user);
-    let jobs = get_user_jobs(Some(&user), None)?;
     let delta = |value: &str| iso_to_dt(value).map(|target| total_seconds(target, now));
     let (mut pending, mut running) = (Etas::new(), Etas::new());
-    for job in &jobs {
-        match job.get_str("JobState") {
-            "PENDING" => pending.push(delta(job.get_str("StartTime"))),
-            "RUNNING" => running.push(delta(job.get_str("EndTime"))),
-            _ => {}
+    let mut count = |state: &str, start: &str, end: &str| match state {
+        "PENDING" => pending.push(delta(start)),
+        "RUNNING" => running.push(delta(end)),
+        _ => {}
+    };
+    let mut fast = false;
+    if super::fast::enabled() {
+        let output = slurm::run(&job_times_argv(&user), false)?;
+        if output.success()
+            && let Some(rows) = job_times(&output.stdout)
+        {
+            for (state, start, end) in rows {
+                count(state, start, end);
+            }
+            fast = true;
+        }
+    }
+    if !fast {
+        for job in &get_user_jobs(Some(&user), None)? {
+            count(
+                job.get_str("JobState"),
+                job.get_str("StartTime"),
+                job.get_str("EndTime"),
+            );
         }
     }
     Ok((pending, running))

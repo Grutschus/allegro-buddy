@@ -31,4 +31,5 @@ plain-* 0 plain-nodes.json scontrol --json show nodes
 plain-* 0 plain-nodes.txt scontrol --oneliner --details show node
 plain-* 0 sacctmgr-alice.txt sacctmgr -nP show user alice withassoc cluster=allegro format=DefaultAccount,Account,QOS
 plain-* 0 - squeue -h --user=alice --format=%F
+plain-* 0 - squeue -h --user=alice --format=%i|%T|%S|%e
 plain-* 0 reservations.txt scontrol --oneliner show reservation

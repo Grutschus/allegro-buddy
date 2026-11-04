@@ -375,7 +375,7 @@ pub fn cmd_info(all_partitions: bool) -> Result<()> {
     let _prefetch = slurm::prefetch(vec![
         crate::core::nodes::query_argv(),
         slurm::argv(&crate::core::partitions::ARGV),
-        crate::core::jobs::user_jobs_argv(user, None),
+        crate::core::jobs::user_etas_argv(user),
         slurm::argv(&crate::core::reservations::ARGV),
     ]);
     let sacctmgr = accounts_argv(user);
