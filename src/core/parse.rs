@@ -188,6 +188,9 @@ fn split_top_level(spec: &str) -> Vec<&str> {
 fn hostlist_part(part: &str) -> Option<(&str, &str, &str)> {
     let open = part.find('[')?;
     let prefix = &part[..open];
+    if prefix.contains(']') {
+        return None;
+    }
     let rest = &part[open + 1..];
     let close = rest.find(']')?;
     let ranges = &rest[..close];

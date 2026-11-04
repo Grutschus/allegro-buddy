@@ -491,7 +491,7 @@ mod tests {
         let expected: Vec<String> = (0..20).map(|i| i.to_string()).collect();
         assert_eq!(parallel(tasks), expected);
         assert_eq!(fake.calls().len(), 20);
-        let (a, b, c) = join3(|| 1, || crate::hooks::user(), || "c");
+        let (a, b, c) = join3(|| 1, crate::hooks::user, || "c");
         assert_eq!((a, b, c), (1, "alice", "c"));
     }
 }

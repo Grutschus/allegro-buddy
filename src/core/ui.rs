@@ -63,7 +63,6 @@ pub fn render_table(
         &table,
         PrintOptions {
             width,
-            style: None,
             ..PrintOptions::default()
         },
     );
@@ -358,7 +357,7 @@ mod tests {
         assert!(build_dev_job_rows(&[]).is_empty());
         let rows = build_dev_job_rows(&[job_pending()]);
         assert_eq!(plain(rows[0].last().unwrap()), "Resources");
-        assert_eq!(plain(&rows[0][3]), "-");
+        assert_eq!(plain(&rows[0][3]), "(None)");
     }
 
     #[test]

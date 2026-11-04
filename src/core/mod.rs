@@ -31,6 +31,9 @@ pub mod timefmt;
 pub mod ui;
 pub mod users;
 
+#[cfg(test)]
+mod difftest;
+
 use std::collections::HashMap;
 
 /// Program name in all user-facing text (Python `CLI_NAME = "ab"`).

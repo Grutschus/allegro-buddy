@@ -2041,7 +2041,7 @@ mod tests {
         assert!(d.never_fits());
         let r = request(plain_gpu_job(), json!({"shared": ["none"]}));
         let busy = a5000("gpu105", 3, 12, 80000);
-        assert!(!diag(&r, &[busy.clone()]).fits_now());
+        assert!(!diag(&r, std::slice::from_ref(&busy)).fits_now());
         assert!(diag(&r, &[busy]).fixes.is_empty());
         assert!(diag(&r, &[idle("gpu110")]).fits_now());
     }
@@ -2310,7 +2310,7 @@ mod tests {
                 ..cpu_spec()
             },
         );
-        assert!(diag(&r, &[cpu.clone()]).fits_now());
+        assert!(diag(&r, std::slice::from_ref(&cpu)).fits_now());
         let d = diagnose(
             &r,
             &[cpu],

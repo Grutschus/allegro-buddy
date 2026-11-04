@@ -402,7 +402,7 @@ impl Text {
             count += 1;
             for &(index, style) in &names {
                 if let Some(m) = caps.get(index) {
-                    if m.end() > m.start() && !style.is_null() {
+                    if m.end() > m.start() {
                         let start = char_count(&plain[..m.start()]);
                         let end = start + char_count(m.as_str());
                         new_spans.push(Span::new(start, end, style));
@@ -948,11 +948,7 @@ pub fn justify_lines(lines: &mut [Text], width: usize, justify: Justify, overflo
         }
         Justify::Full => {
             let count = lines.len();
-            for line_index in 0..count {
-                if line_index == count - 1 {
-                    break;
-                }
-                let line = &lines[line_index];
+            for line in lines.iter_mut().take(count.saturating_sub(1)) {
                 let words = line.split(" ", false, false);
                 let words_size: usize = words.iter().map(Text::cell_len).sum();
                 let mut num_spaces = words.len().saturating_sub(1);
@@ -980,7 +976,7 @@ pub fn justify_lines(lines: &mut [Text], width: usize, justify: Justify, overflo
                         tokens.push(Text::with_style(" ".repeat(spaces[index]), space_style));
                     }
                 }
-                lines[line_index] = Text::new("").join(tokens);
+                *line = Text::new("").join(tokens);
             }
         }
     }
@@ -991,11 +987,7 @@ fn words(text: &str) -> Vec<(usize, usize, &str)> {
     let mut out = Vec::new();
     let mut chars = text.char_indices().peekable();
     let mut char_index = 0;
-    loop {
-        let start_byte = match chars.peek() {
-            Some(&(b, _)) => b,
-            None => break,
-        };
+    while let Some(&(start_byte, _)) = chars.peek() {
         let start = char_index;
         let mut seen_word = false;
         // leading whitespace

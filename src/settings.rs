@@ -718,7 +718,7 @@ pub fn validate(settings: &Settings) -> Result<(), ConfigError> {
     if let Some(limit) = settings.get("dev", "max_allocations") {
         let ok = !limit.is_empty()
             && limit.bytes().all(|b| b.is_ascii_digit())
-            && limit.trim_start_matches('0').len() > 0;
+            && !limit.trim_start_matches('0').is_empty();
         if !ok {
             return Err(ConfigError(format!(
                 "[dev] max-allocations must be a whole number >= 1, got {}",
@@ -960,7 +960,7 @@ mod tests {
         let env = |value: Option<&'static str>| {
             move |name: &str| {
                 (name == "AB_CLUSTER")
-                    .then(|| value)
+                    .then_some(value)
                     .flatten()
                     .map(str::to_owned)
             }
