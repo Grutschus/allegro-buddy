@@ -13,6 +13,11 @@ implementations, and compare the Python reference (`allegro-buddy` 2.7) with `ba
 | `replay/fake` | the replay fake Slurm: POSIX sh, looks the exact argv up in a generated `case` table and `cat`s the recorded output; unknown argv: exit 1 and `MISS` in `$REPLAY_LOG`; `REPLAY_REALTIME=1` sleeps the recorded duration of the call, `REPLAY_DELAY_MS=N` N ms |
 | `replay/build.py` | dataset -> replay tree (`bin/`, `runs/<id>/`, `common/` fallback, `runs.json`) |
 | `replay/bench.py` | wall-time benchmark (hyperfine) of read-only commands on the replay, any number of `bab` builds and `--ref`; `--realtime` replays the recorded Slurm latencies; results of the performance pass in `PERF.md` |
+| `replay/make_ab_venv.sh`, `replay/ab_bench_hooks.py` | the benchmark reference: a uv venv with allegro-buddy 2.7 timed through its own console script `venv/bin/ab`; a `.pth` line installs the `BAB_TEST_*` hooks only when `BAB_TEST_NOW` is set |
+| `run_local.sh` | the final local comparison (no delay, realtime, cold cache, a user with pending jobs, hook overhead) -> `results/local/` |
+| `live/bench_live.sh` | the live comparison, run on the cluster in one ssh session (read-only allowlist, 10 runs + 1 warmup per command and tool) -> `results/live/<run>/` |
+| `plot.py` | `uv run bench/plot.py`: `plots/*.{svg,png}` and the tables of `RESULTS.md` |
+| `RESULTS.md` | **the final numbers** (live on Allegro and local), methodology, plots |
 | `replay/parity.py` | every recorded command x COLUMNS 80/160/200 x (plain, `FORCE_COLOR=1`) + one cold-cache run: stdout, stderr, exit and the multiset of Slurm calls |
 | `data/allegro/` | anonymised recordings of Allegro (Slurm 24.11.5, 2026-11-04): `snapshot` (52 commands), `as-user-a`/`as-user-b` (12 user-centric commands as a user with pending/array jobs); `runs.jsonl` holds the reference output on the anonymised replay |
 
