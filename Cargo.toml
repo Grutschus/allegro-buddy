@@ -25,10 +25,10 @@ chrono = { version = "0.4.45", default-features = false, features = ["clock", "s
 libc = "0.2.191"
 # Ports of the Python regexes (GRES parsing, prop lines, Rich markup/highlighter).
 regex = "1.13.1"
+# Rich's ReprHighlighter regexes need lookbehind (Python `re` semantics).
+fancy-regex = { version = "0.20.0", default-features = false, features = ["unicode", "perf"] }
 # `scontrol --json` output; untyped Value access only, so no serde derive.
 serde_json = "1.0.154"
-# Terminal cell widths for Rich-compatible layout.
-unicode-width = "0.2.3"
 
 [profile.release]
 opt-level = 3
