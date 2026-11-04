@@ -5,7 +5,7 @@
 //! * **Byte-identical UI.** Every byte on stdout/stderr, every exit code and every Slurm call
 //!   must match the Python reference (allegro-buddy==2.7 with rich==15.0.0, click==8.3.2,
 //!   rich-click==1.9.9), except the program name: `ab` -> `bab` ([`core::CLI_NAME`]). The
-//!   Python source is on the `main` branch: `git show main:src/allegro_buddy/<file>`.
+//!   Python source is commit `91689b9` (upstream v2.7): `git show 91689b9:src/allegro_buddy/<file>`.
 //!   Each Rust item names the Python function it mirrors (`Mirrors core.foo`).
 //! * **Drop-in compatible**: same config paths, env vars (`AB_CLUSTER`, `AB_SITE_CONFIG`, ...),
 //!   cache files and dev job name (`ab-dev`), so `ab` and `bab` can be used side by side.

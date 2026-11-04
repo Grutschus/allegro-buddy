@@ -1,6 +1,6 @@
 //! Match a pending job's request against the free capacity of each node. Port of
 //! `fit.py` (pure: callers load Slurm data and pass it in). Owned by P2-C; port
-//! `tests/test_fit.py` (on `main`) as unit tests.
+//! `tests/test_fit.py` (at commit `91689b9`) as unit tests.
 //!
 //! Requests come from `scontrol --json show job` records ([`JobRecord`]); memory/CPUs
 //! from the per-unit fields (`memory_per_tres`, `memory_per_cpu`, `cpus_per_tres`), not
