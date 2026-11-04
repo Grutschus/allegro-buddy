@@ -1,4 +1,0 @@
-=== run 1: bab completion zsh --install ===
-Installed zsh completion, sourced from @TMP@___________________________________/home/.zshrc. Open a new shell to use it.
-=== run 2: bab completion zsh --install ===
-Installed zsh completion; @TMP@___________________________________/home/.zshrc already sources it. Open a new shell to use it.

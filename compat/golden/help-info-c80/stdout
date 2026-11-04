@@ -1,9 +1,0 @@
-                                                                                
-  Usage: bab info [OPTIONS]                                                     
-                                                                                
-  Options                                                                       
-  ────────────────────────────────────────────────────────────────────────────  
-       --all-partitions   include partitions you cannot use                     
-  -h   --help             Show this message and exit.                           
-                                                                                
-                                                                                

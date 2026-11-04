@@ -1,5 +1,0 @@
-plain,--all	show everyone's jobs
-plain,--user	show jobs of USER
-plain,--partition	filter by partition
-plain,--watch	refresh every SECONDS (default 10) until Ctrl-C
-plain,--help	Show this message and exit.

@@ -1,6 +1,0 @@
-gpu102  free 2/4 A5000 · 8/16 CPUs · 58/90G mem
-                          Jobs on gpu102                           
-JobID   User   Name                GPUs   CPUs   Memory   Time left
-───────────────────────────────────────────────────────────────────
-70104   bob    データ処理-🚀-run   0,1       8      32G    1d23h20m
-free GPUs: 2,3

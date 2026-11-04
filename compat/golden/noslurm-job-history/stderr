@@ -1,2 +1,0 @@
-error: sacct --parsable2 --noheader -X --user=alice --starttime=now-30days 
---format=JobIDRaw,JobID,JobName,State,ExitCode,End,Reason failed: command not found: sacct

@@ -1,1 +1,0 @@
-error: squeue -h --user=alice --format=%F --name=ab-dev failed: only stdout

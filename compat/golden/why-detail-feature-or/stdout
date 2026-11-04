@@ -1,4 +1,0 @@
-65160  gpu  1x GPU · 4 CPU (4/GPU) · 12G
-  waiting for GPUs, CPUs and memory to free up
-  starts now with --mem 12G → 9G
-ⓘ `bab why 65160 --fix` changes the job so it starts now

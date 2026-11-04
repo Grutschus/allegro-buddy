@@ -1,5 +1,0 @@
-{"argv": ["scontrol", "show", "config"], "exit": 0}
-{"argv": ["squeue", "-h", "--user=alice", "--format=%F", "--name=ab-dev"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70110"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70110"], "exit": 0}
-{"argv": ["ssh", "-t", "gpu101"], "exit": 0}

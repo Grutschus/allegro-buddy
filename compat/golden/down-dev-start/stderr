@@ -1,2 +1,0 @@
-error: squeue -h --user=alice --format=%F --name=ab-dev failed: slurm_load_partitions: Unable to contact slurm 
-controller (connect failure)

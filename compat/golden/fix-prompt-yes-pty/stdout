@@ -1,4 +1,0 @@
-[36m--mem 56G → 32G[0m starts 64267_[50-142] now. This runs:
-[1m  $ scontrol update JobId=64267 MinMemoryNode=32768[0m
-[2mOnly the allocation changes, not the job script; applies to all 93 pending tasks.[0m
-Apply? [y/N]: [32mUpdated; 64267_[50-142] now asks for 4 CPU · 32G and fits on 1 node.[0m

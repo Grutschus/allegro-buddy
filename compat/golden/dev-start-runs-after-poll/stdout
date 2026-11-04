@@ -1,4 +1,0 @@
-Submitted dev job 70140 on gpu (1 GPU, 2 CPUs, 8G, 8h)
-70140 is running on gpu102
-ⓘ `bab l` opens a shell in it (short for `bab dev login`)
-ⓘ it joins with ssh; --srun keeps the job's Slurm environment (CUDA_VISIBLE_DEVICES)

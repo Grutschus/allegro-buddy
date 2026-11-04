@@ -1,7 +1,0 @@
-d cache
-d config
-d demo
-f demo/slurm-70090.out
-d home
-d site
-f site/config.ini

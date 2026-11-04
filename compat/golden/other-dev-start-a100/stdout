@@ -1,2 +1,0 @@
-Submitted dev job 4242 on a100 (1 GPU nvidia_a100, 2 CPUs, 8G, 8h)
-ⓘ `bab l --wait` joins it once it runs (short for `bab dev login --wait`)

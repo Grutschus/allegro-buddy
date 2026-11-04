@@ -1,3 +1,0 @@
-{"argv": ["scontrol", "show", "config"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70110"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70110"], "exit": 0}

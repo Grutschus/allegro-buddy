@@ -1,7 +1,0 @@
-                   GPU nodes                    
-Node     State   A5000   Free CPUs   Free memory
-────────────────────────────────────────────────
-gpu081   MIXED     4/4       16/16        88/88G
-                                                
-total              4/4       16/16        88/88G
-free/total

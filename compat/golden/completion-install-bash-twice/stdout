@@ -1,4 +1,0 @@
-=== run 1: bab completion bash --install ===
-Installed bash completion, sourced from @TMP@___________________________________/home/.bashrc. Open a new shell to use it.
-=== run 2: bab completion bash --install ===
-Installed bash completion; @TMP@___________________________________/home/.bashrc already sources it. Open a new shell to use it.

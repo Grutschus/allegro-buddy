@@ -1,6 +1,0 @@
-[1m                                             Queue · all users                                             [0m
-[1mJobID[0m[1m [0m [1m [0m[1mUser [0m[1m [0m [1m [0m[1mName [0m[1m [0m [1m [0m[1mState  [0m[1m [0m [1m [0m[1mPartition[0m[1m [0m [1m [0m[1mElapsed[0m[1m [0m [1m [0m[1mTime left[0m[1m [0m [1m [0m[1mStart       [0m[1m [0m [1m [0m[1mNode/Reason             [0m
-───────────────────────────────────────────────────────────────────────────────────────────────────────────
-[36m64612[0m   bob     train   [1;32mRUNNING[0m   [1;32mgpu      [0m      1h2m       6h57m                  [32mgpu081                  [0m
-[36m64613[0m   carol   eval    [1;33mPENDING[0m   [1;32mgpu      [0m                    8h   in 26356d22h   [33mGPU-bound · max 2/4 free[0m
-[2mⓘ `bab why` shows what is short and what would start now[0m

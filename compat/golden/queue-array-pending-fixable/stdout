@@ -1,5 +1,0 @@
-                                          Queue                                           
-JobID          Name    State     Partition   Time left   Start      Node/Reason           
-──────────────────────────────────────────────────────────────────────────────────────────
-65177_[0-11]   sweep   PENDING   gpu                2h   in 3h10m   starts now w/ ≤ 2 GPUs
-ⓘ `bab why` shows what is short and what would start now

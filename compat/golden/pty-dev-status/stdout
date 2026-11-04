@@ -1,6 +1,0 @@
-[1m                               Dev jobs                                [0m
-[1mJobID[0m[1m [0m [1m [0m[1mState  [0m[1m [0m [1m [0m[1mPartition[0m[1m [0m [1m [0m[1mNode  [0m[1m [0m [1m [0m[1mCPUs[0m[1m [0m [1m [0m[1mMemory[0m[1m [0m [1m [0m[1mGPUs[0m[1m [0m [1m [0m[1mTime left[0m
-───────────────────────────────────────────────────────────────────────
-[36m70110[0m   [1;32mRUNNING[0m   [1mgpu      [0m   [34mgpu101[0m      4      16G      1   6h35m    
-[2mⓘ `bab l` opens a shell in it (short for `bab dev login`)[0m
-[2mⓘ it joins with ssh; --srun keeps the job's Slurm environment (CUDA_VISIBLE_DEVICES)[0m

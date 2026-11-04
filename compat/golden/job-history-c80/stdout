@@ -1,8 +1,0 @@
-                         Finished jobs                         
-JobID     Name          State           Exit code   Ended      
-───────────────────────────────────────────────────────────────
-70090     prep-data     COMPLETED       0:0         today 08:41
-70085     train-small   FAILED          1:0         Mon 23:17  
-70080_3   sweep         TIMEOUT         0:0         Mon 18:00  
-70077     notebook      CANCELLED       0:0         Mon 12:30  
-70070     eval          OUT_OF_MEMORY   0:125       Sun 16:02  

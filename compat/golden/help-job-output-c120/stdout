@@ -1,9 +1,0 @@
-                                                                                                    
-  Usage: bab job output [OPTIONS] JOBID                                                             
-                                                                                                    
-  Options                                                                                           
-  ────────────────────────────────────────────────────────────────────────────────────────────────  
-       --stderr   show stderr instead of stdout                                                     
-  -h   --help     Show this message and exit.                                                       
-                                                                                                    
-                                                                                                    

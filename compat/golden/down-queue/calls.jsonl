@@ -1,2 +1,0 @@
-{"argv": ["scontrol", "show", "config"], "exit": 1}
-{"argv": ["squeue", "-h", "--format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R", "-u", "alice"], "exit": 1}

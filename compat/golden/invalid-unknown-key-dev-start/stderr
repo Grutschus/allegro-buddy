@@ -1,7 +1,0 @@
-╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮
-│ unknown key 'gpus' in [dev] of                                                                   │
-│ @TMP@___________________________________/config/allegro-buddy/config.ini; choose from            │
-│ ['account', 'constraint', 'cpus', 'exclude', 'gpu', 'gpu_type', 'log_dir', 'max_allocations',    │
-│ 'mem', 'partition', 'time']                                                                      │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-                                                                                                    

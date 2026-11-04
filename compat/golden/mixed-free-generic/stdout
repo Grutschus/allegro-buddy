@@ -1,7 +1,0 @@
-                      GPU nodes                       
-Node    State            GPU   Free CPUs   Free memory
-──────────────────────────────────────────────────────
-gpu13   MIXED [course]   2/4       16/16        90/90G
-                                                      
-total                    2/4       16/16        90/90G
-free/total

@@ -1,4 +1,0 @@
-[36m70122[0m  [1;32mgpu[0m  2x A5000 · 8 CPU · 80G
-  waiting for [33mmemory[0m to free up
-  [1;32mstarts now with [0m[1;36m--mem 80G → 73G[0m
-[2mⓘ `bab why 70122 --fix` changes the job so it starts now[0m

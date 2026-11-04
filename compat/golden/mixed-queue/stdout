@@ -1,8 +1,0 @@
-                                                    Queue                                                    
-JobID   Name            State     Partition   Elapsed   Time left   Start    Node/Reason                     
-─────────────────────────────────────────────────────────────────────────────────────────────────────────────
-80001   blocked-maint   PENDING   gpu                          1h   -        ReqNodeNotAvail, Reserved for m…
-80002   blocked-other   PENDING   gpu                          1h   -        Reservation other is busy       
-80003   not-blocked     PENDING   gpu                          1h   in 45m   fits now on gpu1 +7             
-80004   running         RUNNING   gpu             30m       9h30m            gpu13                           
-ⓘ `bab why` shows what is short and what would start now

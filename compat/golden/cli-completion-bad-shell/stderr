@@ -1,8 +1,0 @@
-                                                                                                    
-  Usage: bab completion [OPTIONS] [[bash|zsh|fish]]                                                 
-                                                                                                    
- Try 'bab completion -h' for help                                                                   
-╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮
-│ Invalid value for '[[bash|zsh|fish]]': 'tcsh' is not one of 'bash', 'zsh', 'fish'.               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-                                                                                                    

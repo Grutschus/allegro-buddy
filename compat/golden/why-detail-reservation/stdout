@@ -1,9 +1,0 @@
-65177_[0-11]  gpu  4x A5000 · 16 CPU (4/GPU) · 40G (10G/GPU)  (12 tasks)
-  fits now on gpu061 · start due (Wed 22:26) on gpu127
-
-                     Eligible nodes                      
-Node     State                       GPU     CPU      Mem
-─────────────────────────────────────────────────────────
-gpu061   IDLE+RESERVED+MAINTENANCE   4/4   16/16   89/89G
-free/total, red is short
-Not counted: 3 outside its reservation.

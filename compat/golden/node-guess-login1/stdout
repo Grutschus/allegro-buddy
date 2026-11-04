@@ -1,6 +1,0 @@
-gpu101  free 3/4 A5000 · 12/16 CPUs · 74/90G mem
-                     Jobs on gpu101                      
-JobID   User    Name     GPUs   CPUs   Memory   Time left
-─────────────────────────────────────────────────────────
-70110   alice   ab-dev   0         4      16G       6h35m
-free GPUs: 1,2,3

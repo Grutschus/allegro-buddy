@@ -1,4 +1,0 @@
-Submitted dev job [36m70140[0m on [1;32mgpu[0m[2m (1 GPU, 2 CPUs, 8G, 8h)[0m
-[?25l<spinner frames>[?25h[1A[2K[36m70140[0m is running on [32mgpu102[0m
-[2mⓘ `bab l` opens a shell in it (short for `bab dev login`)[0m
-[2mⓘ it joins with ssh; --srun keeps the job's Slurm environment (CUDA_VISIBLE_DEVICES)[0m

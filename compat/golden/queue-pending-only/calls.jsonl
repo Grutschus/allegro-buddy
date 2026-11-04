@@ -1,5 +1,0 @@
-{"argv": ["scontrol", "show", "config"], "exit": 0}
-{"argv": ["squeue", "-h", "--format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R", "-u", "carol"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "job"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "nodes"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "show", "partition"], "exit": 0}

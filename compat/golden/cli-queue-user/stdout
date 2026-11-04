@@ -1,8 +1,0 @@
-                                    Queue · bob                                     
-JobID   Name         State     Partition   Elapsed   Time left   Start   Node/Reason
-────────────────────────────────────────────────────────────────────────────────────
-70102   sweep        RUNNING   gpu              5h         19h           gpu201     
-70103   sweep        RUNNING   gpu           2h10m      21h50m           gpu201     
-70104   finetune     RUNNING   gpu             40m    1d23h20m           gpu102     
-70130   preprocess   RUNNING   small           15m       1h45m           cmp201     
-70131   merge        PENDING   big                          3d   -       Dependency 

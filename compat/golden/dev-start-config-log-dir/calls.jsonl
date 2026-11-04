@@ -1,6 +1,0 @@
-{"argv": ["scontrol", "show", "config"], "exit": 0}
-{"argv": ["squeue", "-h", "--user=alice", "--format=%F", "--name=ab-dev"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "show", "partition"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "nodes"], "exit": 0}
-{"argv": ["sbatch", "--parsable", "--job-name=ab-dev", "--partition=gpu", "--time=08:00:00", "--mem=8G", "--output=@TMP@___________________________________/logs/dev/ab-dev-%j.out", "--wrap=trap : TERM INT; sleep infinity & wait", "--cpus-per-gpu=2", "--gres=gpu:1"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "70140"], "exit": 0}

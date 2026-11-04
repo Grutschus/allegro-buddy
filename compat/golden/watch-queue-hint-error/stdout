@@ -1,6 +1,0 @@
-every 10s · 10:00:00 · Ctrl-C to quit
-                               Queue · carol                               
-JobID   Name   State     Partition   Time left   Start          Node/Reason
-───────────────────────────────────────────────────────────────────────────
-64613   eval   PENDING   gpu                8h   in 26356d22h   Resources  
-bottleneck hints unavailable: scontrol returned no job or node data

@@ -1,8 +1,0 @@
-64267_[50-142]  big  64 CPU · 56G  (93 tasks)
-  never fits: max 40 CPUs/node; waiting will not help
-  no single change starts it now
-
-  Biggest free slots  
-CPUs   Memory   Nodes 
-──────────────────────
-  20      32G   cmp238

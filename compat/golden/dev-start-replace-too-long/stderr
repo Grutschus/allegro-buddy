@@ -1,1 +1,0 @@
-error: requested time 3-00:00:00 exceeds the gpu partition limit; set --partition explicitly

@@ -1,2 +1,0 @@
-@PYLIB@/rich_click/rich_help_configuration.py:437: UserWarning: RichClickTheme 'nord-bogus' not found.
-  theme_styles = get_theme(theme, raise_key_error=raise_key_error).styles

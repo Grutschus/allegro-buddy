@@ -1,7 +1,0 @@
-{"argv": ["scontrol", "show", "config"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "job", "70122"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "nodes"], "exit": 0}
-{"argv": ["scontrol", "--oneliner", "show", "partition"], "exit": 0}
-{"argv": ["scontrol", "update", "JobId=70122", "MinMemoryNode=74752"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "job", "70122"], "exit": 0}
-{"argv": ["scontrol", "--json", "show", "nodes"], "exit": 0}

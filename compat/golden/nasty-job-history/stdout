@@ -1,7 +1,0 @@
-                        Finished jobs                        
-JobID     Name            State       Exit code   Ended      
-─────────────────────────────────────────────────────────────
-70090     prep            COMPLETED   0:0         today 08:41
-70085     データ処理-🚀   FAILED      1:0         Mon 23:17  
-70080_3   🚀 sweep        TIMEOUT     0:0         Mon 18:00  
-70077     a  c            CANCELLED   0:0         Mon 12:30  

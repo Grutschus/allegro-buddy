@@ -1,1 +1,0 @@
-{"argv": ["squeue", "-h", "--state=PD", "--user=alice", "--format=%i|%j|%P|%l|%R"], "exit": 1}

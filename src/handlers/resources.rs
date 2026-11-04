@@ -1203,7 +1203,7 @@ pub fn cmd_node(node: Option<&str>) -> Result<()> {
 #[cfg(test)]
 mod tests {
     //! Handler-level ports from `tests/test_gpu.py`, `test_cluster_output.py` and
-    //! `test_queue.py` (whole-command output is covered by the compat goldens).
+    //! `test_queue.py` (whole-command output: `tests/snapshots.rs`).
     use super::*;
     use crate::core::nodes::remember_nodes;
     use crate::core::nodes::testing::{NodeSpec, node_dict};

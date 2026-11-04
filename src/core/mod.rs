@@ -27,8 +27,7 @@
 //! Unit tests: every Slurm call, the clock/user/groups/hostname hooks, settings and the
 //! node facts come from the per-thread `crate::hooks::testing::Ctx` (with
 //! `slurm::fake::FakeSlurm`); `nodes::testing` and `fit::records` port the builders of
-//! `tests/slurm_records.py`. `difftest` compares the ports with the Python reference
-//! when `BAB_DIFF_PYTHON` points at a Python with `allegro-buddy==2.7`.
+//! `tests/slurm_records.py`.
 
 pub mod gpu;
 pub mod jobs;
@@ -40,9 +39,6 @@ pub mod slurm;
 pub mod timefmt;
 pub mod ui;
 pub mod users;
-
-#[cfg(test)]
-mod difftest;
 
 use std::collections::HashMap;
 

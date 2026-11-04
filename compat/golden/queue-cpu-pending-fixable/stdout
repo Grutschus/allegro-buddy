@@ -1,5 +1,0 @@
-                                        Queue · all users                                        
-JobID            User    Name   State     Partition   Time left   Start   Node/Reason            
-─────────────────────────────────────────────────────────────────────────────────────────────────
-64267_[50-142]   alice   big    PENDING   big               10h   -       starts now w/ mem ≤ 32G
-ⓘ `bab why` shows what is short and what would start now

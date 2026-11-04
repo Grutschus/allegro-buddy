@@ -1,4 +1,0 @@
-error: sacct --parsable2 --noheader -X --user=alice --starttime=now-30days 
---format=JobIDRaw,JobID,JobName,State,ExitCode,End,Reason failed: sacct: error: slurm_persist_conn_open_without_init: 
-failed to open persistent connection to host:localhost:6819: Connection refused (tip: set SLURM_CONF to a user config 
-that points AccountingStorageHost to your slurmdbd host)

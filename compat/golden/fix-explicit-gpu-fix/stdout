@@ -1,4 +1,0 @@
-GPUs 4 → 2 (→ 8 CPU, 20G) starts 65177_[0-11] now. This runs:
-  $ scontrol update JobId=65177 TresPerNode=gres/gpu:RTX-A5000:2
-Only the allocation changes, not the job script; applies to all 12 pending tasks.
-Updated; 65177_[0-11] now asks for 2x A5000 · 8 CPU · 20G and fits on 1 node.

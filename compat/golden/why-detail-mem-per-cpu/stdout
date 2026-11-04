@@ -1,5 +1,0 @@
-64267_[50-142]  big  4 CPU · 56G (14G/CPU)  (93 tasks)
-  waiting for memory to free up
-  starts now with --mem-per-cpu 14G → 8G
-  or CPUs 4 → 2 (→ 28G)
-ⓘ `bab why 64267 --fix` changes the job so it starts now

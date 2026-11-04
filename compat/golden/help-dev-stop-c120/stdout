@@ -1,9 +1,0 @@
-                                                                                                    
-  Usage: bab dev stop [OPTIONS]                                                                     
-                                                                                                    
-  Options                                                                                           
-  ────────────────────────────────────────────────────────────────────────────────────────────────  
-       --jobid   TEXT   pick one dev job by id                                                      
-  -h   --help           Show this message and exit.                                                 
-                                                                                                    
-                                                                                                    

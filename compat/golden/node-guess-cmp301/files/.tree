@@ -1,8 +1,0 @@
-d cache
-d cache/allegro-buddy
-f cache/allegro-buddy/cluster-name.cmp301
-d config
-d demo
-f demo/slurm-70090.out
-d home
-d site

@@ -1,4 +1,0 @@
-[36m65177_[0-11][0m  [1;32mgpu[0m  4x A5000 · 16 CPU (4/GPU) · 40G (10G/GPU)[2m  (12 tasks)[0m
-  waiting for [33mGPUs, CPUs and memory[0m to free up · start due (Wed 22:26) on gpu127
-  [1;32mstarts now with [0m[1;36mGPUs 4 → 2 (→ 8 CPU, 20G)[0m
-[2mⓘ `bab why 65177 --fix gpus` changes the job so it starts now[0m

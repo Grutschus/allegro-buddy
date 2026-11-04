@@ -1,4 +1,0 @@
-[36m--mem 80G → 73G[0m starts 70122 now. This runs:
-[1m  $ scontrol update JobId=70122 MinMemoryNode=74752[0m
-[2mOnly the allocation changes, not the job script.[0m
-Apply? [y/N]: [32mUpdated; 70122 now asks for 2x A5000 · 8 CPU · 73G and fits on 1 node.[0m

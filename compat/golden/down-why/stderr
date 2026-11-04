@@ -1,1 +1,0 @@
-error: scontrol --json show job failed: slurm_load_partitions: Unable to contact slurm controller (connect failure)
