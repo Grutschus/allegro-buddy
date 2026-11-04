@@ -1,0 +1,1 @@
+error: no partition you can use has GPUs; try `bab free --kind cpu`

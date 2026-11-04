@@ -1,0 +1,17 @@
+                                   GPU nodes                                    
+Node    State                A5000   GPU   A100   V100   Free CPUs   Free memory
+────────────────────────────────────────────────────────────────────────────────
+gpu3    RESERVED [mine]        4/4     -      -      -       16/16        90/90G
+gpu5    MIXED [ancient]        4/4     -      -      -       16/16        90/90G
+gpu10   MIXED [course]           -     -    1/2    2/2       16/16        90/90G
+gpu9    MIXED [course]           -     -    3/4      -       16/16        90/90G
+gpu2    MIXED [course]         3/4     -      -      -       14/16        82/90G
+gpu11   MIXED+PLANNED          2/4     -      -      -       16/16        88/88G
+        [course]                                                                
+gpu12   IDLE [course]            -     -      -    2/2       16/16        90/90G
+gpu13   MIXED [course]           -   2/4      -      -       16/16        90/90G
+gpu8    ALLOCATED              2/4     -      -      -        0/16        90/90G
+gpu1    MIXED [course]         1/4     -      -      -       10/16        51/90G
+                                                                                
+total                      10+6/24   2/4    4/6    4/4     136/160      851/898G
+free/total · +n idle, but on full or drained nodes

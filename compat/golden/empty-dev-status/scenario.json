@@ -1,0 +1,21 @@
+{
+ "name": "empty-dev-status",
+ "category": "errors",
+ "argv": [
+  "dev",
+  "status"
+ ],
+ "then": [],
+ "world": "empty",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

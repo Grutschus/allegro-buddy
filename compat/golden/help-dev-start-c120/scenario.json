@@ -1,0 +1,22 @@
+{
+ "name": "help-dev-start-c120",
+ "category": "help",
+ "argv": [
+  "dev",
+  "start",
+  "--help"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

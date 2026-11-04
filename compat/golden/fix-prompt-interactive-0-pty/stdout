@@ -1,0 +1,4 @@
+[36m--mem 56G → 32G[0m starts 64267_[50-142] now. This runs:
+[1m  $ scontrol update JobId=64267 MinMemoryNode=32768[0m
+[2mOnly the allocation changes, not the job script; applies to all 93 pending tasks.[0m
+[1;31merror: [0mrefusing to change the job without confirmation; rerun with --yes

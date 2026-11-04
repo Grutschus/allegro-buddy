@@ -1,0 +1,26 @@
+{
+ "name": "plain-dev-start-argv-2",
+ "category": "cluster",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "--gpu-type",
+  "gtx1080",
+  "-g",
+  "2"
+ ],
+ "then": [],
+ "world": "plain",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

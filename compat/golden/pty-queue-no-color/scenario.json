@@ -1,0 +1,21 @@
+{
+ "name": "pty-queue-no-color",
+ "category": "color",
+ "argv": [
+  "queue"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "NO_COLOR": "1"
+ },
+ "stdin": null,
+ "tty": "pty",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

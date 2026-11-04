@@ -1,0 +1,24 @@
+{
+ "name": "nasty-fix-declined-color",
+ "category": "nasty",
+ "argv": [
+  "why",
+  "64267",
+  "--fix"
+ ],
+ "then": [],
+ "world": "custom",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "FORCE_COLOR": "1",
+  "BAB_TEST_INTERACTIVE": "1"
+ },
+ "stdin": "n\n",
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

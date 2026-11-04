@@ -1,0 +1,13 @@
+    Free GPUs    
+Partition   A5000
+─────────────────
+all           5/8
+                 
+gpumicro      5/8
+gpushort      5/8
+gpusmall      5/8
+gpu           5/8
+free/total
+
+Nodes with free GPUs
+gpu101 (3), gpu102 (2)

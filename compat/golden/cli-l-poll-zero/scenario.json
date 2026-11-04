@@ -1,0 +1,22 @@
+{
+ "name": "cli-l-poll-zero",
+ "category": "cli",
+ "argv": [
+  "l",
+  "--poll-interval",
+  "0"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

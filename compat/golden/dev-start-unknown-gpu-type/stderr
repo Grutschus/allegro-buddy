@@ -1,0 +1,1 @@
+error: unknown --gpu-type 'h100'; this cluster has: a5000, gtx1080

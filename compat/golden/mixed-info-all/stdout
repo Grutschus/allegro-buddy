@@ -1,0 +1,27 @@
+You
+user      alice                                     
+accounts  ml-lab (default), teaching                
+qos       long, normal                              
+jobs      1 running (next ends in 9h30m) · 3 pending
+
+                            Resource overview                            
+Partition   Time limit   Idle nodes   Free GPUs   Free CPUs   Free memory
+─────────────────────────────────────────────────────────────────────────
+all         -                  2/12     20+2/34     157/272    1102/1398G
+                                                                         
+gpu         2d                  1/9     16+2/30     108/192      761/808G
+other       unlimited           0/1         4/4       16/16        90/90G
+                                                                         
+small       30m                 1/3           -      37/128      341/590G
+empty       1h                    -           -           -             -
+free/total · +n idle, but on full or drained nodes
+
+                        Reservations                        
+Reservation   Nodes       When                   For        
+────────────────────────────────────────────────────────────
+mine          gpu3        now, ends in 1d        you        
+other         gpu4        now, ends in 2d2h30m   others     
+maint         gpu1,gpu2   in 1d22h, for 12h      maintenance
+course        12 nodes    in 16d22h, for 1d      you        
+nonodes       ?           in 2d14h, for 1h       you        
+jobs on these nodes must end before the reservation starts

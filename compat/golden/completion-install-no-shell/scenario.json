@@ -1,0 +1,22 @@
+{
+ "name": "completion-install-no-shell",
+ "category": "completion",
+ "argv": [
+  "completion",
+  "--install"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "SHELL": null
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

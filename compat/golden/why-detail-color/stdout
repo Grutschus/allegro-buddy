@@ -1,0 +1,9 @@
+[36m65177_[0-11][0m  [1;32mgpu[0m  4x A5000 · 16 CPU (4/GPU) · 40G (10G/GPU)[2m  (12 tasks)[0m
+  waiting for [33mGPUs, CPUs and memory[0m to free up · start due (Wed 22:26) on gpu127
+  [2mno single change starts it now[0m
+
+[1m        Biggest free slots        [0m
+[1mGPUs    [0m[1m [0m [1m [0m[1mCPUs[0m[1m [0m [1m [0m[1mMemory[0m[1m [0m [1m [0m[1mNodes  [0m
+──────────────────────────────────
+2x A5000     12       9G   gpu106*
+[2m* held for another job[0m

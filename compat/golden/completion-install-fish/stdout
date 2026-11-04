@@ -1,0 +1,4 @@
+=== run 1: bab completion --install --prog allegro-buddy ===
+Installed fish completion. Open a new shell to use it.
+=== run 2: bab completion fish --install ===
+Installed fish completion. Open a new shell to use it.

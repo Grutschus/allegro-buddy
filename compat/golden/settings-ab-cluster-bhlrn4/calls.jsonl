@@ -1,0 +1,2 @@
+{"argv": ["scontrol", "--json", "show", "nodes"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "show", "partition"], "exit": 0}

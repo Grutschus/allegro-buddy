@@ -1,0 +1,2 @@
+Submitted dev job 4242 on gpu-h200 (1 GPU H200, 8 CPUs, 8G, 1h)
+ⓘ `bab l --wait` joins it once it runs (short for `bab dev login --wait`)

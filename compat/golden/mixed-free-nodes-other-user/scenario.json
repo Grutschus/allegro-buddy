@@ -1,0 +1,23 @@
+{
+ "name": "mixed-free-nodes-other-user",
+ "category": "gpu",
+ "argv": [
+  "free",
+  "--nodes"
+ ],
+ "then": [],
+ "world": "custom",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "USER": "bob",
+  "LOGNAME": "bob"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

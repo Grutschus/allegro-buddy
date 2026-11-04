@@ -1,0 +1,26 @@
+{
+ "name": "completion-install-already-sourced",
+ "category": "completion",
+ "argv": [
+  "completion",
+  "bash",
+  "--install"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "home/.bashrc"
+ ],
+ "capture": [
+  "home/.bashrc"
+ ],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

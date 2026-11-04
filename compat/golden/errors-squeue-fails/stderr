@@ -1,0 +1,1 @@
+error: squeue -h '--format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R' -u alice failed: squeue: error: Invalid user: alice

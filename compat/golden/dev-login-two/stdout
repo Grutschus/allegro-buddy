@@ -1,0 +1,5 @@
+                               Dev jobs                                
+JobID   State     Partition   Node     CPUs   Memory   GPUs   Time left
+───────────────────────────────────────────────────────────────────────
+70111   RUNNING   gpusmall    gpu201      2       8G      1   7h40m    
+70110   RUNNING   gpu         gpu101      4      16G      1   6h35m    

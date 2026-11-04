@@ -1,0 +1,8 @@
+                        CPU nodes                         
+Node     State   Partitions        Free CPUs   Free memory
+──────────────────────────────────────────────────────────
+cmp301   IDLE    amd                   16/16        90/90G
+cmp201   MIXED   micro,small,big        8/16        58/90G
+                                                          
+total                                  24/32      148/180G
+free/total
