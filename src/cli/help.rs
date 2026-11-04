@@ -15,7 +15,7 @@
 //! `UserWarning` for unknown themes.
 
 use super::commands::{Command, Const, Param, ParamKind, ParamType, ShowDefault};
-use super::parser::{self, DefaultMap};
+use super::parser;
 use super::rich::{AlignLeft, Columns, Group, Node, Padded, Panel};
 use super::themes::{COLORS, FORMATS, PostCombine, TV, ThemeDef};
 use crate::error::UsageError;
@@ -75,7 +75,7 @@ fn find(table: &'static [ThemeDef], name: &str) -> Option<&'static ThemeDef> {
 /// `RichClickTheme.combine`: color + format, then both post-combine callbacks.
 fn combine(color: &ThemeDef, format: &ThemeDef) -> Styles {
     let mut styles: Styles = Vec::new();
-    let mut set = |styles: &mut Styles, key: &'static str, value: CV| match styles
+    let set = |styles: &mut Styles, key: &'static str, value: CV| match styles
         .iter_mut()
         .find(|(k, _)| *k == key)
     {
@@ -1241,6 +1241,3 @@ pub fn print_aborted() {
     );
     super::write_stream(&mut std::io::stderr(), &formatter.getvalue());
 }
-
-#[allow(unused)]
-fn _assert_default_map_type(_: Option<&DefaultMap>) {}

@@ -60,3 +60,38 @@ pub fn run_watched(render: &mut dyn FnMut() -> Result<()>, interval: Option<f64>
 fn sleep_duration(interval: f64) -> Duration {
     Duration::try_from_secs_f64(interval).unwrap_or(Duration::MAX)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn without_interval_errors_propagate() {
+        let mut render = || Err(AbError::Exit(3));
+        assert_eq!(run_watched(&mut render, None), Err(AbError::Exit(3)));
+    }
+
+    #[test]
+    fn rerenders_survives_die_and_stops_on_ctrl_c() {
+        let mut calls = 0;
+        let mut render = || {
+            calls += 1;
+            match calls {
+                1 => Err(AbError::Exit(1)),
+                2 => Ok(()),
+                _ => Err(AbError::Interrupted),
+            }
+        };
+        assert_eq!(run_watched(&mut render, Some(0.001)), Ok(()));
+        assert_eq!(calls, 3);
+    }
+
+    #[test]
+    fn other_errors_end_the_loop() {
+        let mut render = || Err(AbError::Click("boom".into()));
+        assert_eq!(
+            run_watched(&mut render, Some(0.001)),
+            Err(AbError::Click("boom".into()))
+        );
+    }
+}

@@ -6,7 +6,7 @@ use crate::render::boxes::BoxStyle;
 use crate::render::segment::{self, Segment};
 use crate::render::style::Style;
 use crate::render::table::{Cell, Table};
-use crate::render::text::{Overflow, Text, TextPart};
+use crate::render::text::{Text, TextPart};
 use crate::render::{Console, Measurement, Padding, RenderOptions, Renderable};
 use std::rc::Rc;
 
@@ -120,12 +120,6 @@ impl Renderable for Padded {
     fn measure(&self, console: &Console, options: &RenderOptions) -> Measurement {
         self.padding().measure(console, options)
     }
-}
-
-/// Text rendered with a theme at render time is not needed: spans are resolved when
-/// built. This wraps a `Text` as a shared node.
-pub fn text_node(text: Text) -> Node {
-    Rc::new(text)
 }
 
 /// Rich `Panel` (+ rich-click's `RichClickRichPanel` title handling).
@@ -337,16 +331,9 @@ impl Renderable for Columns {
             }
         }
         let mut table = Table::grid(0, 1);
-        table.padding = (0, 1, 0, 1);
         for row in cells.chunks(column_count.max(1)) {
             table.add_row(row.to_vec(), false);
         }
         console.render(&table, options)
     }
-}
-
-/// Text with `overflow` set (Rich `Text(..., overflow=...)`).
-pub fn with_overflow(mut text: Text, overflow: Overflow) -> Text {
-    text.overflow = Some(overflow);
-    text
 }

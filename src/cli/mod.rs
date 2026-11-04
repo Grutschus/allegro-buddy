@@ -9,8 +9,11 @@
 //!   answers completion requests (`_BAB_COMPLETE`), parses argv against
 //!   [`commands::MAIN`], runs the handler via [`dispatch`], and turns an
 //!   [`AbError`] into output + exit code (see [`crate::error`]).
-//! * Program name: always [`crate::core::CLI_NAME`] (`bab`), independent of argv[0]
-//!   (the Python reference is patched to `bab` the same way).
+//! * Program name: always [`crate::core::CLI_NAME`] (`bab`) in usage lines, independent
+//!   of argv[0] (the Python reference is patched to `bab` the same way). The completion
+//!   env var follows click: `_{BASENAME(argv[0])}_COMPLETE`, so `--prog` scripts work.
+//! * `BAB_TEST_STUB_HANDLERS=1` (test hook) prints the handler call instead of running
+//!   it, see tests/cli_ref.rs.
 //! * `ctx.default_map`: built by [`load_default_map`] from the merged config `[dev]`
 //!   section (`settings::DEV_START_KEYS` maps config keys to `dev start` params) at the
 //!   moment click runs the main group callback; a `ConfigError` becomes
@@ -18,6 +21,8 @@
 //! * Handlers get typed arguments (see [`dispatch`]); `--watch` commands are wrapped in
 //!   [`watch::run_watched`].
 //! * [`echo`] is `click.echo` (plain write + newline to stdout, no Rich).
+
+#![warn(unused, dead_code)]
 
 pub mod commands;
 pub mod completion;
