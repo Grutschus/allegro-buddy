@@ -11,6 +11,9 @@ use serde_json::Value;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
+/// Length of the per-case root directory (as in gen.py), so wrapped paths match.
+const ROOT_LEN: usize = 64;
+
 fn fixtures() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/cli_ref")
 }
@@ -38,7 +41,9 @@ struct Outcome {
 }
 
 fn run_case(case: &Value, index: usize) -> Outcome {
-    let root = Path::new(env!("CARGO_TARGET_TMPDIR")).join(format!("cli-ref/{index}"));
+    let base = format!("{}/cli-ref/{index}", env!("CARGO_TARGET_TMPDIR"));
+    assert!(base.len() < ROOT_LEN, "target dir path too long for the fixtures");
+    let root = PathBuf::from(format!("{base}{}", "_".repeat(ROOT_LEN - base.len())));
     let _ = std::fs::remove_dir_all(&root);
     std::fs::create_dir_all(root.join("home")).unwrap();
     let root_str = root.to_str().unwrap().to_owned();
@@ -147,11 +152,16 @@ fn cli_matches_python_reference() {
         }
     }
     if !failures.is_empty() {
-        let shown: Vec<&String> = failures.iter().take(15).collect();
+        let names: Vec<&str> = failures
+            .iter()
+            .map(|f| f.lines().next().unwrap_or_default())
+            .collect();
+        let shown: Vec<&str> = failures.iter().take(8).map(String::as_str).collect();
         panic!(
-            "{} of {ran} cases differ:\n\n{}",
+            "{} of {ran} cases differ:\n{}\n\n{}",
             failures.len(),
-            shown.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n\n")
+            names.join("\n"),
+            shown.join("\n\n")
         );
     }
 }

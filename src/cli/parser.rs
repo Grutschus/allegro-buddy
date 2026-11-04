@@ -410,7 +410,7 @@ impl OptionParser {
         &self,
         args: &[String],
         resilient: bool,
-    ) -> std::result::Result<TokState, (TokState, String)> {
+    ) -> std::result::Result<TokState, (TokState, TokError)> {
         let mut state = TokState {
             opts: Vec::new(),
             largs: Vec::new(),
@@ -418,11 +418,10 @@ impl OptionParser {
             order: Vec::new(),
         };
         if let Err(err) = self.process_args_for_options(&mut state) {
-            let message = err.message();
             if resilient {
                 return Ok(state);
             }
-            return Err((state, message));
+            return Err((state, err));
         }
         self.process_args_for_args(&mut state);
         Ok(state)
@@ -898,9 +897,15 @@ fn parse_command_args(ctx: &mut Ctx, args: &[String]) -> std::result::Result<(),
         return Err(Stop::Help(Box::new(ctx.clone()), 2));
     }
     let parser = OptionParser::new(command);
-    let state = parser
-        .parse_args(args, ctx.resilient)
-        .map_err(|(_, message)| ctx.usage_error(message))?;
+    let state = parser.parse_args(args, ctx.resilient).map_err(|(_, err)| match err {
+        // click raises BadOptionUsage without a context: no usage line, no hint.
+        TokError::Other(message) => AbError::Usage(UsageError {
+            message,
+            command_path: Vec::new(),
+            show_help_hint: false,
+        }),
+        no_such => ctx.usage_error(no_such.message()),
+    })?;
     let mut params: Vec<&'static Param> = params_of(command).collect();
     // iter_params_for_processing: eager first, then by first invocation, then declaration.
     params.sort_by_key(|p| {

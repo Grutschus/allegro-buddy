@@ -102,7 +102,7 @@ pub fn run(argv: &[String]) -> Result<()> {
                 dispatch(action, &args)
             };
             result.map_err(|err| match err {
-                AbError::Usage(mut usage) if usage.command_path.is_empty() => {
+                AbError::Usage(mut usage) if usage.command_path.is_empty() && usage.show_help_hint => {
                     usage.command_path = path;
                     AbError::Usage(usage)
                 }

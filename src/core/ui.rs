@@ -61,7 +61,7 @@ pub fn render_table(
         let cells = row.into_iter().map(as_cell).collect();
         table.add_row(cells, section_breaks.contains(&i));
     }
-    out.print_with(&table, PrintOptions { width, style: None });
+    out.print_with(&table, PrintOptions { width, style: None, ..PrintOptions::default() });
     if let Some(caption) = caption.filter(|c| !c.is_empty()) {
         out.print(&muted(caption));
     }

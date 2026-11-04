@@ -28,6 +28,7 @@ COMMANDS = [
 ]
 
 CASES: list[dict] = []
+ROOT_LEN = 64
 
 
 def case(name, argv, env=None, config=None, files=(), stub=True, stdin=''):
@@ -214,7 +215,9 @@ for instr in ('bash_source', 'zsh_source', 'fish_source', 'tcsh_complete', 'bash
 
 def run_case(python: str, spec: dict) -> dict:
     with tempfile.TemporaryDirectory(dir=os.environ.get('BAB_GEN_TMP')) as tmp:
-        root = Path(tmp)
+        # fixed-length root: messages that wrap around paths wrap the same in Rust
+        root = Path(tmp, '_' * (ROOT_LEN - len(tmp) - 1))
+        root.mkdir()
         (root / 'home').mkdir()
         env = {
             'PATH': '/usr/bin:/bin',

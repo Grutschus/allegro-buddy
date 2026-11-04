@@ -1127,7 +1127,8 @@ pub fn print_help(path: &[String], default_map: Option<&[(&'static str, String)]
 /// What rich-click prints for a usage error (`formatter.write_error(e)`).
 pub fn render_usage_error(error: &UsageError) -> String {
     let formatter = Formatter::new();
-    formatter.format_error(&error.message, Some(error));
+    let context = (!error.command_path.is_empty()).then_some(error);
+    formatter.format_error(&error.message, context);
     formatter.getvalue()
 }
 
