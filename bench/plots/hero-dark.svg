@@ -39,43 +39,43 @@ L 60 2
     </g>
     <g id="xtick_2">
      <g id="line2d_3">
-      <path d="M 174.375118 54 
-L 174.375118 2 
+      <path d="M 174.375048 54 
+L 174.375048 2 
 " clip-path="url(#pf60a11c2e7)" style="fill: none; stroke: #7f7f7f; stroke-opacity: 0.25; stroke-linecap: square"/>
      </g>
      <g id="line2d_4"/>
      <g id="text_2">
-      <text style="font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #c9d1d9" x="174.375118" y="68.118125" transform="rotate(-0 174.375118 68.118125)">1s</text>
+      <text style="font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #c9d1d9" x="174.375048" y="68.118125" transform="rotate(-0 174.375048 68.118125)">1s</text>
      </g>
     </g>
     <g id="xtick_3">
      <g id="line2d_5">
-      <path d="M 288.750236 54 
-L 288.750236 2 
+      <path d="M 288.750095 54 
+L 288.750095 2 
 " clip-path="url(#pf60a11c2e7)" style="fill: none; stroke: #7f7f7f; stroke-opacity: 0.25; stroke-linecap: square"/>
      </g>
      <g id="line2d_6"/>
      <g id="text_3">
-      <text style="font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #c9d1d9" x="288.750236" y="68.118125" transform="rotate(-0 288.750236 68.118125)">2s</text>
+      <text style="font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #c9d1d9" x="288.750095" y="68.118125" transform="rotate(-0 288.750095 68.118125)">2s</text>
      </g>
     </g>
     <g id="xtick_4">
      <g id="line2d_7">
-      <path d="M 403.125354 54 
-L 403.125354 2 
+      <path d="M 403.125143 54 
+L 403.125143 2 
 " clip-path="url(#pf60a11c2e7)" style="fill: none; stroke: #7f7f7f; stroke-opacity: 0.25; stroke-linecap: square"/>
      </g>
      <g id="line2d_8"/>
      <g id="text_4">
-      <text style="font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #c9d1d9" x="403.125354" y="68.118125" transform="rotate(-0 403.125354 68.118125)">3s</text>
+      <text style="font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: middle; fill: #c9d1d9" x="403.125143" y="68.118125" transform="rotate(-0 403.125143 68.118125)">3s</text>
      </g>
     </g>
    </g>
    <g id="matplotlib.axis_2"/>
    <g id="patch_3">
     <path d="M 60 8 
-L 161.038465 8 
-L 161.038465 22 
+L 161.038345 8 
+L 161.038345 22 
 L 60 22 
 z
 " clip-path="url(#pf60a11c2e7)" style="fill: #ce422b"/>
@@ -89,7 +89,7 @@ z
 " clip-path="url(#pf60a11c2e7)" style="fill: #ce422b"/>
    </g>
    <g id="text_5">
-    <text style="font-weight: 700; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: start; fill: #c9d1d9" x="165.038465" y="19.3" transform="rotate(-0 165.038465 19.3)">0.88s</text>
+    <text style="font-weight: 700; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: start; fill: #c9d1d9" x="165.038345" y="19.3" transform="rotate(-0 165.038345 19.3)">0.88s</text>
    </g>
    <g id="text_6">
     <text style="font-weight: 700; font-size: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; text-anchor: end; fill: #c9d1d9" x="50" y="19.3" transform="rotate(-0 50 19.3)">bab</text>

@@ -1,0 +1,222 @@
+{
+ "env": {
+  "host": "allegro",
+  "date_start": "2026-11-04T20:27:57+01:00",
+  "loadavg_start": "0.35 0.34 0.36",
+  "users_logged_in": "9",
+  "jobs_total": "194",
+  "jobs_pending": "2",
+  "nodes": "93",
+  "slurm": "slurm-wlm 24.11.5",
+  "cpu": "Intel(R) Xeon(R) CPU E5-2690 v4 @ 2.60GHz",
+  "nproc": "56",
+  "kernel": "6.12.111+deb13-amd64",
+  "python": "Python 3.13.5",
+  "ab": "allegro-buddy, version 2.7",
+  "bab": "bab, version 2.7",
+  "bab_sha256": "ce642f99f7195ff359d8bf046d58d3c75a9816dfe380e7a6aad6635e1a3be65b",
+  "hyperfine": "hyperfine 2.0.0",
+  "pending_job": "76833",
+  "node": "gpu062",
+  "runs": "10",
+  "date_end": "2026-11-04T20:29:49+01:00",
+  "loadavg_end": "0.65 0.46 0.39"
+ },
+ "commands": {
+  "version": {
+   "label": "--version",
+   "ab": {
+    "n": 10,
+    "mean": 145.61,
+    "stddev": 1.796,
+    "min": 141.35
+   },
+   "bab": {
+    "n": 10,
+    "mean": 1.481,
+    "stddev": 0.197,
+    "min": 1.277
+   }
+  },
+  "help": {
+   "label": "-h",
+   "bab": {
+    "n": 10,
+    "mean": 3.5,
+    "stddev": 0.321,
+    "min": 3.217
+   },
+   "ab": {
+    "n": 10,
+    "mean": 160.61,
+    "stddev": 3.168,
+    "min": 156.718
+   }
+  },
+  "info": {
+   "label": "info",
+   "ab": {
+    "n": 10,
+    "mean": 254.58,
+    "stddev": 4.387,
+    "min": 246.092
+   },
+   "bab": {
+    "n": 10,
+    "mean": 88.061,
+    "stddev": 4.478,
+    "min": 77.429
+   }
+  },
+  "info-cold": {
+   "label": "info (cold cache)",
+   "bab": {
+    "n": 10,
+    "mean": 104.773,
+    "stddev": 4.045,
+    "min": 99.598
+   },
+   "ab": {
+    "n": 10,
+    "mean": 275.298,
+    "stddev": 10.295,
+    "min": 256.932
+   }
+  },
+  "free": {
+   "label": "free",
+   "ab": {
+    "n": 10,
+    "mean": 230.031,
+    "stddev": 8.926,
+    "min": 217.983
+   },
+   "bab": {
+    "n": 10,
+    "mean": 66.768,
+    "stddev": 1.813,
+    "min": 65.283
+   }
+  },
+  "free-nodes": {
+   "label": "free --nodes",
+   "bab": {
+    "n": 10,
+    "mean": 68.953,
+    "stddev": 2.149,
+    "min": 66.398
+   },
+   "ab": {
+    "n": 10,
+    "mean": 267.221,
+    "stddev": 10.101,
+    "min": 248.696
+   }
+  },
+  "q": {
+   "label": "q",
+   "ab": {
+    "n": 10,
+    "mean": 148.085,
+    "stddev": 3.047,
+    "min": 141.806
+   },
+   "bab": {
+    "n": 10,
+    "mean": 15.908,
+    "stddev": 1.064,
+    "min": 14.607
+   }
+  },
+  "q-all": {
+   "label": "q --all",
+   "bab": {
+    "n": 10,
+    "mean": 180.555,
+    "stddev": 4.404,
+    "min": 173.198
+   },
+   "ab": {
+    "n": 10,
+    "mean": 571.001,
+    "stddev": 20.602,
+    "min": 530.273
+   }
+  },
+  "why": {
+   "label": "why",
+   "ab": {
+    "n": 10,
+    "mean": 361.085,
+    "stddev": 8.257,
+    "min": 352.673
+   },
+   "bab": {
+    "n": 10,
+    "mean": 208.74,
+    "stddev": 1.811,
+    "min": 205.732
+   }
+  },
+  "why-pending": {
+   "label": "why <pending job>",
+   "bab": {
+    "n": 10,
+    "mean": 78.948,
+    "stddev": 3.823,
+    "min": 74.528
+   },
+   "ab": {
+    "n": 10,
+    "mean": 215.886,
+    "stddev": 4.499,
+    "min": 210.182
+   }
+  },
+  "node": {
+   "label": "node gpu062",
+   "ab": {
+    "n": 10,
+    "mean": 255.609,
+    "stddev": 13.163,
+    "min": 239.517
+   },
+   "bab": {
+    "n": 10,
+    "mean": 102.318,
+    "stddev": 4.906,
+    "min": 98.089
+   }
+  },
+  "job-history": {
+   "label": "job history",
+   "bab": {
+    "n": 10,
+    "mean": 12.99,
+    "stddev": 0.778,
+    "min": 11.973
+   },
+   "ab": {
+    "n": 10,
+    "mean": 145.6,
+    "stddev": 2.21,
+    "min": 142.877
+   }
+  },
+  "config-show": {
+   "label": "config show",
+   "ab": {
+    "n": 10,
+    "mean": 208.467,
+    "stddev": 3.117,
+    "min": 204.825
+   },
+   "bab": {
+    "n": 10,
+    "mean": 55.173,
+    "stddev": 2.231,
+    "min": 50.977
+   }
+  }
+ }
+}

@@ -1,10 +1,12 @@
 # ab vs bab: performance
 
 Python `allegro-buddy` 2.7 (`ab`) vs its byte-identical Rust rewrite `bab`, every
-read-only command. Raw hyperfine exports, the benchmark and replay scripts, the
-anonymised Allegro recordings and all plots are kept at the git tag
-[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness/bench)
-(`bench/results/`, `bench/live/`, `bench/replay/`, `bench/data/`, `bench/plot.py`).
+read-only command. The live numbers, the README plots and this file's live table come from
+`bench/live.sh` (run on the cluster), summarised into `bench/results/live.json` and
+plotted by `bench/plot.py`; see [Updating the numbers](#updating-the-numbers). The local
+replay (anonymised Allegro recordings, replay fake, raw hyperfine exports) is kept at the
+git tag
+[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness/bench).
 
 ## Summary
 
@@ -20,7 +22,7 @@ anonymised Allegro recordings and all plots are kept at the git tag
 - **Local, replayed Slurm latencies** (each fake call sleeps as long as it took on
   Allegro): median **2.7×** (1.5× `why` … 151× `--version`).
 
-![bab vs ab, live on Allegro](https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/live.png)
+![bab vs ab, live on Allegro](plots/live.png)
 
 ## Live on Allegro
 
@@ -106,3 +108,32 @@ portable).
   the local numbers are the tools' own.
 - Python differs between hosts (3.12.11 locally, 3.13.5 on Allegro); comparisons are
   always within one host.
+
+## Updating the numbers
+
+Live, on the cluster (≈ 2 minutes, read-only commands only):
+
+```sh
+# once: the reference in a private venv (never /usr/bin/ab, that is Apache Bench)
+B=.local/share/bab-bench
+ssh allegro "python3 -m venv $B/venv && $B/venv/bin/pip install allegro-buddy==2.7 \
+    click==8.3.2 rich==15.0.0 rich-click==1.9.9 markdown-it-py==4.0.0 pygments==2.20.0 \
+    && mkdir -p $B/bin"
+scp "$(command -v hyperfine)" allegro:$B/bin/
+
+# each time: a release build WITHOUT test hooks (glibc no newer than the cluster's,
+# e.g. built on the cluster or a release binary), then the run
+cargo build --release
+scp target/release/bab bench/live.sh allegro:$B/bin/
+ssh allegro "cd $B && timeout 900 sh bin/live.sh out/live-\$(date +%Y%m%dT%H%M%S)"
+mkdir -p bench/.work && scp -r allegro:$B/out/live-<stamp> bench/.work/
+uv run bench/plot.py --run bench/.work/live-<stamp>
+```
+
+`plot.py --run` rewrites `bench/results/live.json` (per command and tool: n, mean, σ, min
+in ms, plus the run's `env.txt`), redraws `bench/plots/live.png` and
+`bench/plots/hero-{light,dark}.svg`, and prints the live table and the summary numbers
+(median speedup, total of all read-only commands) for this file and the README.
+`uv run bench/plot.py` alone redraws the plots from the committed summary. Commit
+`live.json` and the plots, not the raw run (`bench/.work/` is ignored); update the numbers
+quoted in the README (intro, Performance) and above.

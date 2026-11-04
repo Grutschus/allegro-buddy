@@ -10,10 +10,10 @@
   </picture>
 </p>
 <p align="center">
-  <i>Running all 12 read-only commands once, live on the Allegro cluster. Same output, byte for byte.</i>
+  <i>Running all 12 read-only commands once, live on the Allegro cluster.</i>
 </p>
 
-`bab` is a byte-for-byte compatible Rust rewrite of `ab`, the Python CLI
+`bab` is a Rust rewrite of `ab`, the Python CLI
 allegro-buddy 2.7 by [Grutschus](https://github.com/Grutschus): a small Slurm
 companion for everyday cluster work. It tells you what is free, why your job is waiting,
 and gets you a dev node in one command. It reads what it needs from Slurm, so it works
@@ -79,7 +79,7 @@ use the binaries above, which are built for glibc 2.17.
 Every command has `-h`. It comes back in ~3 ms now, so you can afford to ask.
 
 The screenshots below were taken with the original `ab`. We didn't redo them: apart
-from the program name, `bab` prints exactly the same bytes. That's the whole point.
+from the program name, `bab` looks exactly the same. That's the whole point.
 
 <img src=".github/assets/queue.svg" alt="bab queue: your jobs, start estimates and why pending jobs wait">
 
@@ -196,9 +196,8 @@ Where it stops, honestly:
 - At ~0.2 s saved per call, the rewrite pays for itself after a few million `bab q`s.
   We're working on it.
 
-Full tables, methodology, local replay numbers and the optimisation pass:
-[`bench/RESULTS.md`](https://github.com/plainerman/better-allegro-buddy/blob/main/bench/RESULTS.md). Raw data and scripts: tag
-[`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness/bench).
+Full tables, methodology, local replay numbers, the optimisation pass and how to rerun the
+live benchmark: [`bench/RESULTS.md`](https://github.com/plainerman/better-allegro-buddy/blob/main/bench/RESULTS.md).
 
 ## Development
 
@@ -215,6 +214,8 @@ name via `BAB_TEST_*` variables) for the snapshot test; a normal build never rea
 ship that one. `UPDATE_SNAPSHOTS=1 cargo test --test snapshots` rewrites
 `tests/snapshots/`. The full differential harness: tag
 [`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness).
+To rerun the live benchmark and redraw the plots, see
+[`bench/RESULTS.md`](https://github.com/plainerman/better-allegro-buddy/blob/main/bench/RESULTS.md#updating-the-numbers).
 
 ### Releasing
 
