@@ -32,11 +32,11 @@ pub fn run_watched(render: &mut dyn FnMut() -> Result<()>, interval: Option<f64>
         let captured = out.end_capture();
         match result {
             Ok(()) | Err(AbError::Exit(_)) => {}
-            Err(AbError::Interrupted) => return Ok(()),
+            Err(AbError::Interrupted) => return stopped(),
             Err(other) => return Err(other),
         }
         if crate::signals::check().is_err() {
-            return Ok(());
+            return stopped();
         }
         out.clear();
         let now = crate::hooks::now().format("%H:%M:%S");
@@ -51,9 +51,16 @@ pub fn run_watched(render: &mut dyn FnMut() -> Result<()>, interval: Option<f64>
         out.write_raw(&captured);
         match crate::signals::sleep(sleep_duration(interval)) {
             Ok(()) => {}
-            Err(_) => return Ok(()),
+            Err(_) => return stopped(),
         }
     }
+}
+
+/// Ctrl-C ended the loop: Python's `except KeyboardInterrupt: return`, so the interrupt
+/// is handled and must not make `cli::main` report `Aborted.` (exit 1).
+fn stopped() -> Result<()> {
+    crate::signals::clear();
+    Ok(())
 }
 
 /// `time.sleep(interval)` for any float the FloatRange accepts (inf/nan included).
@@ -79,11 +86,16 @@ mod tests {
             match calls {
                 1 => Err(AbError::Exit(1)),
                 2 => Ok(()),
-                _ => Err(AbError::Interrupted),
+                _ => {
+                    crate::signals::simulate();
+                    Err(AbError::Interrupted)
+                }
             }
         };
         assert_eq!(run_watched(&mut render, Some(0.001)), Ok(()));
         assert_eq!(calls, 3);
+        // handled: cli::main's final check must not turn it into "Aborted." (exit 1)
+        assert!(!crate::signals::interrupted());
     }
 
     #[test]

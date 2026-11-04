@@ -62,6 +62,18 @@ pub fn interrupted() -> bool {
     INTERRUPTED.load(Ordering::SeqCst)
 }
 
+/// Forget a SIGINT that was handled (Python caught the `KeyboardInterrupt`, e.g.
+/// `--watch` ending on Ctrl-C), so `cli::main`'s final check does not report it again.
+pub fn clear() {
+    INTERRUPTED.store(false, Ordering::SeqCst);
+}
+
+/// Pretend SIGINT arrived (unit tests).
+#[cfg(test)]
+pub(crate) fn simulate() {
+    INTERRUPTED.store(true, Ordering::SeqCst);
+}
+
 /// Return `Err(AbError::Interrupted)` if SIGINT arrived.
 pub fn check() -> Result<()> {
     if interrupted() {

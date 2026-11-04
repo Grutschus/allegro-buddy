@@ -19,8 +19,8 @@ use crate::core::gpu::{
     parse_gpu_ids, parse_node_gpu_types,
 };
 use crate::core::jobs::{
-    display_job_id, find_dev_jobs, get_user_job_etas, get_user_jobs, job_gres_on_node,
-    job_on_node, load_running_jobs, load_user_pending_jobs,
+    display_job_id, find_dev_jobs, get_user_job_etas, get_user_jobs, job_gres_on_node, job_on_node,
+    load_running_jobs, load_user_pending_jobs,
 };
 use crate::core::nodes::{
     Node, NodeFree, is_gpu_partition, load_nodes, node_facts, node_free, node_is_idle,
@@ -30,8 +30,7 @@ use crate::core::parse::{
     expand_nodelist, format_mem_value, is_nullish, parse_index_blob, truncate, user_from_userid,
 };
 use crate::core::partitions::{
-    PartitionStats, get_accessible_partitions, summarize_partitions,
-    summarize_selected_partitions,
+    PartitionStats, get_accessible_partitions, summarize_partitions, summarize_selected_partitions,
 };
 use crate::core::reservations::{
     active_reservations, load_reservations, recent_active_reservations,
@@ -323,13 +322,15 @@ fn render_reservations() -> Result<()> {
         ],
         rows,
         Some("Reservations"),
-        (!upcoming.is_empty()).then_some("jobs on these nodes must end before the reservation starts"),
+        (!upcoming.is_empty())
+            .then_some("jobs on these nodes must end before the reservation starts"),
         &[],
         None,
     );
 
     if !active.is_empty() {
-        let blocked = reservation_blocked_pending_jobs(&active, &load_user_pending_jobs(Some(user))?);
+        let blocked =
+            reservation_blocked_pending_jobs(&active, &load_user_pending_jobs(Some(user))?);
         if !blocked.is_empty() {
             let n = blocked.len();
             let label = if n == 1 {
@@ -468,7 +469,15 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
     let jobs = slurm::run_parsable_rows(
         &argv,
         &[
-            "jobid", "rawid", "user", "name", "state", "partition", "elapsed", "left", "start",
+            "jobid",
+            "rawid",
+            "user",
+            "name",
+            "state",
+            "partition",
+            "elapsed",
+            "left",
+            "start",
             "where",
         ],
         true,
@@ -495,7 +504,10 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
     let (hints, hint_error) = if hint_ids.is_empty() {
         (HashMap::new(), None)
     } else {
-        super::why::queue_hints(&hint_ids)
+        let result = super::why::queue_hints(&hint_ids);
+        // Python's KeyboardInterrupt is not caught by queue_hints' `except Exception`.
+        slurm::check_interrupted()?;
+        result
     };
 
     let now = crate::hooks::now();
@@ -538,7 +550,10 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
                 .unwrap_or_else(|| strip_parens(job.get_str("where")));
             Text::styled(truncate(reason, 32), "yellow")
         } else {
-            node_text(&truncate(job.get_str("where"), 32), job.get_str("partition"))
+            node_text(
+                &truncate(job.get_str("where"), 32),
+                job.get_str("partition"),
+            )
         };
         row.push(reason_or_node.into());
         rows.push(row);
@@ -605,7 +620,11 @@ impl FreeNode {
     }
 
     fn gpu_free_of(&self, gpu_type: &str) -> i64 {
-        self.free.gpu_free_by_type.get(gpu_type).copied().unwrap_or(0)
+        self.free
+            .gpu_free_by_type
+            .get(gpu_type)
+            .copied()
+            .unwrap_or(0)
     }
 }
 
@@ -729,7 +748,7 @@ fn render_free_by_node(entries: &[FreeNode], gpu_type: Option<&str>) {
         })
         .filter(|(_, count)| *count > 0)
         .collect();
-    found.sort_by(|a, b| b.1.cmp(&a.1));
+    found.sort_by_key(|item| std::cmp::Reverse(item.1));
     let out = console::stdout();
     out.newline();
     if found.is_empty() {
@@ -811,13 +830,15 @@ fn render_free_node_table(
         .iter()
         .map(|gt| format_gpu_type_header("", gt))
         .collect();
-    let mut columns: Vec<(&str, Justify)> =
-        vec![("Node", Justify::Left), ("State", Justify::Left)];
+    let mut columns: Vec<(&str, Justify)> = vec![("Node", Justify::Left), ("State", Justify::Left)];
     if kind == Kind::Cpu {
         columns.push(("Partitions", Justify::Left));
     }
     columns.extend(headers.iter().map(|h| (h.as_str(), Justify::Right)));
-    columns.extend([("Free CPUs", Justify::Right), ("Free memory", Justify::Right)]);
+    columns.extend([
+        ("Free CPUs", Justify::Right),
+        ("Free memory", Justify::Right),
+    ]);
     if !rows.is_empty() {
         let mut total: TableRow = vec![Text::styled("total", "bold").into(), Text::new("").into()];
         if kind == Kind::Cpu {
@@ -1098,7 +1119,14 @@ pub fn cmd_node(node: Option<&str>) -> Result<()> {
                 ids_text(gpu_ids.iter().copied()).into()
             });
         }
-        row.push(if cpus.is_empty() { "-".to_owned() } else { cpus }.into());
+        row.push(
+            if cpus.is_empty() {
+                "-".to_owned()
+            } else {
+                cpus
+            }
+            .into(),
+        );
         row.push(format_mem_value(share.get_opt("Mem")).into());
         row.push(format_eta_now(job.get_str("EndTime")).into());
         rows.push(row);
@@ -1165,4 +1193,213 @@ pub fn cmd_node(node: Option<&str>) -> Result<()> {
         None,
     );
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    //! Handler-level ports from `tests/test_gpu.py`, `test_cluster_output.py` and
+    //! `test_queue.py` (whole-command output is covered by the compat goldens).
+    use super::*;
+    use crate::core::nodes::remember_nodes;
+    use crate::core::nodes::testing::{NodeSpec, node_dict};
+    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
+    use crate::error::AbError;
+    use crate::hooks::testing::Ctx;
+
+    fn rec(pairs: &[(&str, &str)]) -> Record {
+        pairs
+            .iter()
+            .map(|(k, v)| ((*k).to_owned(), (*v).to_owned()))
+            .collect()
+    }
+
+    #[test]
+    fn free_nodes_sorted_filtered_and_reserved_nodes_for_the_user() {
+        let _ctx = Ctx::default().install();
+        let spec = |state: &'static str, gpus_used: i64| NodeSpec {
+            state,
+            gpus_used,
+            ..NodeSpec::default()
+        };
+        let nodes = vec![
+            node_dict("gpu1", spec("MIXED", 3)),
+            node_dict("gpu2", spec("MIXED", 1)),
+            node_dict("gpu3", spec("MAINT+RESERVED", 0)),
+            node_dict("gpu4", spec("MAINT+RESERVED", 0)),
+            node_dict(
+                "cmp1",
+                NodeSpec {
+                    gres: "(null)".to_owned(),
+                    ..NodeSpec::default()
+                },
+            ),
+            node_dict(
+                "gpu5",
+                NodeSpec {
+                    partitions: "other",
+                    ..NodeSpec::default()
+                },
+            ),
+        ];
+        let resv = rec(&[("ReservationName", "mine"), ("Users", "alice")]);
+        let reserved_by = HashMap::from([("gpu3".to_owned(), &resv)]);
+        let entries = free_nodes(
+            &nodes,
+            &BTreeSet::from(["gpu"]),
+            Kind::Gpu,
+            None,
+            &reserved_by,
+        );
+        let got: Vec<(&str, &str, i64)> = entries
+            .iter()
+            .map(|e| (e.name.as_str(), e.state.as_str(), e.gpu_free()))
+            .collect();
+        assert_eq!(
+            got,
+            [
+                ("gpu3", "RESERVED", 4),
+                ("gpu2", "MIXED", 3),
+                ("gpu1", "MIXED", 1)
+            ]
+        );
+
+        let cpu = free_nodes(
+            &nodes,
+            &BTreeSet::from(["gpu"]),
+            Kind::Cpu,
+            None,
+            &reserved_by,
+        );
+        assert_eq!(
+            cpu.iter().map(|e| e.name.as_str()).collect::<Vec<_>>(),
+            ["cmp1"]
+        );
+        let typed = free_nodes(
+            &nodes,
+            &BTreeSet::from(["gpu"]),
+            Kind::Gpu,
+            Some("a100"),
+            &reserved_by,
+        );
+        assert!(typed.is_empty());
+    }
+
+    #[test]
+    fn info_time_limit_is_short() {
+        for (limit, expected) in [
+            ("01:00:00", "1h"),
+            ("2-02:00:00", "2d2h"),
+            ("7-00:00:00", "7d"),
+            ("30", "30m"),
+            ("UNLIMITED", "unlimited"),
+            ("", "-"),
+            ("Bogus", "bogus"),
+        ] {
+            assert_eq!(short_limit(limit).plain(), expected, "{limit}");
+        }
+    }
+
+    #[test]
+    fn accounts_default_first_then_sorted() {
+        let rows = vec![
+            rec(&[
+                ("DefaultAccount", ""),
+                ("Account", "teaching"),
+                ("QOS", "normal"),
+            ]),
+            rec(&[
+                ("DefaultAccount", "ml-lab"),
+                ("Account", "ml-lab"),
+                ("QOS", "long,normal"),
+            ]),
+            rec(&[("DefaultAccount", ""), ("Account", "alpha"), ("QOS", "")]),
+        ];
+        assert_eq!(
+            accounts_text(&rows).plain(),
+            "ml-lab (default), alpha, teaching"
+        );
+        assert_eq!(accounts_text(&[]).plain(), "-");
+    }
+
+    #[test]
+    fn your_jobs_counts_and_soonest_known_eta() {
+        assert_eq!(your_jobs_text((vec![], vec![])).plain(), "none");
+        let text = your_jobs_text((vec![None, None], vec![Some(7200.9), None, Some(23700.0)]));
+        assert_eq!(text.plain(), "3 running (next ends in 2h) · 2 pending");
+    }
+
+    #[test]
+    fn slurm_durations_and_reasons() {
+        assert_eq!(slurm_duration("1-00:00:00"), "1d");
+        assert_eq!(slurm_duration("6:35:00"), "6h35m");
+        assert_eq!(slurm_duration("15:00"), "15m");
+        assert_eq!(slurm_duration("UNLIMITED"), "UNLIMITED");
+        assert_eq!(slurm_duration("INVALID"), "INVALID");
+        assert_eq!(strip_parens("(Resources)"), "Resources");
+        assert_eq!(strip_parens("((x))"), "x");
+    }
+
+    #[test]
+    fn guess_node_prefers_argument_then_hostname() {
+        let fake = FakeSlurm::always(fail(1, "unused"));
+        let _ctx = Ctx::default()
+            .hostname("gpu081.cluster")
+            .slurm(fake.clone())
+            .install();
+        remember_nodes(&[node_dict("gpu081", NodeSpec::default())]);
+        assert_eq!(guess_node(Some("gpu999")).unwrap(), "gpu999");
+        assert_eq!(guess_node(None).unwrap(), "gpu081");
+        assert!(fake.calls().is_empty());
+    }
+
+    #[test]
+    fn guess_node_falls_back_to_dev_job_then_gpu_job() {
+        let fake = FakeSlurm::new(|argv| {
+            let joined = argv.join(" ");
+            Some(match joined.as_str() {
+                "squeue -h --user=alice --format=%F --name=ab-dev" => ok(""),
+                "squeue -h --user=alice --format=%F" => ok("10\n11\n"),
+                "scontrol --oneliner --details show job 10" => {
+                    ok("JobId=10 JobName=cpu JobState=RUNNING NodeList=cpu[1-2] JOB_GRES=(null)\n")
+                }
+                "scontrol --oneliner --details show job 11" => ok(
+                    "JobId=11 JobName=gpu JobState=RUNNING NodeList=gpu[084-085] JOB_GRES=gpu:2\n",
+                ),
+                _ => return None,
+            })
+        });
+        let _ctx = Ctx::default().hostname("login1").slurm(fake).install();
+        remember_nodes(&[node_dict("gpu084", NodeSpec::default())]);
+        assert_eq!(guess_node(None).unwrap(), "gpu084");
+    }
+
+    #[test]
+    fn guess_node_gives_up() {
+        let fake = FakeSlurm::always(ok(""));
+        let _ctx = Ctx::default().hostname("login1").slurm(fake).install();
+        remember_nodes(&[]);
+        assert_eq!(guess_node(None), Err(AbError::Exit(1)));
+    }
+
+    #[test]
+    fn queue_failure_of_squeue_stops_before_hints() {
+        let fake = FakeSlurm::always(fail(1, "down"));
+        let _ctx = Ctx::default().slurm(fake.clone()).install();
+        assert_eq!(
+            cmd_queue(false, Some("carol"), Some("gpu")),
+            Err(AbError::Exit(1))
+        );
+        assert_eq!(
+            fake.calls(),
+            [[
+                "squeue",
+                "-h",
+                "--format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R",
+                "-u",
+                "carol",
+                "-p",
+                "gpu"
+            ]]
+        );
+    }
 }
