@@ -1,0 +1,21 @@
+{
+ "name": "nasty-node-wide-c80",
+ "category": "nasty",
+ "argv": [
+  "node",
+  "gpu102"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "80"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

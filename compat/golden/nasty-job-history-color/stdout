@@ -1,0 +1,7 @@
+[1m                        Finished jobs                        [0m
+[1mJobID  [0m[1m [0m [1m [0m[1mName         [0m[1m [0m [1m [0m[1mState    [0m[1m [0m [1m [0m[1mExit code[0m[1m [0m [1m [0m[1mEnded      [0m
+─────────────────────────────────────────────────────────────
+[36m70090  [0m   [1mprep[0m            [37mCOMPLETED[0m   [2m0:0      [0m   today 08:41
+[36m70085  [0m   データ処理-🚀   [1;31mFAILED   [0m   [31m1:0      [0m   Mon 23:17  
+[36m70080_3[0m   🚀 sweep        [31mTIMEOUT  [0m   [2m0:0      [0m   Mon 18:00  
+[36m70077  [0m   a [1m c [0m           [31mCANCELLED[0m   [2m0:0      [0m   Mon 12:30  

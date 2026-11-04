@@ -1,0 +1,27 @@
+[1mYou[0m
+[2muser    [0m[2m  [0malice                                     
+[2maccounts[0m[2m  [0m[b]x[2m (default)[0m                            
+[2mqos     [0m[2m  [0m[3mq😄[0m                                       
+[2mjobs    [0m[2m  [0m1 running (next ends in [36m6h35m[0m) · 3 pending
+
+[1m                            Resource overview                            [0m
+[1mPartition[0m[1m [0m [1m [0m[1mTime limit[0m[1m [0m [1m [0m[1mIdle nodes[0m[1m [0m [1m [0m[1mFree GPUs[0m[1m [0m [1m [0m[1mFree CPUs[0m[1m [0m [1m [0m[1mFree memory[0m
+─────────────────────────────────────────────────────────────────────────
+[1mall      [0m   [2m-         [0m          [32m1[0m[2m/[0m[2m5[0m        [32m5[0m[2m/[0m[2m12[0m       [32m44[0m[2m/[0m[2m80[0m      [32m306[0m[2m/[0m[2m450[0m[2mG[0m
+                                                                         
+[1;32mgpumicro [0m   1h                  [2m0[0m[2m/[0m[2m3[0m        [32m5[0m[2m/[0m[2m12[0m       [32m20[0m[2m/[0m[2m48[0m      [32m158[0m[2m/[0m[2m270[0m[2mG[0m
+[1;32mgpushort [0m   4h                  [2m0[0m[2m/[0m[2m3[0m        [32m5[0m[2m/[0m[2m12[0m       [32m20[0m[2m/[0m[2m48[0m      [32m158[0m[2m/[0m[2m270[0m[2mG[0m
+[1;32mgpusmall [0m   1d                  [2m0[0m[2m/[0m[2m3[0m        [32m5[0m[2m/[0m[2m12[0m       [32m20[0m[2m/[0m[2m48[0m      [32m158[0m[2m/[0m[2m270[0m[2mG[0m
+[1;32mgpu      [0m   2d                  [2m0[0m[2m/[0m[2m3[0m        [32m5[0m[2m/[0m[2m12[0m       [32m20[0m[2m/[0m[2m48[0m      [32m158[0m[2m/[0m[2m270[0m[2mG[0m
+                                                                         
+[1;34mmicro    [0m   1h                  [2m0[0m[2m/[0m[2m1[0m   [2m        -[0m        [32m8[0m[2m/[0m[2m16[0m        [32m58[0m[2m/[0m[2m90[0m[2mG[0m
+[1;34mamd      [0m   2d                  [32m1[0m[2m/[0m[2m1[0m   [2m        -[0m       [32m16[0m[2m/[0m[2m16[0m        [32m90[0m[2m/[0m[2m90[0m[2mG[0m
+[1;34msmall    [0m   2d2h                [2m0[0m[2m/[0m[2m1[0m   [2m        -[0m        [32m8[0m[2m/[0m[2m16[0m        [32m58[0m[2m/[0m[2m90[0m[2mG[0m
+[1;34mbig      [0m   7d                  [2m0[0m[2m/[0m[2m1[0m   [2m        -[0m        [32m8[0m[2m/[0m[2m16[0m        [32m58[0m[2m/[0m[2m90[0m[2mG[0m
+[2mfree/total[0m
+
+[1m                         Reservations                          [0m
+[1mReservation[0m[1m [0m [1m [0m[1mNodes               [0m[1m [0m [1m [0m[1mWhen             [0m[1m [0m [1m [0m[1mFor   [0m
+───────────────────────────────────────────────────────────────
+maint-nov     gpu101,gpu102,gpu201   [33min 6d22h[0m[2m, for 10h[0m   [2mothers[0m
+[2mjobs on these nodes must end before the reservation starts[0m

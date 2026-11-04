@@ -1334,3 +1334,57 @@ add('groups-dev-start-allowed', ['dev', 'start', '--no-wait', '-p', 'big', '-g',
 
 def by_name() -> dict[str, Scenario]:
     return {scenario.name: scenario for scenario in SCENARIOS}
+
+# ---------------------------------------------------------------------------
+# Strings Rich treats specially: markup and emoji codes in plain-str table cells,
+# wide characters, highlighting of plain strings printed outside tables
+# ---------------------------------------------------------------------------
+
+NASTY_NAMES = {
+    '70102': '[bold]evil[/bold]',
+    '70103': 'sweep[1-3]:rocket:',
+    '70104': 'データ処理-🚀-run',
+    '70120': '[red]train[/] \\[x]',
+    '70121': 'eval:smile:-1080',
+    '70122': 'back\\slash [link=x]y[/link]',
+    '70130': 'wide-名前-is-long-and-gets-truncated',
+}
+
+
+def nasty(world: World) -> None:
+    for job in world['jobs']:
+        job['name'] = NASTY_NAMES.get(job['id'], job['name'])
+    world['sacct_rows'] = [
+        '70090|70090|[bold]prep[/bold]|COMPLETED|0:0|2026-11-03T08:41:12|None',
+        '70085|70085|データ処理-🚀|FAILED|1:0|2026-11-02T23:17:40|None',
+        '70080_3|70080_3|:rocket: sweep|TIMEOUT|0:0|2026-11-02T18:00:05|None',
+        '70077|70077|a [b] c [/b]|CANCELLED by 1000|0:0|2026-11-02T12:30:00|None',
+    ]
+
+
+for _name, _argv in [('queue-all', ['q', '--all']), ('job-history', ['job', 'history']),
+                     ('node', ['node', 'gpu201']), ('node-wide', ['node', 'gpu102']),
+                     ('queue', ['q'])]:
+    add(f'nasty-{_name}', _argv, 'nasty', tweak=nasty, env=cols('160'))
+    add(f'nasty-{_name}-c80', _argv, 'nasty', tweak=nasty, env=cols('80'))
+    add(f'nasty-{_name}-color', _argv, 'nasty', tweak=nasty, env=cols('160', FORCE_COLOR='1'))
+add('nasty-dev-stop-color', ['dev', 'stop'], 'nasty', env=cols('120', FORCE_COLOR='1'))
+add('nasty-dev-stop-two-color', ['dev', 'stop'], 'nasty', tweak=SECOND_DEV,
+    env=cols('120', FORCE_COLOR='1'))
+add('nasty-dev-start-replace-color', ['dev', 'start', '--no-wait', '--replace'], 'nasty',
+    env=cols('120', FORCE_COLOR='1'))
+add('nasty-fix-declined-color', ['why', '64267', '--fix'], 'nasty', world=why([CPU]),
+    stdin='n\n', env=cols('120', FORCE_COLOR='1', BAB_TEST_INTERACTIVE='1'))
+add('nasty-job-output-color', ['job', 'output', '70090'], 'nasty',
+    env=cols('120', FORCE_COLOR='1'),
+    files={'demo/slurm-70090.out': '[bold]x[/bold] :smile: 42 0x1f 3.14 True None '
+                                   'https://example.org /a/b "str" \'q\' <tag> ()\n'})
+add('nasty-config-show-color', ['config', 'show'], 'nasty', env=cols('160', FORCE_COLOR='1'),
+    files={USER_CONFIG: '[dev]\naccount = [bold]proj[/bold]\nconstraint = :smile:\n'
+                        '[gpu-labels]\nrtx_a5000 = [red]A5k\n'})
+add('nasty-labels-free-color', ['free', '--nodes'], 'nasty', env=cols('160', FORCE_COLOR='1'),
+    files={USER_CONFIG: '[gpu-labels]\nrtx_a5000 = [red]A5k\ngtx_1080ti = 🚀\n'})
+add('nasty-sacctmgr-markup', ['info'], 'nasty', env=cols('120', FORCE_COLOR='1'),
+    tweak=setitem(sacctmgr='[b]x|[b]x|[i]q:smile:\n'))
+add('nasty-user-markup', ['q', '--all'], 'nasty', env=cols('160'),
+    tweak=change_job('70102', user='[bold]eve'))
