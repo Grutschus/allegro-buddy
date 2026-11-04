@@ -1,0 +1,190 @@
+name: Release
+
+# Wheels for PyPI (`uv tool install better-allegro-buddy`): the `bab` binary in platform
+# wheels built by maturin (pyproject.toml), plus the sdist.
+# * push to main (paths below): build and smoke-test everything, publish nothing.
+# * tag v*: the same, then publish to PyPI (trusted publishing) and attach the files to
+#   a GitHub release. Path filters do not apply to tag pushes.
+# * workflow_dispatch: build and smoke-test only, never publishes.
+# Releasing: README.md (Development > Releasing).
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+    paths:
+      - 'src/**'
+      - 'presets/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'pyproject.toml'
+      - 'README.md'
+      - 'LICENSE'
+      - '.github/workflows/release.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # Same maturin for every artifact; pyproject.toml accepts >=1.9.2,<2.
+  MATURIN_VERSION: v1.16.0
+
+jobs:
+  linux:
+    # glibc (manylinux2014 = glibc 2.17), not musl: group names come from NSS
+    # (getgrgid_r), which on clusters is often sssd/LDAP. Native runners, so the wheel
+    # is smoke-tested on its own architecture.
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64
+            runner: ubuntu-24.04
+          - target: aarch64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: ${{ env.MATURIN_VERSION }}
+          target: ${{ matrix.target }}
+          manylinux: '2014'
+          args: --release --locked --out dist
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: false
+      - name: Smoke test
+        run: |
+          wheel=$(ls dist/*.whl)
+          uvx --from "$wheel" bab --version
+          uvx --from "$wheel" bab -h > /dev/null
+          uvx --from "$wheel" bab --version | grep -qx 'bab, version [0-9.]*'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-linux-${{ matrix.target }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: x86_64
+            runner: macos-15-intel
+          - target: aarch64
+            runner: macos-15
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: ${{ env.MATURIN_VERSION }}
+          target: ${{ matrix.target }}
+          args: --release --locked --out dist
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: false
+      - name: Smoke test
+        run: |
+          wheel=$(ls dist/*.whl)
+          uvx --from "$wheel" bab --version
+          uvx --from "$wheel" bab -h > /dev/null
+          uvx --from "$wheel" bab --version | grep -qx 'bab, version [0-9.]*'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheels-macos-${{ matrix.target }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  sdist:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches the Cargo.toml version
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' Cargo.toml | head -n 1)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match Cargo.toml version $version"
+            exit 1
+          fi
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: ${{ env.MATURIN_VERSION }}
+          command: sdist
+          args: --out dist
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: false
+      - name: The sdist builds a working wheel (cargo + maturin from PyPI)
+        run: |
+          uv build --wheel --out-dir sdist-wheel dist/*.tar.gz
+          uvx --from "$(ls sdist-wheel/*.whl)" bab --version
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  check:
+    # Metadata and README rendering of everything that would be uploaded.
+    needs: [linux, macos, sdist]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: astral-sh/setup-uv@v10
+        with:
+          enable-cache: false
+      - run: ls -l dist
+      - run: uvx twine check --strict dist/*
+
+  publish:
+    # Tags only: never from main, workflow_dispatch or pull requests.
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    needs: [check]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: pypi
+      url: https://pypi.org/project/better-allegro-buddy/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: pypa/gh-action-pypi-publish@release/v1
+
+  github-release:
+    needs: [publish]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: GitHub release with the wheels and sdist
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >
+          gh release create "$GITHUB_REF_NAME" dist/*
+          --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME"
+          --generate-notes --verify-tag

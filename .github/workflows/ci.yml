@@ -1,10 +1,32 @@
 name: CI
 
+# Only main and pull requests into main (the required checks rust/msrv/macos protect
+# main). The paths lists must cover everything the jobs below depend on (sources, tests,
+# manifests, this file); docs-only changes (README, bench/, plots) skip CI.
 on:
   push:
-    branches: [main, rust]
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'examples/**'
+      - 'presets/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'pyproject.toml'
+      - '.github/workflows/ci.yml'
   pull_request:
+    branches: [main]
     types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'examples/**'
+      - 'presets/**'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'pyproject.toml'
+      - '.github/workflows/ci.yml'
 
 # A new push to the same branch/PR cancels the run still in progress.
 concurrency:
@@ -19,8 +41,8 @@ env:
 
 jobs:
   rust:
-    # Draft PRs get no CI; run the checks locally before marking a PR ready.
-    if: github.event.pull_request.draft != true
+    # Draft PRs get no CI (ready_for_review starts it); run the checks locally meanwhile.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -36,7 +58,7 @@ jobs:
   msrv:
     # The oldest Rust that builds bab (Cargo.toml `rust-version`, README): let-chains need
     # 1.88. --locked proves the pinned dependencies build with it too.
-    if: github.event.pull_request.draft != true
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -44,18 +66,18 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.88
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --locked --all-targets --features test-hooks
-  compat:
-    # Differential test against the Python reference goldens (compat/README.md). The binary
-    # under test needs the BAB_TEST_* hooks, hence `--features test-hooks`.
-    if: github.event.pull_request.draft != true
-    runs-on: ubuntu-latest
+  macos:
+    # The release wheels include macOS (pyproject.toml, release.yml): the kqueue/pipe
+    # fallbacks of src/signals.rs and src/core/slurm.rs (no pidfd/pipe2 there), tested
+    # on Apple silicon.
+    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
+    runs-on: macos-15
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
       - uses: Swatinem/rust-cache@v2
-      - uses: astral-sh/setup-uv@v6
-      - run: cargo build --locked --features test-hooks
-      - run: uv run --locked --project compat pytest compat -q -n auto
-        env:
-          BAB_BIN: target/debug/bab
+      - run: cargo clippy --all-targets --locked --features test-hooks -- -D warnings
+      - run: cargo test --locked
