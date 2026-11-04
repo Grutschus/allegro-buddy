@@ -100,7 +100,11 @@ pub fn strip_control_codes(text: &str) -> std::borrow::Cow<'_, str> {
 }
 
 fn char_count(s: &str) -> usize {
-    if s.is_ascii() { s.len() } else { s.chars().count() }
+    if s.is_ascii() {
+        s.len()
+    } else {
+        s.chars().count()
+    }
 }
 
 /// Byte offset of the `index`-th code point of `s` (clamped to the end).
@@ -132,7 +136,15 @@ pub(crate) fn py_splitlines(s: &str) -> Vec<&str> {
     let is_break = |c: char| {
         matches!(
             c,
-            '\n' | '\r' | '\x0b' | '\x0c' | '\x1c' | '\x1d' | '\x1e' | '\u{85}' | '\u{2028}' | '\u{2029}'
+            '\n' | '\r'
+                | '\x0b'
+                | '\x0c'
+                | '\x1c'
+                | '\x1d'
+                | '\x1e'
+                | '\u{85}'
+                | '\u{2028}'
+                | '\u{2029}'
         )
     };
     let mut lines = Vec::new();
@@ -141,7 +153,11 @@ pub(crate) fn py_splitlines(s: &str) -> Vec<&str> {
         match rest.find(is_break) {
             Some(i) => {
                 lines.push(&rest[..i]);
-                let skip = if rest[i..].starts_with("\r\n") { 2 } else { rest[i..].chars().next().unwrap().len_utf8() };
+                let skip = if rest[i..].starts_with("\r\n") {
+                    2
+                } else {
+                    rest[i..].chars().next().unwrap().len_utf8()
+                };
                 rest = &rest[i + skip..];
             }
             None => {
@@ -361,7 +377,12 @@ impl Text {
 
     /// Rich `highlight_regex(re, style_prefix=prefix)`: a span per named group (in pattern
     /// order), styled `prefix + group name` resolved with `theme`.
-    pub fn highlight_regex(&mut self, re: &fancy_regex::Regex, style_prefix: &str, theme: &Theme) -> usize {
+    pub fn highlight_regex(
+        &mut self,
+        re: &fancy_regex::Regex,
+        style_prefix: &str,
+        theme: &Theme,
+    ) -> usize {
         let names: Vec<(usize, Style)> = re
             .capture_names()
             .enumerate()
@@ -418,7 +439,11 @@ impl Text {
 
     /// Rich `highlight_words(words, style, case_sensitive=True)`.
     pub fn highlight_words(&mut self, words: &[&str], style: Style) -> usize {
-        let pattern = words.iter().map(|w| regex::escape(w)).collect::<Vec<_>>().join("|");
+        let pattern = words
+            .iter()
+            .map(|w| regex::escape(w))
+            .collect::<Vec<_>>()
+            .join("|");
         let Ok(re) = regex::Regex::new(&pattern) else {
             return 0;
         };
@@ -735,7 +760,11 @@ impl Text {
                     part.plain.pop();
                     part.plain.push(' ');
                     cell_position += part.cell_len();
-                    let remainder = if tab_size == 0 { 0 } else { cell_position % tab_size };
+                    let remainder = if tab_size == 0 {
+                        0
+                    } else {
+                        cell_position % tab_size
+                    };
                     if remainder > 0 {
                         let spaces = tab_size - remainder;
                         part.extend_style(spaces);
@@ -764,7 +793,8 @@ impl Text {
     ) -> Vec<Text> {
         let wrap_justify = justify.or(self.justify).unwrap_or_default();
         let wrap_overflow = overflow.or(self.overflow).unwrap_or_default();
-        let no_wrap = no_wrap.or(self.no_wrap).unwrap_or(false) || overflow == Some(Overflow::Ignore);
+        let no_wrap =
+            no_wrap.or(self.no_wrap).unwrap_or(false) || overflow == Some(Overflow::Ignore);
         let mut lines = Vec::new();
         for mut line in self.split("\n", false, true) {
             if line.plain.contains('\t') {
@@ -808,8 +838,18 @@ impl Text {
         style_map.extend(self.spans.iter().map(|s| s.style));
         let mut events: Vec<(usize, bool, usize)> = Vec::with_capacity(self.spans.len() * 2 + 2);
         events.push((0, false, 0));
-        events.extend(self.spans.iter().enumerate().map(|(i, s)| (s.start, false, i + 1)));
-        events.extend(self.spans.iter().enumerate().map(|(i, s)| (s.end, true, i + 1)));
+        events.extend(
+            self.spans
+                .iter()
+                .enumerate()
+                .map(|(i, s)| (s.start, false, i + 1)),
+        );
+        events.extend(
+            self.spans
+                .iter()
+                .enumerate()
+                .map(|(i, s)| (s.end, true, i + 1)),
+        );
         events.push((self.length, true, 0));
         events.sort_by_key(|&(offset, leaving, _)| (offset, leaving));
         let ascii = self.plain.is_ascii();
@@ -820,7 +860,13 @@ impl Text {
             v.push(self.plain.len());
             v
         };
-        let byte = |i: usize| if ascii { i.min(self.plain.len()) } else { byte_offsets[i.min(self.length)] };
+        let byte = |i: usize| {
+            if ascii {
+                i.min(self.plain.len())
+            } else {
+                byte_offsets[i.min(self.length)]
+            }
+        };
         let mut stack: Vec<usize> = Vec::new();
         for window in events.windows(2) {
             let (offset, leaving, style_id) = window[0];
@@ -838,7 +884,10 @@ impl Text {
                 let style = ids
                     .iter()
                     .fold(Style::NULL, |acc, &id| acc.combine(&style_map[id]));
-                segments.push(Segment::styled(&self.plain[byte(offset)..byte(next_offset)], style));
+                segments.push(Segment::styled(
+                    &self.plain[byte(offset)..byte(next_offset)],
+                    style,
+                ));
             }
         }
         if !end.is_empty() {
@@ -923,7 +972,11 @@ pub fn justify_lines(lines: &mut [Text], width: usize, justify: Justify, overflo
                     if index < spaces.len() {
                         let style = word.get_style_at_offset(-1);
                         let next_style = words[index + 1].get_style_at_offset(0);
-                        let space_style = if style == next_style { style } else { line.style };
+                        let space_style = if style == next_style {
+                            style
+                        } else {
+                            line.style
+                        };
                         tokens.push(Text::with_style(" ".repeat(spaces[index]), space_style));
                     }
                 }

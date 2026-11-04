@@ -16,7 +16,10 @@ pub struct Padding<'a> {
 
 impl<'a> Padding<'a> {
     /// `Padding(renderable, (top, right, bottom, left))`.
-    pub fn new(renderable: &'a dyn Renderable, (top, right, bottom, left): (usize, usize, usize, usize)) -> Self {
+    pub fn new(
+        renderable: &'a dyn Renderable,
+        (top, right, bottom, left): (usize, usize, usize, usize),
+    ) -> Self {
         Padding {
             renderable,
             top,
@@ -34,7 +37,10 @@ impl<'a> Padding<'a> {
             [p] => (p, p, p, p),
             [v, h] => (v, h, v, h),
             [t, r, b, l] => (t, r, b, l),
-            _ => panic!("1, 2 or 4 integers required for padding; {} given", pad.len()),
+            _ => panic!(
+                "1, 2 or 4 integers required for padding; {} given",
+                pad.len()
+            ),
         }
     }
 }
@@ -51,9 +57,11 @@ impl Renderable for Padding<'_> {
         let mut render_options =
             options.update_width(width as isize - self.left as isize - self.right as isize);
         if let Some(height) = render_options.height {
-            render_options = render_options.update_height(height.saturating_sub(self.top + self.bottom));
+            render_options =
+                render_options.update_height(height.saturating_sub(self.top + self.bottom));
         }
-        let lines = console.render_lines(self.renderable, &render_options, Some(style), true, false);
+        let lines =
+            console.render_lines(self.renderable, &render_options, Some(style), true, false);
         let mut out = Vec::new();
         let blank = || Segment::styled(format!("{}\n", " ".repeat(width)), style);
         for _ in 0..self.top {

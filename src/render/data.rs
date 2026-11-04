@@ -1328,7 +1328,10 @@ pub static DEFAULT_STYLES: &[(&str, &str)] = &[
     ("repr.tag_start", "bold"),
     ("repr.url", "not bold not italic underline bright_blue"),
     ("repr.uuid", "not bold bright_yellow"),
-    ("reset", "not bold not dim not italic not underline not blink not blink2 not reverse not conceal not strike default on default"),
+    (
+        "reset",
+        "not bold not dim not italic not underline not blink not blink2 not reverse not conceal not strike default on default",
+    ),
     ("reverse", "reverse"),
     ("rule.line", "bright_green"),
     ("rule.text", "none"),
@@ -1364,27 +1367,111 @@ pub static DEFAULT_STYLES: &[(&str, &str)] = &[
 
 /// Rich `rich.box` definitions (plus rich-click's HORIZONTALS_TOP/HORIZONTALS_DOUBLE_TOP).
 pub static BOXES: &[(&str, &str, bool)] = &[
-    ("ASCII", "+--+\n| ||\n|-+|\n| ||\n|-+|\n|-+|\n| ||\n+--+\n", true),
-    ("ASCII2", "+-++\n| ||\n+-++\n| ||\n+-++\n+-++\n| ||\n+-++\n", true),
-    ("ASCII_DOUBLE_HEAD", "+-++\n| ||\n+=++\n| ||\n+-++\n+-++\n| ||\n+-++\n", true),
-    ("DOUBLE", "╔═╦╗\n║ ║║\n╠═╬╣\n║ ║║\n╠═╬╣\n╠═╬╣\n║ ║║\n╚═╩╝\n", false),
-    ("DOUBLE_EDGE", "╔═╤╗\n║ │║\n╟─┼╢\n║ │║\n╟─┼╢\n╟─┼╢\n║ │║\n╚═╧╝\n", false),
-    ("HEAVY", "┏━┳┓\n┃ ┃┃\n┣━╋┫\n┃ ┃┃\n┣━╋┫\n┣━╋┫\n┃ ┃┃\n┗━┻┛\n", false),
-    ("HEAVY_EDGE", "┏━┯┓\n┃ │┃\n┠─┼┨\n┃ │┃\n┠─┼┨\n┠─┼┨\n┃ │┃\n┗━┷┛\n", false),
-    ("HEAVY_HEAD", "┏━┳┓\n┃ ┃┃\n┡━╇┩\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n└─┴┘\n", false),
-    ("HORIZONTALS", " ── \n    \n ── \n    \n ── \n ── \n    \n ── \n", false),
-    ("HORIZONTALS_DOUBLE_TOP", " ══ \n    \n    \n    \n    \n    \n    \n    \n", false),
-    ("HORIZONTALS_TOP", " ── \n    \n    \n    \n    \n    \n    \n    \n", false),
-    ("MARKDOWN", "    \n| ||\n|-||\n| ||\n|-||\n|-||\n| ||\n    \n", true),
-    ("MINIMAL", "  ╷ \n  │ \n╶─┼╴\n  │ \n╶─┼╴\n╶─┼╴\n  │ \n  ╵ \n", false),
-    ("MINIMAL_DOUBLE_HEAD", "  ╷ \n  │ \n ═╪ \n  │ \n ─┼ \n ─┼ \n  │ \n  ╵ \n", false),
-    ("MINIMAL_HEAVY_HEAD", "  ╷ \n  │ \n╺━┿╸\n  │ \n╶─┼╴\n╶─┼╴\n  │ \n  ╵ \n", false),
-    ("ROUNDED", "╭─┬╮\n│ ││\n├─┼┤\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n╰─┴╯\n", false),
-    ("SIMPLE", "    \n    \n ── \n    \n    \n ── \n    \n    \n", false),
-    ("SIMPLE_HEAD", "    \n    \n ── \n    \n    \n    \n    \n    \n", false),
-    ("SIMPLE_HEAVY", "    \n    \n ━━ \n    \n    \n ━━ \n    \n    \n", false),
-    ("SQUARE", "┌─┬┐\n│ ││\n├─┼┤\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n└─┴┘\n", false),
-    ("SQUARE_DOUBLE_HEAD", "┌─┬┐\n│ ││\n╞═╪╡\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n└─┴┘\n", false),
+    (
+        "ASCII",
+        "+--+\n| ||\n|-+|\n| ||\n|-+|\n|-+|\n| ||\n+--+\n",
+        true,
+    ),
+    (
+        "ASCII2",
+        "+-++\n| ||\n+-++\n| ||\n+-++\n+-++\n| ||\n+-++\n",
+        true,
+    ),
+    (
+        "ASCII_DOUBLE_HEAD",
+        "+-++\n| ||\n+=++\n| ||\n+-++\n+-++\n| ||\n+-++\n",
+        true,
+    ),
+    (
+        "DOUBLE",
+        "╔═╦╗\n║ ║║\n╠═╬╣\n║ ║║\n╠═╬╣\n╠═╬╣\n║ ║║\n╚═╩╝\n",
+        false,
+    ),
+    (
+        "DOUBLE_EDGE",
+        "╔═╤╗\n║ │║\n╟─┼╢\n║ │║\n╟─┼╢\n╟─┼╢\n║ │║\n╚═╧╝\n",
+        false,
+    ),
+    (
+        "HEAVY",
+        "┏━┳┓\n┃ ┃┃\n┣━╋┫\n┃ ┃┃\n┣━╋┫\n┣━╋┫\n┃ ┃┃\n┗━┻┛\n",
+        false,
+    ),
+    (
+        "HEAVY_EDGE",
+        "┏━┯┓\n┃ │┃\n┠─┼┨\n┃ │┃\n┠─┼┨\n┠─┼┨\n┃ │┃\n┗━┷┛\n",
+        false,
+    ),
+    (
+        "HEAVY_HEAD",
+        "┏━┳┓\n┃ ┃┃\n┡━╇┩\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n└─┴┘\n",
+        false,
+    ),
+    (
+        "HORIZONTALS",
+        " ── \n    \n ── \n    \n ── \n ── \n    \n ── \n",
+        false,
+    ),
+    (
+        "HORIZONTALS_DOUBLE_TOP",
+        " ══ \n    \n    \n    \n    \n    \n    \n    \n",
+        false,
+    ),
+    (
+        "HORIZONTALS_TOP",
+        " ── \n    \n    \n    \n    \n    \n    \n    \n",
+        false,
+    ),
+    (
+        "MARKDOWN",
+        "    \n| ||\n|-||\n| ||\n|-||\n|-||\n| ||\n    \n",
+        true,
+    ),
+    (
+        "MINIMAL",
+        "  ╷ \n  │ \n╶─┼╴\n  │ \n╶─┼╴\n╶─┼╴\n  │ \n  ╵ \n",
+        false,
+    ),
+    (
+        "MINIMAL_DOUBLE_HEAD",
+        "  ╷ \n  │ \n ═╪ \n  │ \n ─┼ \n ─┼ \n  │ \n  ╵ \n",
+        false,
+    ),
+    (
+        "MINIMAL_HEAVY_HEAD",
+        "  ╷ \n  │ \n╺━┿╸\n  │ \n╶─┼╴\n╶─┼╴\n  │ \n  ╵ \n",
+        false,
+    ),
+    (
+        "ROUNDED",
+        "╭─┬╮\n│ ││\n├─┼┤\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n╰─┴╯\n",
+        false,
+    ),
+    (
+        "SIMPLE",
+        "    \n    \n ── \n    \n    \n ── \n    \n    \n",
+        false,
+    ),
+    (
+        "SIMPLE_HEAD",
+        "    \n    \n ── \n    \n    \n    \n    \n    \n",
+        false,
+    ),
+    (
+        "SIMPLE_HEAVY",
+        "    \n    \n ━━ \n    \n    \n ━━ \n    \n    \n",
+        false,
+    ),
+    (
+        "SQUARE",
+        "┌─┬┐\n│ ││\n├─┼┤\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n└─┴┘\n",
+        false,
+    ),
+    (
+        "SQUARE_DOUBLE_HEAD",
+        "┌─┬┐\n│ ││\n╞═╪╡\n│ ││\n├─┼┤\n├─┼┤\n│ ││\n└─┴┘\n",
+        false,
+    ),
 ];
 
 /// Rich `PLAIN_HEADED_SUBSTITUTIONS`.
@@ -1397,15 +1484,4 @@ pub static PLAIN_HEADED_SUBSTITUTIONS: &[(&str, &str)] = &[
 ];
 
 pub const DOTS_INTERVAL_MS: f64 = 80.0;
-pub static DOTS_FRAMES: &[&str] = &[
-    "⠋",
-    "⠙",
-    "⠹",
-    "⠸",
-    "⠼",
-    "⠴",
-    "⠦",
-    "⠧",
-    "⠇",
-    "⠏",
-];
+pub static DOTS_FRAMES: &[&str] = &["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];

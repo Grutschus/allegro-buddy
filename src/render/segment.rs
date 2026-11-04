@@ -364,9 +364,18 @@ mod tests {
 
     #[test]
     fn crop_and_pad() {
-        let line = vec![Segment::plain("abc"), Segment::styled("def", Style::of("bold"))];
+        let line = vec![
+            Segment::plain("abc"),
+            Segment::styled("def", Style::of("bold")),
+        ];
         let cropped = adjust_line_length(line.clone(), 4, None, true);
-        assert_eq!(cropped, vec![Segment::plain("abc"), Segment::styled("d", Style::of("bold"))]);
+        assert_eq!(
+            cropped,
+            vec![
+                Segment::plain("abc"),
+                Segment::styled("d", Style::of("bold"))
+            ]
+        );
         let padded = adjust_line_length(line, 8, None, true);
         assert_eq!(padded.last().unwrap().text, "  ");
     }

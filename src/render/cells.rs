@@ -231,7 +231,9 @@ mod tests {
 
     #[test]
     fn widths_of_glyphs_bab_prints() {
-        for ch in ['ⓘ', '·', '─', '│', '✓', '✗', '…', '→', '≤', '⠋', '⚠', '●', '•'] {
+        for ch in [
+            'ⓘ', '·', '─', '│', '✓', '✗', '…', '→', '≤', '⠋', '⚠', '●', '•',
+        ] {
             assert_eq!(char_width(ch), 1, "{ch}");
         }
         assert_eq!(char_width('中'), 2);

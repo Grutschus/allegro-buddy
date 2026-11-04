@@ -59,7 +59,13 @@ pub fn render_table(
         let cells = row.into_iter().map(as_cell).collect();
         table.add_row(cells, section_breaks.contains(&i));
     }
-    out.print_with(&table, PrintOptions { width, style: None });
+    out.print_with(
+        &table,
+        PrintOptions {
+            width,
+            ..PrintOptions::default()
+        },
+    );
     if let Some(caption) = caption.filter(|c| !c.is_empty()) {
         out.print(&muted(caption));
     }
@@ -256,6 +262,7 @@ mod tests {
         match cell {
             Cell::Text(t) => t.plain().to_owned(),
             Cell::Str(s) => s.clone(),
+            Cell::Renderable(_) => String::new(),
         }
     }
 
@@ -350,7 +357,7 @@ mod tests {
         assert!(build_dev_job_rows(&[]).is_empty());
         let rows = build_dev_job_rows(&[job_pending()]);
         assert_eq!(plain(rows[0].last().unwrap()), "Resources");
-        assert_eq!(plain(&rows[0][3]), "-");
+        assert_eq!(plain(&rows[0][3]), "(None)");
     }
 
     #[test]
@@ -367,6 +374,6 @@ mod tests {
         assert_eq!(state_text("WEIRD").plain(), "WEIRD");
         assert_eq!(partition_text("gpu").plain(), "gpu");
         assert!(matches!(as_cell(Cell::Str(String::new())), Cell::Text(t) if t.plain() == "-"));
-        assert_eq!(as_cell(Cell::Str("x".into())), Cell::Str("x".into()));
+        assert!(matches!(as_cell(Cell::Str("x".into())), Cell::Str(s) if s == "x"));
     }
 }

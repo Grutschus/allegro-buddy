@@ -101,19 +101,32 @@ impl BoxStyle {
     pub fn name(&self) -> Option<&'static str> {
         BOXES
             .iter()
-            .find(|(_, definition, ascii)| BoxStyle::parse(definition, *ascii).as_ref() == Some(self))
+            .find(|(_, definition, ascii)| {
+                BoxStyle::parse(definition, *ascii).as_ref() == Some(self)
+            })
             .map(|(n, _, _)| *n)
     }
 
     /// Rich `get_plain_headed_box()`.
     pub fn get_plain_headed_box(&self) -> BoxStyle {
         self.name()
-            .and_then(|name| PLAIN_HEADED_SUBSTITUTIONS.iter().find(|(from, _)| *from == name))
+            .and_then(|name| {
+                PLAIN_HEADED_SUBSTITUTIONS
+                    .iter()
+                    .find(|(from, _)| *from == name)
+            })
             .and_then(|(_, to)| BoxStyle::named(to))
             .unwrap_or(*self)
     }
 
-    fn line(left: char, fill: char, divider: char, right: char, widths: &[usize], edges: bool) -> String {
+    fn line(
+        left: char,
+        fill: char,
+        divider: char,
+        right: char,
+        widths: &[usize],
+        edges: bool,
+    ) -> String {
         let mut out = String::new();
         if edges {
             out.push(left);
@@ -132,23 +145,52 @@ impl BoxStyle {
 
     /// Rich `get_top(widths)`.
     pub fn get_top(&self, widths: &[usize]) -> String {
-        Self::line(self.top_left, self.top, self.top_divider, self.top_right, widths, true)
+        Self::line(
+            self.top_left,
+            self.top,
+            self.top_divider,
+            self.top_right,
+            widths,
+            true,
+        )
     }
 
     /// Rich `get_row(widths, level, edge)`.
     pub fn get_row(&self, widths: &[usize], level: RowLevel, edge: bool) -> String {
         let (left, horizontal, cross, right) = match level {
-            RowLevel::Head => (self.head_row_left, self.head_row_horizontal, self.head_row_cross, self.head_row_right),
-            RowLevel::Row => (self.row_left, self.row_horizontal, self.row_cross, self.row_right),
+            RowLevel::Head => (
+                self.head_row_left,
+                self.head_row_horizontal,
+                self.head_row_cross,
+                self.head_row_right,
+            ),
+            RowLevel::Row => (
+                self.row_left,
+                self.row_horizontal,
+                self.row_cross,
+                self.row_right,
+            ),
             RowLevel::Mid => (self.mid_left, ' ', self.mid_vertical, self.mid_right),
-            RowLevel::Foot => (self.foot_row_left, self.foot_row_horizontal, self.foot_row_cross, self.foot_row_right),
+            RowLevel::Foot => (
+                self.foot_row_left,
+                self.foot_row_horizontal,
+                self.foot_row_cross,
+                self.foot_row_right,
+            ),
         };
         Self::line(left, horizontal, cross, right, widths, edge)
     }
 
     /// Rich `get_bottom(widths)`.
     pub fn get_bottom(&self, widths: &[usize]) -> String {
-        Self::line(self.bottom_left, self.bottom, self.bottom_divider, self.bottom_right, widths, true)
+        Self::line(
+            self.bottom_left,
+            self.bottom,
+            self.bottom_divider,
+            self.bottom_right,
+            widths,
+            true,
+        )
     }
 }
 
@@ -162,9 +204,27 @@ macro_rules! named_boxes {
 }
 
 named_boxes!(
-    ASCII, ASCII2, ASCII_DOUBLE_HEAD, SQUARE, SQUARE_DOUBLE_HEAD, MINIMAL, MINIMAL_HEAVY_HEAD,
-    MINIMAL_DOUBLE_HEAD, SIMPLE, SIMPLE_HEAD, SIMPLE_HEAVY, HORIZONTALS, ROUNDED, HEAVY,
-    HEAVY_EDGE, HEAVY_HEAD, DOUBLE, DOUBLE_EDGE, MARKDOWN, HORIZONTALS_TOP, HORIZONTALS_DOUBLE_TOP,
+    ASCII,
+    ASCII2,
+    ASCII_DOUBLE_HEAD,
+    SQUARE,
+    SQUARE_DOUBLE_HEAD,
+    MINIMAL,
+    MINIMAL_HEAVY_HEAD,
+    MINIMAL_DOUBLE_HEAD,
+    SIMPLE,
+    SIMPLE_HEAD,
+    SIMPLE_HEAVY,
+    HORIZONTALS,
+    ROUNDED,
+    HEAVY,
+    HEAVY_EDGE,
+    HEAVY_HEAD,
+    DOUBLE,
+    DOUBLE_EDGE,
+    MARKDOWN,
+    HORIZONTALS_TOP,
+    HORIZONTALS_DOUBLE_TOP,
 );
 
 #[cfg(test)]
