@@ -736,9 +736,9 @@ impl Console {
         }
     }
 
-    /// Write control codes (Rich `Console.control`): dropped when not a terminal.
+    /// Write control codes (Rich `Console.control`): only on a non-dumb terminal.
     pub fn control(&self, codes: &str) {
-        if self.is_terminal() {
+        if self.is_terminal() && !self.is_dumb_terminal() {
             self.write_raw(codes);
         }
     }

@@ -9,12 +9,28 @@
 use super::text::Text;
 use super::theme::Theme;
 use fancy_regex::Regex;
-use std::sync::LazyLock;
+use std::sync::{LazyLock, OnceLock};
+
+/// One highlight pattern, compiled on first use (Rich's patterns are expensive to compile
+/// and most strings bab prints need only some of them).
+#[derive(Debug)]
+struct Pattern {
+    source: String,
+    compiled: OnceLock<Regex>,
+    /// Cheap test that the pattern cannot match when false.
+    may_match: fn(&str) -> bool,
+    /// (group name, max code points): emulates `[\w_]{1,50}` without its compile cost.
+    trim_group: Option<(&'static str, usize)>,
+}
+
+fn always(_: &str) -> bool {
+    true
+}
 
 /// Rich `RegexHighlighter`: each regex adds `base_style + group name` spans, in order.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct RegexHighlighter {
-    pub highlights: Vec<Regex>,
+    patterns: Vec<Pattern>,
     pub base_style: String,
 }
 
@@ -24,21 +40,48 @@ impl RegexHighlighter {
         base_style: &str,
         patterns: &[&str],
     ) -> Result<RegexHighlighter, fancy_regex::Error> {
+        let mut out = Vec::with_capacity(patterns.len());
+        for p in patterns {
+            let compiled = OnceLock::new();
+            let _ = compiled.set(Regex::new(p)?);
+            out.push(Pattern {
+                source: (*p).to_owned(),
+                compiled,
+                may_match: always,
+                trim_group: None,
+            });
+        }
         Ok(RegexHighlighter {
-            highlights: patterns
-                .iter()
-                .map(|p| Regex::new(p))
-                .collect::<Result<_, _>>()?,
+            patterns: out,
             base_style: base_style.to_owned(),
         })
     }
 
     /// Rich `RegexHighlighter.highlight(text)` (in place).
     pub fn highlight(&self, text: &mut Text, theme: &Theme) {
-        for re in &self.highlights {
+        for pattern in &self.patterns {
+            if !(pattern.may_match)(text.plain()) {
+                continue;
+            }
+            let re = pattern
+                .compiled
+                .get_or_init(|| Regex::new(&pattern.source).expect("highlight pattern"));
+            let before = text.spans().len();
             text.highlight_regex(re, &self.base_style, theme);
+            if let Some((group, max)) = pattern.trim_group {
+                let style = theme.get_style_or_null(&format!("{}{group}", self.base_style));
+                for span in &mut text.spans_mut()[before..] {
+                    if span.style == style && span.end - span.start > max {
+                        span.start = span.end - max;
+                    }
+                }
+            }
         }
     }
+}
+
+fn has_any(text: &str, chars: &[char]) -> bool {
+    text.contains(chars)
 }
 
 static REPR: LazyLock<RegexHighlighter> = LazyLock::new(|| {
@@ -58,17 +101,47 @@ static REPR: LazyLock<RegexHighlighter> = LazyLock::new(|| {
         r"(?P<url>(file|https|http|ws|wss)://[-0-9a-zA-Z$_+!`(),.?/;:&=%#~@]*)",
     ]
     .join("|");
-    RegexHighlighter::new(
-        "repr.",
-        &[
-            r"(?P<tag_start><)(?P<tag_name>[-\w.:|]*)(?P<tag_contents>[\w\W]*)(?P<tag_end>>)",
-            r#"(?P<attrib_name>[\w_]{1,50})=(?P<attrib_value>"?[\w_]+"?)?"#,
-            r"(?P<brace>[\]\[{}()])",
-            &combined,
+    let pattern = |source: &str, may_match: fn(&str) -> bool, trim_group| Pattern {
+        source: source.to_owned(),
+        compiled: OnceLock::new(),
+        may_match,
+        trim_group,
+    };
+    RegexHighlighter {
+        base_style: "repr.".to_owned(),
+        patterns: vec![
+            pattern(
+                r"(?P<tag_start><)(?P<tag_name>[-\w.:|]*)(?P<tag_contents>[\w\W]*)(?P<tag_end>>)",
+                |t| t.contains('<') && t.contains('>'),
+                None,
+            ),
+            // Rich: `(?P<attrib_name>[\w_]{1,50})=...`; a longer run of word characters
+            // before `=` matches only its last 50 (the span is trimmed accordingly).
+            pattern(
+                r#"(?P<attrib_name>[\w_]+)=(?P<attrib_value>"?[\w_]+"?)?"#,
+                |t| t.contains('='),
+                Some(("attrib_name", 50)),
+            ),
+            pattern(
+                r"(?P<brace>[\]\[{}()])",
+                |t| has_any(t, &['[', ']', '{', '}', '(', ')']),
+                None,
+            ),
+            pattern(&combined, combined_may_match, None),
         ],
-    )
-    .expect("ReprHighlighter patterns")
+    }
 });
+
+/// False only when no alternative of Rich's combined repr regex can match.
+fn combined_may_match(t: &str) -> bool {
+    t.bytes()
+        .any(|b| b.is_ascii_digit() || matches!(b, b'(' | b':' | b'/' | b'\'' | b'"'))
+        || t.matches('-').count() >= 4
+        || t.matches('.').count() >= 2
+        || t.contains("True")
+        || t.contains("False")
+        || t.contains("None")
+}
 
 /// Rich `ReprHighlighter`.
 pub fn repr_highlighter() -> &'static RegexHighlighter {

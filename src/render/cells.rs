@@ -55,8 +55,11 @@ pub fn cell_len(text: &str) -> usize {
     }
     let mut total = 0;
     let mut last_measured: Option<char> = None;
-    for ch in text.chars() {
+    let mut chars = text.chars();
+    while let Some(ch) = chars.next() {
         if ch == ZWJ {
+            // Rich skips the joined character too.
+            chars.next();
             continue;
         }
         if ch == VS16 {
@@ -245,7 +248,7 @@ mod tests {
 
     #[test]
     fn zwj_and_vs16() {
-        assert_eq!(cell_len("👩\u{200d}💻"), 4);
+        assert_eq!(cell_len("👩\u{200d}💻"), 2);
         assert_eq!(cell_len("\u{2764}\u{fe0f}"), 2);
         assert_eq!(cell_len("\u{2764}"), 1);
     }
