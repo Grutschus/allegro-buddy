@@ -4,9 +4,9 @@
 
 <p align="center">
   <picture align="center">
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/hero-dark.svg">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/hero-light.svg">
-    <img alt="Bar chart: running all 12 read-only commands once takes 0.88 s with bab and 2.96 s with ab." src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/hero-light.svg">
+    <source media="(prefers-color-scheme: dark)" srcset="bench/plots/hero-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="bench/plots/hero-light.svg">
+    <img alt="Bar chart: running all 12 read-only commands once takes 0.88 s with bab and 2.96 s with ab." src="bench/plots/hero-light.svg">
   </picture>
 </p>
 <p align="center">
@@ -81,18 +81,18 @@ Every command has `-h`. It comes back in ~3 ms now, so you can afford to ask.
 The screenshots below were taken with the original `ab`. We didn't redo them: apart
 from the program name, `bab` looks exactly the same. That's the whole point.
 
-<img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/.github/assets/queue.svg" alt="bab queue: your jobs, start estimates and why pending jobs wait">
+<img src=".github/assets/queue.svg" alt="bab queue: your jobs, start estimates and why pending jobs wait">
 
 ### Why is my job waiting?
 
-<img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/.github/assets/why.svg" alt="bab why: what a pending job waits for and the change that starts it now">
+<img src=".github/assets/why.svg" alt="bab why: what a pending job waits for and the change that starts it now">
 
 `bab why JOBID --fix` applies the suggested change after asking. It only touches
 your own pending jobs and never lowers the GPU count unless you pass `--fix gpus`.
 
 ### What is free?
 
-<img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/.github/assets/free.svg" alt="bab free --nodes: free GPUs, CPUs and memory per node">
+<img src=".github/assets/free.svg" alt="bab free --nodes: free GPUs, CPUs and memory per node">
 
 ### Dev nodes
 
@@ -178,7 +178,7 @@ Against an instant fake Slurm (pure tool overhead) the median is **19×**: `ab` 
 85–222 ms per command, `bab` 0.6–15 ms.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/bench/plots/live.png" alt="bab vs ab, live on Allegro: wall time per command" width="600">
+  <img src="bench/plots/live.png" alt="bab vs ab, live on Allegro: wall time per command" width="600">
 </p>
 
 Where it comes from: no interpreter start-up and imports (~145 ms of rich, rich-click
@@ -197,7 +197,7 @@ Where it stops, honestly:
   We're working on it.
 
 Full tables, methodology, local replay numbers, the optimisation pass and how to rerun the
-live benchmark: [`bench/RESULTS.md`](https://github.com/plainerman/better-allegro-buddy/blob/main/bench/RESULTS.md).
+live benchmark: [`bench/RESULTS.md`](bench/RESULTS.md).
 
 ## Development
 
@@ -215,11 +215,11 @@ ship that one. `UPDATE_SNAPSHOTS=1 cargo test --test snapshots` rewrites
 `tests/snapshots/`. The full differential harness: tag
 [`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness).
 To rerun the live benchmark and redraw the plots, see
-[`bench/RESULTS.md`](https://github.com/plainerman/better-allegro-buddy/blob/main/bench/RESULTS.md#updating-the-numbers).
+[`bench/RESULTS.md`](bench/RESULTS.md#updating-the-numbers).
 
 ### Releasing
 
-[`release.yml`](https://github.com/plainerman/better-allegro-buddy/blob/main/.github/workflows/release.yml)
+[`release.yml`](.github/workflows/release.yml)
 builds the `bab` binaries (manylinux2014 x86_64/aarch64, i.e. glibc ≥ 2.17; macOS
 x86_64/arm64) as wheels with [maturin](https://www.maturin.rs) (`pyproject.toml`) and as
 `bab-$(uname -m)-$(uname -s).tar.gz`, plus the sdist. It smoke-tests all of them on every
@@ -254,5 +254,5 @@ All the ideas, the UX and every word `bab` prints come from
 like `bab`, star the original. If you'd rather keep Python, use the original:
 `uv tool install allegro-buddy`.
 
-MIT, see [LICENSE](https://github.com/plainerman/better-allegro-buddy/blob/main/LICENSE). Copyright © 2026 Grutschus (allegro-buddy) and
+MIT, see [LICENSE](LICENSE). Copyright © 2026 Grutschus (allegro-buddy) and
 © 2026 Michael Plainer (the Rust rewrite).
