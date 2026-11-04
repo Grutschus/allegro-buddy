@@ -91,10 +91,11 @@ pub fn guess_node(node: Option<&str>) -> Result<String> {
     }
 
     for job in find_dev_jobs(None, None)? {
-        if job.get_str("JobState") == "RUNNING" && has_nodelist(&job) {
-            if let Some(first) = expand_nodelist(job.get_str("NodeList")).into_iter().next() {
-                return Ok(first);
-            }
+        if job.get_str("JobState") == "RUNNING"
+            && has_nodelist(&job)
+            && let Some(first) = expand_nodelist(job.get_str("NodeList")).into_iter().next()
+        {
+            return Ok(first);
         }
     }
 
@@ -386,10 +387,10 @@ pub fn cmd_info(all_partitions: bool) -> Result<()> {
     let mut breaks: Vec<usize> = vec![0];
     let mut previous: Option<&str> = None;
     for (partition, name) in partitions.iter().zip(&names) {
-        if let Some(prev) = previous {
-            if is_gpu_partition(prev, true)? != is_gpu_partition(name, true)? {
-                breaks.push(rows.len() - 1); // between GPU and CPU partitions
-            }
+        if let Some(prev) = previous
+            && is_gpu_partition(prev, true)? != is_gpu_partition(name, true)?
+        {
+            breaks.push(rows.len() - 1); // between GPU and CPU partitions
         }
         previous = Some(name);
         let limit = short_limit(partition.get_str("MaxTime"));
@@ -648,10 +649,10 @@ fn free_nodes(
         if overlap.is_empty() || (kind == Kind::Gpu) != (gpu_total != 0) {
             continue;
         }
-        if let Some(gpu_type) = gpu_type {
-            if free.gpu_total_by_type.get(gpu_type).copied().unwrap_or(0) == 0 {
-                continue;
-            }
+        if let Some(gpu_type) = gpu_type
+            && free.gpu_total_by_type.get(gpu_type).copied().unwrap_or(0) == 0
+        {
+            continue;
         }
         let mut state = node.state.clone();
         if !node_is_usable(node) {

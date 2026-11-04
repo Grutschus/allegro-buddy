@@ -58,10 +58,10 @@ pub fn now() -> NaiveDateTime {
     if let Some(now) = testing::ctx().now {
         return now;
     }
-    if let Some(frozen) = test_hook("BAB_TEST_NOW").filter(|v| !v.is_empty()) {
-        if let Some(dt) = crate::core::timefmt::iso_to_dt(&frozen) {
-            return dt;
-        }
+    if let Some(frozen) = test_hook("BAB_TEST_NOW").filter(|v| !v.is_empty())
+        && let Some(dt) = crate::core::timefmt::iso_to_dt(&frozen)
+    {
+        return dt;
     }
     let now = chrono::Local::now().naive_local();
     use chrono::Timelike;

@@ -811,6 +811,36 @@ fn check_range(value: f64, min: f64) -> std::result::Result<Value, String> {
     Ok(Value::Float(value))
 }
 
+/// `time.sleep` converts seconds to int64 nanoseconds: from 2**63 ns (about 292 years)
+/// on it raises `OverflowError`, and `nan` raises `ValueError`.
+const PY_SLEEP_LIMIT_NS: f64 = 9_223_372_036_854_775_808.0;
+
+/// bab-only guard for a FloatRange value that becomes a sleep (`--watch`,
+/// `--poll-interval`). click accepts `nan`, `inf` and huge values, and Python then crashes
+/// in `time.sleep` with a traceback (possibly after `dev start` already submitted a job);
+/// bab rejects them with a click-style `BadParameter` before using the value.
+pub fn sleep_duration(param: &Param, value: f64) -> Result<std::time::Duration> {
+    if value * 1e9 < PY_SLEEP_LIMIT_NS
+        && let Ok(duration) = std::time::Duration::try_from_secs_f64(value)
+    {
+        return Ok(duration);
+    }
+    let min = match param.ty {
+        ParamType::FloatRange { min } => min,
+        _ => 0.0,
+    };
+    Err(AbError::Usage(UsageError {
+        message: format!(
+            "Invalid value for {}: {} is not in the range {min}<=x<{}.",
+            error_hint(param),
+            py_float_repr(value),
+            py_float_repr(PY_SLEEP_LIMIT_NS / 1e9)
+        ),
+        command_path: Vec::new(),
+        show_help_hint: true,
+    }))
+}
+
 fn invalid_choice(raw: &str, choices: &[&str]) -> String {
     let listed = choices
         .iter()
@@ -1327,6 +1357,40 @@ mod tests {
             usage_error(&["q", "--watch", "abc"]).message,
             "Invalid value for '-w' / '--watch': 'abc' is not a valid float range."
         );
+    }
+
+    #[test]
+    fn sleeps_reject_what_time_sleep_cannot_take() {
+        use super::super::commands::{POLL_INTERVAL, WATCH};
+        use std::time::Duration;
+        // click's FloatRange lets these through, like Python's
+        for raw in ["nan", "inf", "1e10"] {
+            assert!(parse_ok(&["q", "-w", raw]).1.opt_float("watch").is_some());
+        }
+        let message = |param: &Param, value: f64| match sleep_duration(param, value) {
+            Err(AbError::Usage(err)) => {
+                assert!(err.command_path.is_empty() && err.show_help_hint);
+                err.message
+            }
+            other => panic!("expected a usage error, got {other:?}"),
+        };
+        assert_eq!(
+            message(&POLL_INTERVAL, f64::NAN),
+            "Invalid value for '--poll-interval': nan is not in the range \
+             1<=x<9223372036.854776."
+        );
+        assert_eq!(
+            message(&WATCH, f64::INFINITY),
+            "Invalid value for '-w' / '--watch': inf is not in the range \
+             10<=x<9223372036.854776."
+        );
+        assert!(message(&WATCH, 1e10).contains(": 10000000000.0 is not in the range"));
+        assert_eq!(
+            sleep_duration(&POLL_INTERVAL, 2.5),
+            Ok(Duration::from_millis(2500))
+        );
+        // time.sleep(9.2e9) is accepted by Python (it just sleeps very long)
+        assert!(sleep_duration(&WATCH, 9.2e9).is_ok());
     }
 
     #[test]

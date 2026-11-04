@@ -12,17 +12,19 @@
 //!   write captured stderr to stderr, flush; write captured stdout to stdout, flush
 //!   signals::sleep(interval)  (Ctrl-C -> Ok(()))
 //! ```
+//! bab-only: an interval `time.sleep` cannot take (nan, inf, >= 2**63 ns) is rejected
+//! up front as a usage error, where Python renders once and crashes with a traceback.
 //! The clock comes from `hooks::now()`; `{interval:g}` from `pyfmt::format_g`.
 
 use crate::error::{AbError, Result};
 use crate::render::console;
-use std::time::Duration;
 
 /// `run_watched(render, interval)`.
 pub fn run_watched(render: &mut dyn FnMut() -> Result<()>, interval: Option<f64>) -> Result<()> {
     let Some(interval) = interval else {
         return render();
     };
+    let pause = super::parser::sleep_duration(&super::commands::WATCH, interval)?;
     let (out, err) = (console::stdout(), console::stderr());
     loop {
         out.begin_capture();
@@ -49,7 +51,7 @@ pub fn run_watched(render: &mut dyn FnMut() -> Result<()>, interval: Option<f64>
         );
         err.write_raw(&errors);
         out.write_raw(&captured);
-        match crate::signals::sleep(sleep_duration(interval)) {
+        match crate::signals::sleep(pause) {
             Ok(()) => {}
             Err(_) => return stopped(),
         }
@@ -61,11 +63,6 @@ pub fn run_watched(render: &mut dyn FnMut() -> Result<()>, interval: Option<f64>
 fn stopped() -> Result<()> {
     crate::signals::clear();
     Ok(())
-}
-
-/// `time.sleep(interval)` for any float the FloatRange accepts (inf/nan included).
-fn sleep_duration(interval: f64) -> Duration {
-    Duration::try_from_secs_f64(interval).unwrap_or(Duration::MAX)
 }
 
 #[cfg(test)]
@@ -105,5 +102,21 @@ mod tests {
             run_watched(&mut render, Some(0.001)),
             Err(AbError::Click("boom".into()))
         );
+    }
+
+    #[test]
+    fn unusable_interval_fails_before_rendering() {
+        for interval in [f64::NAN, f64::INFINITY, 1e300] {
+            let mut calls = 0;
+            let mut render = || {
+                calls += 1;
+                Ok(())
+            };
+            assert!(matches!(
+                run_watched(&mut render, Some(interval)),
+                Err(AbError::Usage(_))
+            ));
+            assert_eq!(calls, 0);
+        }
     }
 }

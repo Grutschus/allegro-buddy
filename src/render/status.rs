@@ -196,10 +196,10 @@ impl Status {
 
     /// `status.update(text)` (an empty text keeps the old one, like Rich).
     pub fn update(&self, text: Text) {
-        if let Some(shared) = &self.shared {
-            if !text.is_empty() {
-                shared.state.lock().unwrap().text = text;
-            }
+        if let Some(shared) = &self.shared
+            && !text.is_empty()
+        {
+            shared.state.lock().unwrap().text = text;
         }
     }
 

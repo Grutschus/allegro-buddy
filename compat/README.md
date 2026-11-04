@@ -136,6 +136,18 @@ compared): `q -w nan` / `-w inf` (time.sleep error), a job name containing a bar
 (Rich MarkupError), `completion zsh --install` with a non-existent `$ZDOTDIR`, an
 unwritable `$HOME` for `--install`. `[link=...]` markup is avoided (random ids).
 
+## Deliberate divergences (reference crashes, bab rejects)
+
+- `--watch` / `--poll-interval` values click's `FloatRange` accepts but `time.sleep`
+  cannot take (`nan`, `inf`, anything from 2**63 ns ≈ 9223372036.85 s up): Python renders a
+  watch frame, or for `dev start` cancels (`--replace`) and submits, and then dies with a
+  `ValueError`/`OverflowError` traceback. bab checks the value before it is first needed
+  (before any rendering for `--watch`; before cancelling/submitting for `dev start`
+  unless `--no-wait`; before waiting for `dev login --wait`) and fails with a click-style
+  usage error, exit 2: `Invalid value for '--poll-interval': nan is not in the range
+  1<=x<9223372036.854776.` Where the value is never slept on (`--no-wait`, `l --wait` on
+  a running job) bab matches Python. Tests: tests/sleep_intervals.rs.
+
 ## Caveats
 
 - Permission scenarios (`chmod 000` files, read-only cache dir) assume a non-root user.

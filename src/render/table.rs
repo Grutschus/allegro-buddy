@@ -709,11 +709,11 @@ impl Table {
                 ),
             ]
         });
-        if let Some(b) = bx {
-            if self.show_edge {
-                out.push(seg(b.get_top(widths)));
-                out.push(Segment::line());
-            }
+        if let Some(b) = bx
+            && self.show_edge
+        {
+            out.push(seg(b.get_top(widths)));
+            out.push(Segment::line());
         }
         for index in 0..row_count {
             let first = index == 0;
@@ -841,11 +841,11 @@ impl Table {
                 }
             }
         }
-        if let Some(b) = bx {
-            if self.show_edge {
-                out.push(seg(b.get_bottom(widths)));
-                out.push(Segment::line());
-            }
+        if let Some(b) = bx
+            && self.show_edge
+        {
+            out.push(seg(b.get_bottom(widths)));
+            out.push(Segment::line());
         }
         out
     }

@@ -19,7 +19,7 @@ to the last ANSI escape code. Only the name changed, and it got one more `b`.
 
 ## Install
 
-With Rust ≥ 1.85 (e.g. via [rustup](https://rustup.rs)):
+With Rust ≥ 1.88 (e.g. via [rustup](https://rustup.rs)):
 
 ```bash
 cargo install --locked --git https://github.com/plainerman/better-allegro-buddy --branch rust
@@ -160,7 +160,7 @@ The optimisation pass (what was tried, kept and rejected): [`bench/PERF.md`](ben
 
 ## Development
 
-Stable Rust ≥ 1.85 (edition 2024). The differential tests need
+Stable Rust ≥ 1.88 (edition 2024). The differential tests need
 [uv](https://docs.astral.sh/uv/), which fetches the Python reference.
 
 ```bash

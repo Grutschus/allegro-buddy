@@ -357,20 +357,20 @@ impl Text {
 
     /// `stylize(style, start, end)`: add a span (code points; negative = from the end).
     pub fn stylize(&mut self, style: Style, start: isize, end: Option<isize>) -> &mut Text {
-        if !style.is_null() {
-            if let Some((start, end)) = self.clamp_range(start, end) {
-                self.spans.push(Span::new(start, end, style));
-            }
+        if !style.is_null()
+            && let Some((start, end)) = self.clamp_range(start, end)
+        {
+            self.spans.push(Span::new(start, end, style));
         }
         self
     }
 
     /// `stylize_before(style, start, end)`: insert a span below the existing ones.
     pub fn stylize_before(&mut self, style: Style, start: isize, end: Option<isize>) -> &mut Text {
-        if !style.is_null() {
-            if let Some((start, end)) = self.clamp_range(start, end) {
-                self.spans.insert(0, Span::new(start, end, style));
-            }
+        if !style.is_null()
+            && let Some((start, end)) = self.clamp_range(start, end)
+        {
+            self.spans.insert(0, Span::new(start, end, style));
         }
         self
     }
@@ -401,12 +401,12 @@ impl Text {
             let whole = caps.get(0).unwrap();
             count += 1;
             for &(index, style) in &names {
-                if let Some(m) = caps.get(index) {
-                    if m.end() > m.start() {
-                        let start = char_count(&plain[..m.start()]);
-                        let end = start + char_count(m.as_str());
-                        new_spans.push(Span::new(start, end, style));
-                    }
+                if let Some(m) = caps.get(index)
+                    && m.end() > m.start()
+                {
+                    let start = char_count(&plain[..m.start()]);
+                    let end = start + char_count(m.as_str());
+                    new_spans.push(Span::new(start, end, style));
                 }
             }
             position = if whole.end() > whole.start() {

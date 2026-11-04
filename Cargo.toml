@@ -2,7 +2,7 @@
 name = "better-allegro-buddy"
 version = "2.7.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 description = "A friendly Slurm helper (Rust rewrite of allegro-buddy), with presets for the Allegro cluster."
 license = "MIT"
 repository = "https://github.com/plainerman/better-allegro-buddy"

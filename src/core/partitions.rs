@@ -158,12 +158,12 @@ pub fn choose_partition(partition_name: &str, time_limit: &str) -> Result<String
     }
     let requested = parse_slurm_time(time_limit);
     let max = parse_slurm_time(partition.get_opt("MaxTime").unwrap_or("UNLIMITED"));
-    if let (Some(requested), Some(max)) = (requested, max) {
-        if requested > max {
-            return Err(die(format!(
-                "requested time {time_limit} exceeds the {selected} partition limit; set --partition explicitly"
-            )));
-        }
+    if let (Some(requested), Some(max)) = (requested, max)
+        && requested > max
+    {
+        return Err(die(format!(
+            "requested time {time_limit} exceeds the {selected} partition limit; set --partition explicitly"
+        )));
     }
     Ok(selected)
 }

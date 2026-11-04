@@ -325,7 +325,7 @@ impl Renderable for Columns {
             }
         }
         let mut cells: Vec<Cell> = self.0.iter().map(|r| Cell::Renderable(r.clone())).collect();
-        if count % column_count != 0 {
+        if !count.is_multiple_of(column_count) {
             for _ in 0..column_count - count % column_count {
                 cells.push(Cell::Str(String::new()));
             }

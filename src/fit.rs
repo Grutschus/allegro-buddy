@@ -931,10 +931,10 @@ pub fn skip_reason(request: &JobRequest, node: &NodeCapacity) -> Option<String> 
     if !request.required.is_empty() && !request.required.contains(&node.name) {
         return Some(SKIP_NOT_REQUESTED.to_owned());
     }
-    if let Some(alternatives) = request.features.as_ref().filter(|a| !a.is_empty()) {
-        if !alternatives.iter().any(|alt| alt.is_subset(&node.features)) {
-            return Some(SKIP_FEATURE.to_owned());
-        }
+    if let Some(alternatives) = request.features.as_ref().filter(|a| !a.is_empty())
+        && !alternatives.iter().any(|alt| alt.is_subset(&node.features))
+    {
+        return Some(SKIP_FEATURE.to_owned());
     }
     if request.gpus != 0 && node.gpus(request.gpu_kind.as_deref(), false) == 0 {
         return Some(SKIP_GPU.to_owned());

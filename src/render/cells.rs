@@ -149,12 +149,12 @@ fn split_graphemes(chars: &[char]) -> (Vec<CellSpan>, usize) {
             } else {
                 index += 1;
                 let last = spans.last_mut().unwrap();
-                if let Some(measured) = last_measured {
-                    if is_narrow_to_wide(measured) {
-                        last_measured = None;
-                        last.2 += 1;
-                        total += 1;
-                    }
+                if let Some(measured) = last_measured
+                    && is_narrow_to_wide(measured)
+                {
+                    last_measured = None;
+                    last.2 += 1;
+                    total += 1;
                 }
                 last.1 = index;
             }

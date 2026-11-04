@@ -163,17 +163,17 @@ pub fn python_warning_filters_mutated() {
 pub fn apply_theme_warning() {
     static UNKNOWN: OnceLock<Option<String>> = OnceLock::new();
     let unknown = UNKNOWN.get_or_init(|| env_theme().filter(|name| !theme_exists(name)));
-    if let Some(name) = unknown {
-        if WARNINGS_RESET.swap(false, Ordering::SeqCst) {
-            super::write_stream(
-                &mut std::io::stderr(),
-                &format!(
-                    "rich_click/rich_help_configuration.py:437: UserWarning: RichClickTheme \
+    if let Some(name) = unknown
+        && WARNINGS_RESET.swap(false, Ordering::SeqCst)
+    {
+        super::write_stream(
+            &mut std::io::stderr(),
+            &format!(
+                "rich_click/rich_help_configuration.py:437: UserWarning: RichClickTheme \
                      '{name}' not found.\n  theme_styles = get_theme(theme, \
                      raise_key_error=raise_key_error).styles\n"
-                ),
-            );
-        }
+            ),
+        );
     }
 }
 
@@ -274,16 +274,15 @@ impl Config {
             .and_then(|v| truthy(&v));
         values.insert("force_terminal".into(), force.map_or(CV::None, CV::Bool));
 
-        if let Ok(env) = std::env::var("RICH_CLICK_THEME") {
-            if env.trim().starts_with('{') {
-                if let Ok(serde_json::Value::Object(data)) = serde_json::from_str(env.trim()) {
-                    for (key, value) in data.iter().filter(|(k, _)| *k != "theme") {
-                        if !Self::known(key) {
-                            break;
-                        }
-                        values.insert(key.clone(), CV::from_json(value));
-                    }
+        if let Ok(env) = std::env::var("RICH_CLICK_THEME")
+            && env.trim().starts_with('{')
+            && let Ok(serde_json::Value::Object(data)) = serde_json::from_str(env.trim())
+        {
+            for (key, value) in data.iter().filter(|(k, _)| *k != "theme") {
+                if !Self::known(key) {
+                    break;
                 }
+                values.insert(key.clone(), CV::from_json(value));
             }
         }
         let theme = env_theme().unwrap_or_else(|| "modern".to_owned());
@@ -499,11 +498,11 @@ fn splitlines(s: &str) -> Vec<&str> {
         if is_break {
             lines.push(&s[start..i]);
             let mut next = i + ch.len_utf8();
-            if ch == '\r' {
-                if let Some(&(j, '\n')) = chars.peek() {
-                    chars.next();
-                    next = j + 1;
-                }
+            if ch == '\r'
+                && let Some(&(j, '\n')) = chars.peek()
+            {
+                chars.next();
+                next = j + 1;
             }
             start = next;
         }
@@ -771,10 +770,8 @@ impl Formatter {
             return None;
         }
         let mut metavar = metavar.replace(['[', ']'], "");
-        if show_range {
-            if let ParamType::FloatRange { min } = param.ty {
-                metavar.push_str(&format!(" x>={min}"));
-            }
+        if show_range && let ParamType::FloatRange { min } = param.ty {
+            metavar.push_str(&format!(" x>={min}"));
         }
         let markup = self
             .config
@@ -800,16 +797,16 @@ impl Formatter {
         if param.kind == ParamKind::Argument || (metavar != "BOOLEAN" && !parser::is_flag(param)) {
             plain.push_str(&metavar);
         }
-        if let ParamType::FloatRange { min } = param.ty {
-            if show_range {
-                plain.push(' ');
-                plain.push_str(
-                    &self
-                        .config
-                        .text("range_string")
-                        .replace("{}", &format!("x>={min}")),
-                );
-            }
+        if let ParamType::FloatRange { min } = param.ty
+            && show_range
+        {
+            plain.push(' ');
+            plain.push_str(
+                &self
+                    .config
+                    .text("range_string")
+                    .replace("{}", &format!("x>={min}")),
+            );
         }
         if plain.is_empty() {
             return None;

@@ -33,6 +33,17 @@ jobs:
       - run: cargo clippy --all-targets --locked -- -D warnings
       - run: cargo clippy --all-targets --locked --features test-hooks -- -D warnings
       - run: cargo test --locked
+  msrv:
+    # The oldest Rust that builds bab (Cargo.toml `rust-version`, README): let-chains need
+    # 1.88. --locked proves the pinned dependencies build with it too.
+    if: github.event.pull_request.draft != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@1.88
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo build --locked --all-targets --features test-hooks
   compat:
     # Differential test against the Python reference goldens (compat/README.md). The binary
     # under test needs the BAB_TEST_* hooks, hence `--features test-hooks`.

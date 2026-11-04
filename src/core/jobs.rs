@@ -532,14 +532,13 @@ fn expand_tilde(part: &str) -> Option<String> {
 /// `Path(path).expanduser()` as a string.
 pub fn pathlib_expanduser(path: &str) -> String {
     let (root, parts) = posix_parts(path);
-    if root.is_empty() {
-        if let Some(first) = parts.first().filter(|p| p.starts_with('~')) {
-            if let Some(home) = expand_tilde(first) {
-                let (home_root, mut home_parts) = posix_parts(&home);
-                home_parts.extend(&parts[1..]);
-                return join_posix(home_root, &home_parts);
-            }
-        }
+    if root.is_empty()
+        && let Some(first) = parts.first().filter(|p| p.starts_with('~'))
+        && let Some(home) = expand_tilde(first)
+    {
+        let (home_root, mut home_parts) = posix_parts(&home);
+        home_parts.extend(&parts[1..]);
+        return join_posix(home_root, &home_parts);
     }
     join_posix(root, &parts)
 }

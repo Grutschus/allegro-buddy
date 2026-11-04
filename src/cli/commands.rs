@@ -227,7 +227,7 @@ impl Command {
 }
 
 /// `watch_option`.
-const WATCH: Param = Param {
+pub const WATCH: Param = Param {
     ty: ParamType::FloatRange { min: 10.0 },
     flag_value: Some(Const::Float(DEFAULT_WATCH_INTERVAL)),
     metavar: Some("[SECONDS]"),
@@ -240,7 +240,7 @@ const DEV_JOBID: Param = Param {
     ..Param::option(&["--jobid"], "jobid").help("pick one dev job by id")
 };
 
-const POLL_INTERVAL: Param = Param {
+pub const POLL_INTERVAL: Param = Param {
     ty: ParamType::FloatRange { min: 1.0 },
     default: Const::Float(DEFAULT_POLL_INTERVAL),
     show_default: ShowDefault::Yes,

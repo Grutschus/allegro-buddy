@@ -471,10 +471,10 @@ fn read_ini(text: &str, source: &str) -> Result<Ini, String> {
                 .position(|(t, n, _)| *t == target && n == name)
         };
         if value.is_empty() {
-            if comment_start.is_none() {
-                if let Some(i) = slot(&values, cursect, optname.as_deref()) {
-                    values[i].2.push(String::new());
-                }
+            if comment_start.is_none()
+                && let Some(i) = slot(&values, cursect, optname.as_deref())
+            {
+                values[i].2.push(String::new());
             }
             continue;
         }
@@ -583,16 +583,16 @@ pub fn parse_layer(text: &str, source: &str) -> Result<Layer, ConfigError> {
         };
         for (raw_key, value) in ini.items(index) {
             let key = normalize_key(section, &raw_key);
-            if let Some(allowed) = allowed {
-                if !allowed.contains(&key.as_str()) {
-                    let mut sorted: Vec<&str> = allowed.to_vec();
-                    sorted.sort_unstable();
-                    return Err(ConfigError(format!(
-                        "unknown key {} in [{section}] of {source}; choose from {}",
-                        pyfmt::repr_str(&raw_key),
-                        pyfmt::repr_list(&sorted)
-                    )));
-                }
+            if let Some(allowed) = allowed
+                && !allowed.contains(&key.as_str())
+            {
+                let mut sorted: Vec<&str> = allowed.to_vec();
+                sorted.sort_unstable();
+                return Err(ConfigError(format!(
+                    "unknown key {} in [{section}] of {source}; choose from {}",
+                    pyfmt::repr_str(&raw_key),
+                    pyfmt::repr_list(&sorted)
+                )));
             }
             insert_ordered(
                 &mut values,
@@ -721,14 +721,14 @@ pub fn load_with_env(env: Env<'_>) -> Result<Settings, ConfigError> {
 
 /// `validate(settings)`.
 pub fn validate(settings: &Settings) -> Result<(), ConfigError> {
-    if let Some(login) = settings.get("cluster", "node_login") {
-        if !NODE_LOGIN_METHODS.contains(&login) {
-            return Err(ConfigError(format!(
-                "[cluster] node-login must be one of {}, got {}",
-                pyfmt::repr_list(&NODE_LOGIN_METHODS),
-                pyfmt::repr_str(login)
-            )));
-        }
+    if let Some(login) = settings.get("cluster", "node_login")
+        && !NODE_LOGIN_METHODS.contains(&login)
+    {
+        return Err(ConfigError(format!(
+            "[cluster] node-login must be one of {}, got {}",
+            pyfmt::repr_list(&NODE_LOGIN_METHODS),
+            pyfmt::repr_str(login)
+        )));
     }
     if let Some(limit) = settings.get("dev", "max_allocations") {
         let ok = !limit.is_empty()

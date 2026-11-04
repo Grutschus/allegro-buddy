@@ -715,10 +715,10 @@ impl Console {
             }
             None => Ok(()),
         };
-        if let Err(error) = result {
-            if error.kind() == std::io::ErrorKind::BrokenPipe {
-                self.on_broken_pipe();
-            }
+        if let Err(error) = result
+            && error.kind() == std::io::ErrorKind::BrokenPipe
+        {
+            self.on_broken_pipe();
         }
     }
 

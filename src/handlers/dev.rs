@@ -225,6 +225,7 @@ fn render_dev_jobs(jobs: &[Record], show_hint: bool) {
 
 /// `wait_for_job_running(job_id, poll_interval, timeout)`.
 fn wait_for_job_running(job_id: &str, poll_interval: f64, timeout: Option<i64>) -> Result<Record> {
+    let pause = poll_pause(poll_interval)?;
     let start = Instant::now();
     let job = {
         // Transient spinner: gone once the job runs, and silent off a terminal.
@@ -245,10 +246,10 @@ fn wait_for_job_running(job_id: &str, poll_interval: f64, timeout: Option<i64>) 
                     "job {job_id} ended ({state}) before it started"
                 )));
             }
-            if let Some(timeout) = timeout {
-                if start.elapsed().as_secs_f64() > timeout as f64 {
-                    return Err(die(format!("timed out waiting for {job_id} to start")));
-                }
+            if let Some(timeout) = timeout
+                && start.elapsed().as_secs_f64() > timeout as f64
+            {
+                return Err(die(format!("timed out waiting for {job_id} to start")));
             }
             status.update(Text::assemble([
                 "Waiting for ".into(),
@@ -260,7 +261,7 @@ fn wait_for_job_running(job_id: &str, poll_interval: f64, timeout: Option<i64>) 
                 ))
                 .into(),
             ]));
-            signals::sleep(Duration::from_secs_f64(poll_interval.max(0.0)))?;
+            signals::sleep(pause)?;
         }
     };
     console::stdout().print(&Text::assemble([
@@ -269,6 +270,11 @@ fn wait_for_job_running(job_id: &str, poll_interval: f64, timeout: Option<i64>) 
         node_text(job.get_str("NodeList"), job.get_str("Partition")).into(),
     ]));
     Ok(job)
+}
+
+/// `--poll-interval` as a sleep, or the usage error for one `time.sleep` cannot take.
+fn poll_pause(poll_interval: f64) -> Result<Duration> {
+    crate::cli::parser::sleep_duration(&crate::cli::commands::POLL_INTERVAL, poll_interval)
 }
 
 /// `cmd_dev_start(...)`.
@@ -304,6 +310,12 @@ pub fn cmd_dev_start(args: &DevStartArgs) -> Result<()> {
         return Err(die(format!(
             "partition {selected_partition} has no GPU nodes; drop --gpu or choose a GPU partition"
         )));
+    }
+
+    // bab-only: Python would submit (and maybe cancel the old job) before crashing in
+    // `time.sleep(nan)`; reject an unusable --poll-interval while nothing has changed yet.
+    if args.login || !args.no_wait {
+        poll_pause(args.poll_interval)?;
     }
 
     let log_dir = dev_log_dir();
@@ -681,6 +693,71 @@ mod tests {
         };
         assert_eq!(cmd_dev_start(&args), Err(AbError::Exit(1)));
         assert!(slurm.calls().is_empty());
+    }
+
+    fn is_usage(result: Result<()>) -> bool {
+        matches!(result, Err(AbError::Usage(ref err)) if err.message.starts_with(
+            "Invalid value for '--poll-interval': "))
+    }
+
+    #[test]
+    fn unusable_poll_interval_rejected_before_cancel_or_submit() {
+        for poll_interval in [f64::NAN, f64::INFINITY, 1e300] {
+            for login in [false, true] {
+                let slurm = cluster(Some(RUNNING));
+                let _ctx = install(&slurm);
+                let args = DevStartArgs {
+                    replace: true,
+                    no_wait: false,
+                    login,
+                    poll_interval,
+                    ..start_args()
+                };
+                assert!(is_usage(cmd_dev_start(&args)), "{poll_interval} {login}");
+                assert!(commands(&slurm, &["scancel", "sbatch", "ssh"]).is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn unused_poll_interval_is_not_checked() {
+        // --no-wait never sleeps, so Python works with any interval: so does bab
+        let slurm = cluster(None);
+        let _ctx = install(&slurm);
+        let args = DevStartArgs {
+            poll_interval: f64::NAN,
+            ..start_args()
+        };
+        assert_eq!(cmd_dev_start(&args), Ok(()));
+        assert_eq!(commands(&slurm, &["sbatch"]).len(), 1);
+        // a running job is joined without waiting
+        let slurm = cluster(Some(RUNNING));
+        let _ctx = install(&slurm);
+        let args = DevLoginArgs {
+            wait: true,
+            poll_interval: f64::INFINITY,
+            ..login_args(None, false)
+        };
+        let _ = cmd_dev_login(&args);
+        assert_eq!(commands(&slurm, &["ssh"]).len(), 1);
+    }
+
+    #[test]
+    fn login_wait_rejects_unusable_poll_interval_before_polling() {
+        let slurm = cluster(Some(PENDING));
+        let _ctx = install(&slurm);
+        let args = DevLoginArgs {
+            wait: true,
+            poll_interval: f64::NAN,
+            ..login_args(None, false)
+        };
+        assert!(is_usage(cmd_dev_login(&args)));
+        // only pick_single_dev_job's lookup: no tight polling loop
+        let polls = commands(&slurm, &["scontrol"])
+            .into_iter()
+            .filter(|argv| argv.last().map(String::as_str) == Some("111"))
+            .count();
+        assert!(polls <= 1, "{polls} job polls");
     }
 
     fn login_args(command: Option<&str>, srun: bool) -> DevLoginArgs {
