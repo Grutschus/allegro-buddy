@@ -27,6 +27,7 @@ RUNNING_JOB = {
     'j': 'train',
     'T': 'RUNNING',
     'P': 'gpu',
+    'M': '1:02:03',
     'L': '6:57:57',
     'S': '2026-10-05T12:34:00',
     'R': 'gpu081',
@@ -38,6 +39,7 @@ PENDING_JOB = {
     'j': 'eval',
     'T': 'PENDING',
     'P': 'gpu',
+    'M': '0:00',
     'L': '8:00:00',
     'S': '2099-01-01T08:00:00',
     'R': '(Resources)',
@@ -186,6 +188,7 @@ class TestStartColumn:
             'Name',
             'State',
             'Partition',
+            'Elapsed',
             'Time',
             'left',
             'Start',
@@ -236,6 +239,12 @@ class TestDurations:
         # squeue prints times under an hour as M:SS
         row = _row(_render_queue([{**RUNNING_JOB, 'L': '40:00'}]), '64612').split()
         assert row[-2] == '40m'
+
+    def test_running_job_shows_elapsed_time(self):
+        assert _row(_render_queue([RUNNING_JOB]), '64612').split()[-3] == '1h2m'
+
+    def test_pending_only_queue_has_no_elapsed_column(self):
+        assert 'Elapsed' not in _headers(_render_queue([PENDING_JOB]))
 
 
 class TestEmptyQueue:

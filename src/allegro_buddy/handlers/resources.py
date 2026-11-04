@@ -292,7 +292,7 @@ def cmd_info(*, all_partitions: bool) -> None:
 def cmd_queue(*, all_users: bool, user: str | None, partition: str | None) -> None:
     selected_user = None if all_users else (user or current_user())
     # %A is the raw job id, which matches `scontrol --json show job` records.
-    format_string = '%i|%A|%u|%j|%T|%P|%L|%S|%R'
+    format_string = '%i|%A|%u|%j|%T|%P|%M|%L|%S|%R'
     argv = ['squeue', '-h', f'--format={format_string}']
     if selected_user:
         argv.extend(['-u', selected_user])
@@ -307,6 +307,7 @@ def cmd_queue(*, all_users: bool, user: str | None, partition: str | None) -> No
             'name',
             'state',
             'partition',
+            'elapsed',
             'left',
             'start',
             'where',
@@ -319,6 +320,7 @@ def cmd_queue(*, all_users: bool, user: str | None, partition: str | None) -> No
 
     show_user = selected_user is None
     show_start = any(job['state'] == 'PENDING' for job in jobs)
+    show_elapsed = any(job['state'] != 'PENDING' for job in jobs)
     hint_ids = {
         job['rawid']
         for job in jobs
@@ -337,9 +339,12 @@ def cmd_queue(*, all_users: bool, user: str | None, partition: str | None) -> No
                 truncate(job['name'], 28),
                 state_text(job['state']),
                 partition_text(job['partition']),
-                _slurm_duration(job['left']),
             ]
         )
+        if show_elapsed:
+            # squeue reports 0:00 for pending jobs; leave the cell empty
+            row.append(Text('') if pending else _slurm_duration(job['elapsed']))
+        row.append(_slurm_duration(job['left']))
         if show_start:
             # 'in 2h10m' without the clock; '' renders as a dim dash when Slurm has
             # no estimate yet
@@ -361,9 +366,11 @@ def cmd_queue(*, all_users: bool, user: str | None, partition: str | None) -> No
             ('Name', 'left'),
             ('State', 'left'),
             ('Partition', 'left'),
-            ('Time left', 'right'),
         ]
     )
+    if show_elapsed:
+        columns.append(('Elapsed', 'right'))
+    columns.append(('Time left', 'right'))
     if show_start:
         columns.append(('Start', 'left'))
     columns.append(('Node/Reason', 'left'))
