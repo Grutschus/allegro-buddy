@@ -10,8 +10,9 @@ implementations, and compare the Python reference (`allegro-buddy` 2.7) with `ba
 | `live/live_parity.py` | reference vs `bab` back to back on the live cluster (COLUMNS=160, real clock/groups); a differing pair is rerun once |
 | `live/nss_check.sh` | `bab`'s groups (`examples/nss_groups`) vs Python's `current_groups()` vs `id -Gn` |
 | `live/anonymise.py` | consistent pseudonyms for users, groups, accounts, job names, paths, uids, emails; proves no real name is left |
-| `replay/fake` | the replay fake Slurm: POSIX sh, looks the exact argv up in a generated `case` table and `cat`s the recorded output; unknown argv: exit 1 and `MISS` in `$REPLAY_LOG` |
+| `replay/fake` | the replay fake Slurm: POSIX sh, looks the exact argv up in a generated `case` table and `cat`s the recorded output; unknown argv: exit 1 and `MISS` in `$REPLAY_LOG`; `REPLAY_REALTIME=1` sleeps the recorded duration of the call, `REPLAY_DELAY_MS=N` N ms |
 | `replay/build.py` | dataset -> replay tree (`bin/`, `runs/<id>/`, `common/` fallback, `runs.json`) |
+| `replay/bench.py` | wall-time benchmark (hyperfine) of read-only commands on the replay, any number of `bab` builds and `--ref`; `--realtime` replays the recorded Slurm latencies; results of the performance pass in `PERF.md` |
 | `replay/parity.py` | every recorded command x COLUMNS 80/160/200 x (plain, `FORCE_COLOR=1`) + one cold-cache run: stdout, stderr, exit and the multiset of Slurm calls |
 | `data/allegro/` | anonymised recordings of Allegro (Slurm 24.11.5, 2026-11-04): `snapshot` (52 commands), `as-user-a`/`as-user-b` (12 user-centric commands as a user with pending/array jobs); `runs.jsonl` holds the reference output on the anonymised replay |
 
@@ -31,8 +32,9 @@ Per case: `PATH=<replay>/bin:/usr/bin:/bin`, fresh HOME/XDG dirs, `USER`/`LOGNAM
 replay the same world under other groups, time zones and clocks. Diffs land in
 `bench/replay/.work/diffs/`.
 
-For a benchmark, point `PATH` at `<replay>/bin` and set `REPLAY_RUN=<replay>/runs/<id>`,
-`REPLAY_COMMON=<replay>/common` (see `parity.py:run_case`).
+For a benchmark use `replay/bench.py` (see `PERF.md`), or point `PATH` at `<replay>/bin`
+and set `REPLAY_RUN=<replay>/runs/<id>`, `REPLAY_COMMON=<replay>/common` (see
+`parity.py:run_case`).
 
 ## Recording / live parity (on the cluster, read-only)
 

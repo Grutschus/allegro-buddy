@@ -8,8 +8,8 @@
 Every implementation sees the same environment as `parity.py` (warm cluster-name cache,
 frozen clock and groups via the BAB_TEST_* hooks, so time `--features test-hooks` builds),
 COLUMNS=160, stdout/stderr to /dev/null. Reported: the median wall time over `--rounds`
-hyperfine runs of `--runs` each (all implementations in every round, so bursts of load
-on a shared host hit all of them). `--realtime` makes every fake Slurm call take as long
+hyperfine runs of `--runs` each (all implementations in every round, in rotated order, so
+bursts of load on a shared host hit all of them). `--realtime` makes every fake Slurm call take as long
 as it took on the cluster when recorded (REPLAY_REALTIME), `--delay-ms N` N ms per call
 (REPLAY_DELAY_MS); without either a call costs ~1 ms (sh + cat). `--ref` adds the Python
 reference (allegro-buddy 2.7, `compat/reference.py run`). `--calls` prints the Slurm
@@ -35,16 +35,13 @@ import build as replay_build  # noqa: E402
 from parity import default_python  # noqa: E402
 
 COMMANDS = [
-    ['--version'], ['-h'], ['info'], ['free'], ['free', '--nodes'], ['q'], ['q', '--all'],
+    ['--version'], ['-h'], ['info'], ['free'], ['free', '--nodes'], ['queue'], ['q', '--all'],
     ['why'], ['why', '{pending}'], ['node', 'gpu062'], ['job', 'history'], ['config', 'show'],
 ]
 
 
-def find_run(index: dict, args: list[str]) -> dict:
-    for run in index['runs']:
-        if run['args'] == args:
-            return run
-    raise SystemExit(f'no recording of {args}')
+def find_run(index: dict, args: list[str]) -> dict | None:
+    return next((run for run in index['runs'] if run['args'] == args), None)
 
 
 def environment(replay: Path, meta: dict, run: dict, work: Path, delay: int,
@@ -93,6 +90,7 @@ def main() -> int:
     ap.add_argument('--warmup', type=int, default=3)
     ap.add_argument('--calls', action='store_true')
     ap.add_argument('--json', type=Path)
+    ap.add_argument('--cpus', help='taskset CPU list for hyperfine and everything it runs')
     ap.add_argument('--out', type=Path, default=REPO / 'bench/replay/.work')
     args = ap.parse_args()
 
@@ -111,9 +109,9 @@ def main() -> int:
     for template in COMMANDS:
         cmd = [a.format(**meta['placeholders']) for a in template]
         label = ' '.join(template)
-        if args.k and not re.search(args.k, label):
-            continue
         run = find_run(index, cmd)
+        if run is None or (args.k and not re.search(args.k, label)):
+            continue
         work = out / 'bench'
         env = environment(replay, meta, run, work, args.delay_ms, args.realtime)
         if args.calls:
@@ -127,12 +125,14 @@ def main() -> int:
                 print('   ', c.split('\t', 1)[1][:110])
             continue
         export = work / 'hf.json'
-        hf = [hyperfine, '-N', '--style', 'none', '-w', str(args.warmup),
-              '-r', str(args.runs), '--export-json', str(export)]
-        for name, impl in impls:
-            hf += ['-n', name, ' '.join([*impl, *(_q(a) for a in cmd)])]
         times: dict[str, list[float]] = {name: [] for name, _ in impls}
-        for _ in range(args.rounds):  # interleaved rounds: bursts of load hit all impls
+        for i in range(args.rounds):
+            # interleaved rounds (bursts of load hit all impls), rotated (no position bias)
+            hf = ['taskset', '-c', args.cpus] if args.cpus else []
+            hf += [hyperfine, '-N', '--style', 'none', '-w', str(args.warmup),
+                  '-r', str(args.runs), '--export-json', str(export)]
+            for name, impl in impls[i % len(impls):] + impls[:i % len(impls)]:
+                hf += ['-n', name, ' '.join([*impl, *(_q(a) for a in cmd)])]
             subprocess.run(hf, env=env, cwd=work / 'home', stdout=subprocess.DEVNULL,
                            stderr=subprocess.DEVNULL, check=True)
             for r in json.loads(export.read_text())['results']:
