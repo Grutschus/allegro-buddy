@@ -15,7 +15,16 @@ got a differential test harness, a benchmark suite and a CI pipeline. Now it is
 **3.4× faster** (median, live on Allegro). Same commands, flags, config and output, down
 to the last ANSI escape code. Only the name changed, and it got one more `b`.
 
-![bab vs ab, live on Allegro: wall time per command](bench/plots/live.svg)
+<p align="center">
+  <picture align="center">
+    <source media="(prefers-color-scheme: dark)" srcset="bench/plots/hero-dark.svg">
+    <source media="(prefers-color-scheme: light)" srcset="bench/plots/hero-light.svg">
+    <img alt="Bar chart: running all 12 read-only commands once takes 0.88 s with bab and 2.96 s with ab." src="bench/plots/hero-light.svg">
+  </picture>
+</p>
+<p align="center">
+  <i>Running all 12 read-only commands once, live on the Allegro cluster. Same output, byte for byte.</i>
+</p>
 
 ## Install
 
@@ -136,9 +145,13 @@ Median over 13 commands: **3.4×** (geometric mean 5.7×); every call saves 130�
 Against an instant fake Slurm (pure tool overhead) the median is **19×**: `ab` needs
 85–222 ms per command, `bab` 0.6–15 ms.
 
+<p align="center">
+  <img src="bench/plots/live.svg" alt="bab vs ab, live on Allegro: wall time per command" width="600">
+</p>
+
 | | |
-|---|---|
-| ![speedup in all three settings](bench/plots/speedup.svg) | ![local, instant fake Slurm](bench/plots/local-nodelay.svg) |
+| --- | --- |
+| <img src="bench/plots/speedup.svg" alt="speedup in all three settings" width="400"> | <img src="bench/plots/local-nodelay.svg" alt="local, instant fake Slurm" width="400"> |
 
 Where it comes from: no interpreter start-up and imports (~145 ms of rich, rich-click
 and click on Allegro's login node), parsing only the 28 job fields it actually reads,

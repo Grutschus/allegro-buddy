@@ -11,6 +11,8 @@ read-only command, live on the Allegro cluster and locally on a replay of it.
 > 11.2× (`job history`)**, median 3.2×; e.g. `info` 255 → 88 ms, `free` 230 → 67 ms,
 > `q` 148 → 16 ms, `q --all` 571 → 181 ms, `why` 361 → 209 ms.
 > Pure start-up: `--version` **146 → 1.5 ms (98×)**, `-h` 161 → 3.5 ms (46×).
+> All 12 read-only commands once each (sum of the means, cold-cache `info` left out; the
+> README header chart `plots/hero-{light,dark}.svg`): `ab` **2.96 s**, `bab` **0.88 s** (3.4×).
 >
 > **Local, instant fake Slurm** (pure tool overhead): median **19×**, from 8.7× (`why`)
 > to 154× (`--version`); `ab` needs 85–222 ms per command, `bab` 0.6–15 ms.
@@ -38,7 +40,8 @@ A second live pass 11 minutes later (`results/live/live-20261104T203915`) agreed
 | ![start-up](plots/startup.svg) | |
 
 `plots/*.svg` and `*.png`: `live` (a), `local-nodelay` (b, log scale), `local-realtime`
-(c), `startup` (d, `--version`/`-h` on fox and Allegro), `speedup` (all three settings).
+(c), `startup` (d, `--version`/`-h` on fox and Allegro), `speedup` (all three settings);
+`hero-light.svg`/`hero-dark.svg`: the small README header chart (live totals, see above).
 Regenerate: `uv run bench/plot.py` (inline-pinned matplotlib).
 
 ## Live on Allegro

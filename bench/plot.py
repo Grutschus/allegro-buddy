@@ -6,8 +6,8 @@
 
     uv run bench/plot.py [--live bench/results/live/<run>] [--local bench/results/local]
 
-Writes bench/plots/{live,local-nodelay,local-realtime,startup,speedup}.{svg,png} and
-prints the tables of RESULTS.md. Means with one standard deviation as error bars;
+Writes bench/plots/{live,local-nodelay,local-realtime,startup,speedup}.{svg,png},
+bench/plots/hero-{light,dark}.svg (README header) and prints the tables of RESULTS.md. Means with one standard deviation as error bars;
 speedup = mean(ab) / mean(bab).
 """
 
@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import statistics
 from pathlib import Path
 
@@ -172,6 +173,60 @@ def speedup_plot(series: dict[str, dict[str, dict[str, dict]]], out: Path) -> No
     save(fig, out)
 
 
+def hero_totals(live: dict[str, dict[str, dict]]) -> dict[str, float]:
+    """Seconds to run every distinct read-only command once (sum of means)."""
+    rows = [row for lbl, row in live.items() if lbl != 'info (cold cache)']
+    return {impl: sum(row[impl]['mean'] for row in rows) / 1000 for impl in ('bab', 'ab')}
+
+
+def hero(totals: dict[str, float], out_dir: Path) -> None:
+    """Small uv-README-style chart: one bar per tool, light and dark variant."""
+    w, h, left, top, row, bar, axis = 496, 76, 60, 2, 26, 14, 20
+    plot_w, plot_h = 400, row * len(totals)
+    font = ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'Arial',
+            'sans-serif']
+    css_font = ', '.join(f"'{f}'" if ' ' in f else f for f in font)
+    xmax = max(totals.values()) * 1.18
+    for variant, text in (('light', '#333333'), ('dark', '#C9D1D9')):
+        with plt.rc_context({'svg.fonttype': 'none', 'font.family': font, 'font.size': 12,
+                             'text.color': text, 'xtick.color': text, 'ytick.color': text,
+                             'figure.facecolor': 'none', 'axes.facecolor': 'none',
+                             'savefig.facecolor': 'none'}):
+            fig = plt.figure(figsize=(w / 72, h / 72), dpi=72)
+            ax = fig.add_axes((left / w, (h - top - plot_h) / h, plot_w / w, plot_h / h))
+            names = list(totals)
+            ax.barh(range(len(names)), [totals[n] for n in names], height=bar / row,
+                    color=BAB_COLOR)
+            # baselines 4.3 px below the bar centre: cap height of 12 px text, centred
+            for y, n in enumerate(names):
+                weight = 'bold' if n == 'bab' else 'normal'
+                ax.annotate(f'{totals[n]:.2f}s', (totals[n], y), xytext=(4, -4.3),
+                            textcoords='offset points', va='baseline', ha='left',
+                            fontweight=weight)
+                ax.annotate(n, (0, y), xytext=(-10, -4.3), textcoords='offset points',
+                            va='baseline', ha='right', fontweight=weight)
+            ax.set_xlim(0, xmax)
+            ax.set_ylim(len(names) - 0.5, -0.5)
+            ax.set_xticks(range(int(xmax) + 1), [f'{t}s' for t in range(int(xmax) + 1)])
+            ax.set_yticks([])
+            ax.tick_params(length=0, pad=axis - 15)
+            ax.grid(axis='x', color='#7f7f7f', alpha=0.25, linewidth=1)
+            ax.set_axisbelow(True)
+            for spine in ax.spines.values():
+                spine.set_visible(False)
+            path = out_dir / f'hero-{variant}.svg'
+            fig.savefig(path, transparent=True, metadata={
+                'Date': None, 'Creator': None, 'Format': None, 'Type': None})
+            plt.close(fig)
+            svg = path.read_text()
+            # 1 pt = 1 px at 72 dpi; px makes GitHub render it at exactly w×h like uv's
+            svg = svg.replace(f'width="{w}pt" height="{h}pt"', f'width="{w}" height="{h}"', 1)
+            # matplotlib expands sans-serif into its own fallback list; keep uv's stack
+            svg = re.sub(r"font-family: [^;]*;", f"font-family: {css_font};", svg)
+            path.write_text(svg)
+            print(f'wrote {path}')
+
+
 def save(fig, out: Path) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(out.with_suffix('.svg'), metadata={'Date': None})
@@ -238,6 +293,8 @@ def main() -> int:
     bars(startup, 'Hello, is this thing on?',
          'pure start-up: no Slurm call at all (fox: local workstation; Allegro: login node)',
          args.plots / 'startup', log=True)
+    totals = hero_totals(live)
+    hero(totals, args.plots)
     speedup_plot({'live (Allegro)': live, 'local, realtime replay': realtime,
                   'local, no delay': nodelay}, args.plots / 'speedup')
 
@@ -249,6 +306,8 @@ def main() -> int:
         print(f'\n### {name}\n')
         print(summary(name, data) + '\n')
         print(table(data))
+    print(f"\nhero (every read-only command once, live): bab {totals['bab']:.2f} s, "
+          f"ab {totals['ab']:.2f} s ({totals['ab'] / totals['bab']:.1f}×)")
     return 0
 
 
