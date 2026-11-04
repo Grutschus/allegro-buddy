@@ -81,18 +81,18 @@ Every command has `-h`. It comes back in ~3 ms now, so you can afford to ask.
 The screenshots below were taken with the original `ab`. We didn't redo them: apart
 from the program name, `bab` looks exactly the same. That's the whole point.
 
-<img src=".github/assets/queue.svg" alt="bab queue: your jobs, start estimates and why pending jobs wait">
+<img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/.github/assets/queue.svg" alt="bab queue: your jobs, start estimates and why pending jobs wait">
 
 ### Why is my job waiting?
 
-<img src=".github/assets/why.svg" alt="bab why: what a pending job waits for and the change that starts it now">
+<img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/.github/assets/why.svg" alt="bab why: what a pending job waits for and the change that starts it now">
 
 `bab why JOBID --fix` applies the suggested change after asking. It only touches
 your own pending jobs and never lowers the GPU count unless you pass `--fix gpus`.
 
 ### What is free?
 
-<img src=".github/assets/free.svg" alt="bab free --nodes: free GPUs, CPUs and memory per node">
+<img src="https://raw.githubusercontent.com/plainerman/better-allegro-buddy/main/.github/assets/free.svg" alt="bab free --nodes: free GPUs, CPUs and memory per node">
 
 ### Dev nodes
 
@@ -254,5 +254,5 @@ All the ideas, the UX and every word `bab` prints come from
 like `bab`, star the original. If you'd rather keep Python, use the original:
 `uv tool install allegro-buddy`.
 
-MIT, see [LICENSE](LICENSE). Copyright © 2026 Grutschus (allegro-buddy) and
+MIT, see [LICENSE](https://github.com/plainerman/better-allegro-buddy/blob/main/LICENSE). Copyright © 2026 Grutschus (allegro-buddy) and
 © 2026 Michael Plainer (the Rust rewrite).

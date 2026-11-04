@@ -1,15 +1,15 @@
 name: CI
 
 # Only main and pull requests into main (the required checks rust/msrv/macos protect
-# main). The paths lists must cover everything the jobs below depend on (sources, tests,
-# manifests, this file); docs-only changes (README, bench/, plots) skip CI.
+# main). The paths lists must cover everything the jobs below depend on (sources, tests
+# and their fixtures, presets, manifests, this file); docs-only changes (README, bench/,
+# AGENTS.md, ...) and tools/ (generators whose output is committed under src/) skip CI.
 on:
   push:
     branches: [main]
     paths:
       - 'src/**'
       - 'tests/**'
-      - 'examples/**'
       - 'presets/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
@@ -21,7 +21,6 @@ on:
     paths:
       - 'src/**'
       - 'tests/**'
-      - 'examples/**'
       - 'presets/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
@@ -79,7 +78,5 @@ jobs:
         with:
           components: clippy
       - uses: Swatinem/rust-cache@v2
-      # macOS ships bash 3.2; bab (like click) refuses bash completion below 4.4.
-      - run: brew install bash
       - run: cargo clippy --all-targets --locked --features test-hooks -- -D warnings
       - run: cargo test --locked --no-fail-fast

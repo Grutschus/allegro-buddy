@@ -9,7 +9,7 @@ repository = "https://github.com/plainerman/better-allegro-buddy"
 readme = "README.md"
 publish = false
 # What a source package (`maturin sdist` for PyPI, `cargo package`) contains: only what
-# builds the binary. compat/, bench/, tests/, tools/, .github/ stay in the repository.
+# builds the binary. tests/, bench/, tools/, .github/ stay in the repository.
 include = [
     "/Cargo.toml",
     "/Cargo.lock",
@@ -45,9 +45,9 @@ serde_json = "1.0.154"
 serde_core = "1.0.229"
 
 [features]
-# The BAB_TEST_* environment hooks (frozen clock, groups, hostname, interactive stdin,
-# stubbed handlers) for the compat harness and tests/cli_ref.rs. Off by default: a normal
-# build never reads these variables. `cargo test` turns it on via the dev-dependency below.
+# The BAB_TEST_* environment hooks (frozen clock, groups, hostname, interactive stdin) for
+# tests/snapshots.rs. Off by default: a normal build never reads these variables.
+# `cargo test` turns it on via the dev-dependency below.
 test-hooks = []
 
 [dev-dependencies]
