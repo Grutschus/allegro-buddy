@@ -28,15 +28,28 @@ to the last ANSI escape code. Only the name changed, and it got one more `b`.
 
 ## Install
 
-With Rust ≥ 1.88 (e.g. via [rustup](https://rustup.rs)):
+From PyPI, as a single prebuilt binary (Linux x86_64/aarch64 with glibc ≥ 2.17, macOS),
+with [uv](https://docs.astral.sh/uv/):
 
 ```bash
-cargo install --locked --git https://github.com/plainerman/better-allegro-buddy --branch rust
+uv tool install better-allegro-buddy
 bab completion --install               # optional: tab completion
 ```
 
-This puts a single binary, `bab`, into `~/.cargo/bin` (run it again to upgrade).
-`ab` and `bab` happily live side by side.
+or `pipx install better-allegro-buddy`. Upgrade with `uv tool upgrade better-allegro-buddy`
+(`pipx upgrade better-allegro-buddy`). Just trying it out?
+`uvx --from better-allegro-buddy bab q` runs it without installing.
+
+The package is `better-allegro-buddy` (the name `bab` was taken on PyPI); the command
+is `bab`. `ab` and `bab` happily live side by side.
+
+From source, with Rust ≥ 1.88 (e.g. via [rustup](https://rustup.rs)):
+
+```bash
+cargo install --locked --git https://github.com/plainerman/better-allegro-buddy
+```
+
+This puts `bab` into `~/.cargo/bin` (run it again to upgrade).
 
 ## Commands
 
@@ -189,6 +202,31 @@ BAB_BIN=target/release/bab uv run --project compat pytest compat -q -n auto   # 
 A normal build never reads the `BAB_TEST_*` variables; ship that one. Replay parity,
 recording on a cluster, benchmarks and plots (`uv run bench/plot.py`): see
 [`bench/README.md`](bench/README.md).
+
+### Releasing
+
+Wheels (manylinux2014 x86_64/aarch64, macOS x86_64/arm64) and the sdist are built by
+[`release.yml`](https://github.com/plainerman/better-allegro-buddy/blob/main/.github/workflows/release.yml)
+with [maturin](https://www.maturin.rs) (`pyproject.toml`) on every push to `main` that
+touches the code, and published to PyPI only for a `v*` tag.
+
+One-time setup:
+
+1. On PyPI: *Your account → Publishing → Add a new pending publisher* (GitHub):
+   project `better-allegro-buddy`, owner `plainerman`, repository
+   `better-allegro-buddy`, workflow `release.yml`, environment `pypi`.
+2. On GitHub: *Settings → Environments → New environment* `pypi` (optionally with
+   required reviewers and a `v*` tag rule).
+
+Each release:
+
+1. Bump `version` in `Cargo.toml` (and `VERSION_DISPLAY` in `src/lib.rs`, which is what
+   `bab --version` prints), run `cargo check` to update `Cargo.lock`, merge into `main`.
+2. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag must equal the
+   `Cargo.toml` version; the workflow builds and checks all files, uploads them to PyPI
+   (trusted publishing, no token) and attaches them to a GitHub release.
+
+Locally: `uvx maturin build --release` (wheel for this machine), `uvx maturin sdist`.
 
 ## Credits and license
 
