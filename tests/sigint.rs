@@ -27,12 +27,26 @@ fn hanging_slurm(name: &str) -> PathBuf {
     root
 }
 
+#[cfg(target_os = "linux")]
 fn alive(pid: i32) -> bool {
     std::fs::read_to_string(format!("/proc/{pid}/stat")).is_ok_and(|stat| {
         stat.rsplit(") ")
             .next()
             .is_some_and(|s| !s.starts_with('Z'))
     })
+}
+
+/// No /proc on macOS: ask ps(1) for the state (empty when the pid is gone).
+#[cfg(not(target_os = "linux"))]
+fn alive(pid: i32) -> bool {
+    Command::new("ps")
+        .args(["-o", "stat=", "-p", &pid.to_string()])
+        .output()
+        .is_ok_and(|out| {
+            let stat = String::from_utf8_lossy(&out.stdout);
+            let stat = stat.trim();
+            !stat.is_empty() && !stat.starts_with('Z')
+        })
 }
 
 fn interrupt(name: &str, args: &[&str]) -> (i32, String, Duration) {

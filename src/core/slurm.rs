@@ -226,15 +226,24 @@ trait ReadFd: std::io::Read + AsRawFd {}
 impl<T: std::io::Read + AsRawFd> ReadFd for T {}
 
 /// `pidfd_open(2)` (Linux 5.3+): becomes readable when the process exits.
+#[cfg(target_os = "linux")]
 fn pidfd_open(child: &Child) -> Option<std::os::fd::OwnedFd> {
     use std::os::fd::FromRawFd;
+    // Raw syscall: glibc's wrapper is 2.36+, wheels target manylinux2014 (glibc 2.17).
     let fd = unsafe { libc::syscall(libc::SYS_pidfd_open, child.id() as libc::pid_t, 0) };
     (fd >= 0).then(|| unsafe { std::os::fd::OwnedFd::from_raw_fd(fd as RawFd) })
+}
+
+/// No pidfds outside Linux: [`stop_child`] polls `try_wait` instead.
+#[cfg(not(target_os = "linux"))]
+fn pidfd_open(_: &Child) -> Option<std::os::fd::OwnedFd> {
+    None
 }
 
 /// Wait for the child to exit; `None` when `wake` fired first. Waits on a pidfd so any
 /// thread's Ctrl-C ends the wait; without pidfds (old kernels) a blocking wait (the child
 /// got the terminal's SIGINT as well).
+#[cfg(target_os = "linux")]
 fn wait_child(
     child: &mut Child,
     wake: Option<RawFd>,
@@ -247,6 +256,78 @@ fn wait_child(
         }
     }
     child.wait().map(Some)
+}
+
+/// [`wait_child`] without pidfds (macOS): poll `wake` and a kqueue that reports the
+/// child's exit (`EVFILT_PROC`/`NOTE_EXIT`), re-checking `try_wait` at least every
+/// [`EXIT_RECHECK`] in case the exit happened before the kqueue was armed.
+#[cfg(not(target_os = "linux"))]
+fn wait_child(
+    child: &mut Child,
+    wake: Option<RawFd>,
+) -> io::Result<Option<std::process::ExitStatus>> {
+    const EXIT_RECHECK: Duration = Duration::from_millis(50);
+    let Some(wake) = wake else {
+        return child.wait().map(Some);
+    };
+    let exit = exit_kqueue(child);
+    loop {
+        if let Some(status) = child.try_wait()? {
+            return Ok(Some(status));
+        }
+        // poll(2) ignores negative fds
+        let exit_fd = exit.as_ref().map_or(-1, |fd| fd.as_raw_fd());
+        let mut polled = [pollfd(wake), pollfd(exit_fd)];
+        crate::signals::poll(&mut polled, Some(EXIT_RECHECK))?;
+        if polled[0].revents != 0 {
+            return Ok(None);
+        }
+    }
+}
+
+/// A kqueue that becomes readable when `child` exits (not inherited across fork).
+#[cfg(any(
+    target_os = "macos",
+    target_os = "freebsd",
+    target_os = "netbsd",
+    target_os = "openbsd",
+    target_os = "dragonfly"
+))]
+fn exit_kqueue(child: &Child) -> Option<std::os::fd::OwnedFd> {
+    use std::os::fd::FromRawFd;
+    let kq = unsafe { libc::kqueue() };
+    if kq < 0 {
+        return None;
+    }
+    let kq = unsafe { std::os::fd::OwnedFd::from_raw_fd(kq) };
+    let mut change: libc::kevent = unsafe { std::mem::zeroed() };
+    change.ident = child.id() as _;
+    change.filter = libc::EVFILT_PROC;
+    change.flags = libc::EV_ADD;
+    change.fflags = libc::NOTE_EXIT;
+    let rc = unsafe {
+        libc::kevent(
+            kq.as_raw_fd(),
+            &change,
+            1,
+            std::ptr::null_mut(),
+            0,
+            std::ptr::null(),
+        )
+    };
+    (rc == 0).then_some(kq)
+}
+
+#[cfg(not(any(
+    target_os = "linux",
+    target_os = "macos",
+    target_os = "freebsd",
+    target_os = "netbsd",
+    target_os = "openbsd",
+    target_os = "dragonfly"
+)))]
+fn exit_kqueue(_: &Child) -> Option<std::os::fd::OwnedFd> {
+    None
 }
 
 /// Ctrl-C while waiting: give the child [`SIGINT_GRACE`] to exit, then kill it; always
@@ -645,15 +726,8 @@ mod tests {
 
     /// A private self-pipe: (read end, write end).
     fn wake_pipe() -> (std::os::fd::OwnedFd, std::os::fd::OwnedFd) {
-        use std::os::fd::FromRawFd;
-        let mut fds = [-1; 2];
-        assert_eq!(unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_CLOEXEC) }, 0);
-        unsafe {
-            (
-                std::os::fd::OwnedFd::from_raw_fd(fds[0]),
-                std::os::fd::OwnedFd::from_raw_fd(fds[1]),
-            )
-        }
+        let (read, write) = std::io::pipe().unwrap();
+        (read.into(), write.into())
     }
 
     #[test]

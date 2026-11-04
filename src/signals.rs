@@ -37,11 +37,46 @@ extern "C" fn on_sigint(_: libc::c_int) {
     if fd >= 0 {
         // write(2) is async-signal-safe; keep errno for the interrupted code.
         unsafe {
-            let errno = *libc::__errno_location();
+            let errno = *errno_location();
             libc::write(fd, b"!".as_ptr().cast(), 1);
-            *libc::__errno_location() = errno;
+            *errno_location() = errno;
         }
     }
+}
+
+#[cfg(target_os = "linux")]
+unsafe fn errno_location() -> *mut libc::c_int {
+    unsafe { libc::__errno_location() }
+}
+
+#[cfg(not(target_os = "linux"))]
+unsafe fn errno_location() -> *mut libc::c_int {
+    unsafe { libc::__error() }
+}
+
+/// `pipe2(O_NONBLOCK | O_CLOEXEC)`.
+#[cfg(target_os = "linux")]
+fn wake_pipe() -> Option<[RawFd; 2]> {
+    let mut fds = [-1; 2];
+    (unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_NONBLOCK | libc::O_CLOEXEC) } == 0)
+        .then_some(fds)
+}
+
+/// macOS has no `pipe2`: `pipe` + `fcntl` (at startup, before any thread can fork).
+#[cfg(not(target_os = "linux"))]
+fn wake_pipe() -> Option<[RawFd; 2]> {
+    let mut fds = [-1; 2];
+    if unsafe { libc::pipe(fds.as_mut_ptr()) } != 0 {
+        return None;
+    }
+    for fd in fds {
+        unsafe {
+            libc::fcntl(fd, libc::F_SETFD, libc::FD_CLOEXEC);
+            let flags = libc::fcntl(fd, libc::F_GETFL);
+            libc::fcntl(fd, libc::F_SETFL, flags | libc::O_NONBLOCK);
+        }
+    }
+    Some(fds)
 }
 
 /// Python ignores SIGPIPE and exits 1 on `BrokenPipeError` (rich-click's main); exiting
@@ -64,8 +99,7 @@ fn set_handler(signal: libc::c_int, handler: libc::sighandler_t) {
 /// Install the flag-setting SIGINT handler and the SIGPIPE handler (idempotent).
 pub fn install() {
     INSTALL.call_once(|| {
-        let mut fds = [-1; 2];
-        if unsafe { libc::pipe2(fds.as_mut_ptr(), libc::O_NONBLOCK | libc::O_CLOEXEC) } == 0 {
+        if let Some(fds) = wake_pipe() {
             WAKE_READ.store(fds[0], Ordering::SeqCst);
             WAKE_WRITE.store(fds[1], Ordering::SeqCst);
         }
