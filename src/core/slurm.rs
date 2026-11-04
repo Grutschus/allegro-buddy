@@ -38,8 +38,8 @@
 //!
 //! # Tests
 //!
-//! Under `cfg(test)` every command goes to the [`fake::FakeSlurm`] of the current
-//! [`crate::hooks::testing::Ctx`] (panics without one); release builds spawn directly.
+//! Under `cfg(test)` every command goes to the `fake::FakeSlurm` of the current
+//! `crate::hooks::testing::Ctx` (panics without one); release builds spawn directly.
 
 use crate::error::{AbError, Result};
 use crate::pyfmt;
