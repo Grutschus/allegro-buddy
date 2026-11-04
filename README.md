@@ -28,30 +28,30 @@ to the last ANSI escape code. Only the name changed, and it got one more `b`.
 
 ## Install
 
-From PyPI, as a single prebuilt binary (Linux x86_64/aarch64 with glibc ≥ 2.17, macOS),
-with [uv](https://docs.astral.sh/uv/):
+One command, no Python needed. It fetches the `bab` binary for Linux (x86_64/aarch64,
+glibc ≥ 2.17: RHEL/CentOS 7 and newer) or macOS (Intel/Apple silicon):
 
 ```bash
-uv tool install better-allegro-buddy
+mkdir -p ~/.local/bin && curl -fsSL https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-$(uname -s).tar.gz | tar -xz -C ~/.local/bin
 bab completion --install               # optional: tab completion
 ```
 
-or `pipx install better-allegro-buddy`. Upgrade with `uv tool upgrade better-allegro-buddy`
-(`pipx upgrade better-allegro-buddy`). Just trying it out?
-`uvx --from better-allegro-buddy bab q` runs it without installing.
+Run it again to upgrade. If your shell can't find `bab`, put `~/.local/bin` on your `PATH`
+(`export PATH="$HOME/.local/bin:$PATH"`; most Linux setups already have it, macOS does
+not). The macOS binary isn't signed, but files fetched with `curl` aren't quarantined, so
+it just runs. On Linux `bab` links glibc dynamically on purpose: group lookups through
+sssd/LDAP work as they do for `ab`. All files: [releases](https://github.com/plainerman/better-allegro-buddy/releases).
 
-The package is `better-allegro-buddy` (the name `bab` was taken on PyPI); the command
-is `bab`. `ab` and `bab` happily live side by side.
-
-No Python on the cluster? Every [release](https://github.com/plainerman/better-allegro-buddy/releases)
-also has the bare binary. It runs on any Linux with glibc ≥ 2.17 (RHEL/CentOS 7 and
-newer; dynamically linked on purpose, so group lookups via sssd/LDAP work):
+From PyPI, where the package is called `better-allegro-buddy` (the name `bab` was taken),
+with the same binary inside:
 
 ```bash
-mkdir -p ~/.local/bin && curl -fsSL https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-unknown-linux-gnu.tar.gz | tar -xz -C ~/.local/bin bab
+uv tool install better-allegro-buddy   # or: pipx install better-allegro-buddy
+uv tool upgrade better-allegro-buddy   # later
+uvx --from better-allegro-buddy bab q  # or just try it without installing
 ```
 
-(macOS: `bab-x86_64-apple-darwin.tar.gz`, `bab-aarch64-apple-darwin.tar.gz`.)
+`ab` and `bab` happily live side by side.
 
 From source, with Rust ≥ 1.88 (e.g. via [rustup](https://rustup.rs)):
 
@@ -61,7 +61,7 @@ cargo install --locked --git https://github.com/plainerman/better-allegro-buddy
 
 This puts `bab` into `~/.cargo/bin` (run it again to upgrade). Such a build needs the
 glibc of the machine it was built on (or newer), so build it on the cluster itself, or
-use the wheels and release binaries above, which are built for glibc 2.17.
+use the binaries above, which are built for glibc 2.17.
 
 ## Commands
 
@@ -217,26 +217,30 @@ recording on a cluster, benchmarks and plots (`uv run bench/plot.py`): see
 
 ### Releasing
 
-Wheels (manylinux2014 x86_64/aarch64, macOS x86_64/arm64) and the sdist are built by
 [`release.yml`](https://github.com/plainerman/better-allegro-buddy/blob/main/.github/workflows/release.yml)
-with [maturin](https://www.maturin.rs) (`pyproject.toml`) on every push to `main` that
-touches the code, and published to PyPI only for a `v*` tag.
+builds the `bab` binaries (manylinux2014 x86_64/aarch64, i.e. glibc ≥ 2.17; macOS
+x86_64/arm64) as wheels with [maturin](https://www.maturin.rs) (`pyproject.toml`) and as
+`bab-$(uname -m)-$(uname -s).tar.gz`, plus the sdist. It smoke-tests all of them on every
+push to `main` that touches the code. A `v*` tag also creates the GitHub release (the
+Install one-liner downloads from the latest one) and, once enabled, uploads to PyPI.
 
-One-time setup:
+1. Bump `version` in `Cargo.toml` (and `VERSION_DISPLAY` in `src/lib.rs`, which is what
+   `bab --version` prints), run `cargo check` to update `Cargo.lock`, merge into `main`.
+2. `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag must equal the `Cargo.toml`
+   version. The workflow builds and checks everything, creates the release with all
+   files and `SHA256SUMS`, and installs the release binaries with the one-liner on Linux
+   and macOS runners.
+
+PyPI, one-time setup (until then tags only create GitHub releases):
 
 1. On PyPI: *Your account → Publishing → Add a new pending publisher* (GitHub):
    project `better-allegro-buddy`, owner `plainerman`, repository
    `better-allegro-buddy`, workflow `release.yml`, environment `pypi`.
 2. On GitHub: *Settings → Environments → New environment* `pypi` (optionally with
-   required reviewers and a `v*` tag rule).
-
-Each release:
-
-1. Bump `version` in `Cargo.toml` (and `VERSION_DISPLAY` in `src/lib.rs`, which is what
-   `bab --version` prints), run `cargo check` to update `Cargo.lock`, merge into `main`.
-2. Tag and push: `git tag vX.Y.Z && git push origin vX.Y.Z`. The tag must equal the
-   `Cargo.toml` version; the workflow builds and checks all files, uploads them to PyPI
-   (trusted publishing, no token) and attaches them to a GitHub release.
+   required reviewers), and *Settings → Secrets and variables → Actions → Variables*:
+   `PYPI_PUBLISH` = `true`.
+3. To publish a tag that was released before: *Actions → Release →* its run *→ Re-run all
+   jobs* (the GitHub release stays as it is), or just publish with the next tag.
 
 Locally: `uvx maturin build --release` (wheel for this machine), `uvx maturin sdist`.
 
