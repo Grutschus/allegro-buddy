@@ -22,11 +22,11 @@ use super::themes::{COLORS, FORMATS, PostCombine, TV, ThemeDef};
 use crate::error::UsageError;
 use crate::render::boxes::BoxStyle;
 use crate::render::console::{ColorChoice, ConsoleConfig, PrintOptions, Stream};
+use crate::render::highlight::LazyRegex;
 use crate::render::style::Style;
 use crate::render::table::{Cell, Column, Table};
 use crate::render::text::{Overflow, Text};
 use crate::render::{Console, Renderable, Theme};
-use fancy_regex::Regex;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::LazyLock;
@@ -410,31 +410,20 @@ pub struct Formatter {
     theme: Theme,
 }
 
-static OPTION_HIGHLIGHTS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
-    [
-        r"(^|[^\w\-])(?P<switch>-([^\W0-9][\w\-]*\w|[^\W0-9]))",
-        r"(^|[^\w\-])(?P<option>--([^\W0-9][\w\-]*\w|[^\W0-9]))",
-        r"(?P<metavar><[^>]+>)",
-        r"(?P<deprecated>\(DEPRECATED(?:\: .*?)?\))$",
-    ]
-    .iter()
-    .map(|p| Regex::new(p).expect("option highlighter"))
-    .collect()
-});
+static OPTION_HIGHLIGHTS: [LazyRegex; 4] = [
+    LazyRegex::new(r"(^|[^\w\-])(?P<switch>-([^\W0-9][\w\-]*\w|[^\W0-9]))"),
+    LazyRegex::new(r"(^|[^\w\-])(?P<option>--([^\W0-9][\w\-]*\w|[^\W0-9]))"),
+    LazyRegex::new(r"(?P<metavar><[^>]+>)"),
+    LazyRegex::new(r"(?P<deprecated>\(DEPRECATED(?:\: .*?)?\))$"),
+];
 
-static USAGE_HIGHLIGHT: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"(?P<argument>\w+)").expect("usage highlighter"));
+static USAGE_HIGHLIGHT: LazyRegex = LazyRegex::new(r"(?P<argument>\w+)");
 
-static METAVAR_HIGHLIGHTS: LazyLock<Vec<Regex>> = LazyLock::new(|| {
-    [
-        r"(^|\s)(?P<metavar_sep>(\[|<))",
-        r"(?P<metavar_sep>\|)",
-        r"(?P<metavar_sep>(\]|>)$)",
-    ]
-    .iter()
-    .map(|p| Regex::new(p).expect("metavar highlighter"))
-    .collect()
-});
+static METAVAR_HIGHLIGHTS: [LazyRegex; 3] = [
+    LazyRegex::new(r"(^|\s)(?P<metavar_sep>(\[|<))"),
+    LazyRegex::new(r"(?P<metavar_sep>\|)"),
+    LazyRegex::new(r"(?P<metavar_sep>(\]|>)$)"),
+];
 
 /// `inspect.cleandoc`.
 fn cleandoc(doc: &str) -> String {
@@ -596,8 +585,9 @@ impl Formatter {
         self.console.take_output()
     }
 
-    fn highlight(&self, mut text: Text, patterns: &[Regex]) -> Text {
+    fn highlight(&self, mut text: Text, patterns: &[LazyRegex]) -> Text {
         for re in patterns {
+            let re = re.for_haystack(text.plain());
             text.highlight_regex(re, "", &self.theme);
         }
         text
@@ -629,7 +619,8 @@ impl Formatter {
     /// `get_rich_usage(formatter, prog, args)`.
     fn usage(&self, prog: &str, args: &str) -> Padded {
         let mut args_text = Text::with_style(args, self.style("style_usage_separator"));
-        args_text.highlight_regex(&USAGE_HIGHLIGHT, "", &self.theme);
+        let re = USAGE_HIGHLIGHT.for_haystack(args_text.plain());
+        args_text.highlight_regex(re, "", &self.theme);
         let columns = Columns(vec![
             Rc::new(Text::with_style("Usage:", self.style("style_usage"))),
             Rc::new(Text::with_style(prog, self.style("style_usage_command"))),
@@ -1305,6 +1296,15 @@ pub fn print_aborted() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn ascii_twins_agree() {
+        use crate::render::highlight::{TWIN_SAMPLES, assert_ascii_twin_agrees};
+        let all = OPTION_HIGHLIGHTS.iter().chain(&METAVAR_HIGHLIGHTS);
+        for re in all.chain([&USAGE_HIGHLIGHT]) {
+            assert_ascii_twin_agrees(re, TWIN_SAMPLES);
+        }
+    }
 
     #[test]
     fn unknown_themes_like_rich_click_get_theme() {

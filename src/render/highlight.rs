@@ -9,14 +9,95 @@
 use super::text::Text;
 use super::theme::Theme;
 use fancy_regex::Regex;
+use std::borrow::Cow;
 use std::sync::{LazyLock, OnceLock};
 
-/// One highlight pattern, compiled on first use (Rich's patterns are expensive to compile
-/// and most strings bab prints need only some of them).
+/// A regex compiled on first use. Unicode `\w`/`\W`/`\d` classes (Python `re` semantics)
+/// take milliseconds to compile, yet on ASCII text they match exactly their ASCII parts:
+/// ASCII haystacks (nearly everything bab prints) use an ASCII twin of the pattern
+/// ([`ascii_twin`]); the Unicode original is compiled only for non-ASCII text.
+#[derive(Debug)]
+pub struct LazyRegex {
+    source: Cow<'static, str>,
+    unicode: OnceLock<Regex>,
+    ascii: OnceLock<Regex>,
+}
+
+impl LazyRegex {
+    pub const fn new(source: &'static str) -> LazyRegex {
+        LazyRegex {
+            source: Cow::Borrowed(source),
+            unicode: OnceLock::new(),
+            ascii: OnceLock::new(),
+        }
+    }
+
+    fn owned(source: &str) -> LazyRegex {
+        LazyRegex {
+            source: Cow::Owned(source.to_owned()),
+            unicode: OnceLock::new(),
+            ascii: OnceLock::new(),
+        }
+    }
+
+    /// The compiled pattern to search `haystack` with.
+    pub fn for_haystack(&self, haystack: &str) -> &Regex {
+        let compile = |source: &str| Regex::new(source).expect("highlight pattern");
+        if haystack.is_ascii() {
+            self.ascii
+                .get_or_init(|| compile(&ascii_twin(&self.source)))
+        } else {
+            self.unicode.get_or_init(|| compile(&self.source))
+        }
+    }
+}
+
+/// `pattern` with `\w`, `\W` and `\d` replaced by their ASCII equivalents (inside and
+/// outside character classes): the same matches and groups on ASCII haystacks. Assumes
+/// what all patterns here follow: classes don't nest and `[`/`]` inside them are escaped.
+fn ascii_twin(pattern: &str) -> String {
+    let mut out = String::with_capacity(pattern.len() * 2);
+    let mut in_class = false;
+    let mut chars = pattern.chars();
+    while let Some(c) = chars.next() {
+        match c {
+            '\\' => {
+                let Some(escaped) = chars.next() else {
+                    out.push(c);
+                    break;
+                };
+                out.push_str(match (escaped, in_class) {
+                    ('w', false) => "[0-9A-Za-z_]",
+                    ('w', true) => "0-9A-Za-z_",
+                    ('W', false) => "[^0-9A-Za-z_]",
+                    ('W', true) => r"\x00-/:-@\[-^`{-\x{10FFFF}",
+                    ('d', false) => "[0-9]",
+                    ('d', true) => "0-9",
+                    _ => {
+                        out.extend([c, escaped]);
+                        continue;
+                    }
+                });
+            }
+            '[' if !in_class => {
+                in_class = true;
+                out.push(c);
+            }
+            ']' if in_class => {
+                in_class = false;
+                out.push(c);
+            }
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// One highlight pattern (Rich's patterns are expensive to compile and most strings bab
+/// prints need only some of them).
 #[derive(Debug)]
 struct Pattern {
-    source: String,
-    compiled: OnceLock<Regex>,
+    regex: LazyRegex,
     /// Cheap test that the pattern cannot match when false.
     may_match: fn(&str) -> bool,
     /// (group name, max code points): emulates `[\w_]{1,50}` without its compile cost.
@@ -42,11 +123,10 @@ impl RegexHighlighter {
     ) -> Result<RegexHighlighter, fancy_regex::Error> {
         let mut out = Vec::with_capacity(patterns.len());
         for p in patterns {
-            let compiled = OnceLock::new();
-            let _ = compiled.set(Regex::new(p)?);
+            let regex = LazyRegex::owned(p);
+            let _ = regex.unicode.set(Regex::new(p)?);
             out.push(Pattern {
-                source: (*p).to_owned(),
-                compiled,
+                regex,
                 may_match: always,
                 trim_group: None,
             });
@@ -63,9 +143,7 @@ impl RegexHighlighter {
             if !(pattern.may_match)(text.plain()) {
                 continue;
             }
-            let re = pattern
-                .compiled
-                .get_or_init(|| Regex::new(&pattern.source).expect("highlight pattern"));
+            let re = pattern.regex.for_haystack(text.plain());
             let before = text.spans().len();
             text.highlight_regex(re, &self.base_style, theme);
             if let Some((group, max)) = pattern.trim_group {
@@ -102,8 +180,7 @@ static REPR: LazyLock<RegexHighlighter> = LazyLock::new(|| {
     ]
     .join("|");
     let pattern = |source: &str, may_match: fn(&str) -> bool, trim_group| Pattern {
-        source: source.to_owned(),
-        compiled: OnceLock::new(),
+        regex: LazyRegex::owned(source),
         may_match,
         trim_group,
     };
@@ -153,10 +230,56 @@ pub fn highlight_repr(text: &mut Text) {
     REPR.highlight(text, &Theme::default());
 }
 
+/// Test helper: `re`'s ASCII twin finds the same matches and groups as the original.
+#[cfg(test)]
+pub(crate) fn assert_ascii_twin_agrees(re: &LazyRegex, samples: &[&str]) {
+    let groups = |pattern: &str, sample: &str| -> Vec<Vec<Option<(usize, usize)>>> {
+        let re = Regex::new(pattern).unwrap();
+        re.captures_iter(sample)
+            .map(|caps| {
+                let caps = caps.unwrap();
+                (0..caps.len())
+                    .map(|i| caps.get(i).map(|m| (m.start(), m.end())))
+                    .collect()
+            })
+            .collect()
+    };
+    let twin = ascii_twin(&re.source);
+    for sample in samples {
+        assert!(sample.is_ascii());
+        assert_eq!(
+            groups(&re.source, sample),
+            groups(&twin, sample),
+            "{twin} on {sample:?}"
+        );
+    }
+}
+
+/// ASCII strings that exercise the `\w`/`\W`/`\d` parts of the patterns.
+#[cfg(test)]
+pub(crate) const TWIN_SAMPLES: &[&str] = &[
+    "Canceled 123, 456_7. -1.5e3 2j 0xff 1-2+3.5e+7j x2 a_1(b) _9 9_ abc1",
+    "see '/tmp/x.txt' and \"q\\\"x\" b'z' /usr/lib/x-1_2+3/ a=1 b_c=\"d\" <tag a=1>",
+    "--opt -x -1 --x-y- --2 -_a a-b --a_b9 x--y [default: 4] <N> (DEPRECATED: use -y)",
+    "True False None foo.bar(1) ... 10.0.0.1 ::1 fe80::1:2 de:ad:be:ef:00:01 http://a.b/c?d=1",
+    "12345678-1234-1234-1234-123456789abc 01-23-45-67-89-ab-cd-ef [x|y] <a>",
+];
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::render::style::Style;
+
+    #[test]
+    fn ascii_twins_agree() {
+        for pattern in &REPR.patterns {
+            assert_ascii_twin_agrees(&pattern.regex, TWIN_SAMPLES);
+        }
+        assert_eq!(
+            ascii_twin(r"[^\W0-9]\w\d[\\\w]\b"),
+            r"[^\x00-/:-@\[-^`{-\x{10FFFF}0-9][0-9A-Za-z_][0-9][\\0-9A-Za-z_]\b"
+        );
+    }
 
     fn styled(s: &str) -> Vec<(String, Style)> {
         let mut t = Text::new(s);
