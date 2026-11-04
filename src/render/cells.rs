@@ -1,53 +1,14 @@
-//! Terminal cell widths, ported from Rich 15 `rich.cells` with Rich's own width tables
-//! (`rich._unicode_data`, one per Unicode version, generated into [`super::cell_tables`]).
-//! Like Rich, the table is picked once per process from `UNICODE_VERSION` (unset or invalid:
-//! the latest, 17.0.0), see [`resolve_version`]. Control characters count 0; zero-width
-//! joiners and VS16 are handled like Rich's `_cell_len` / `split_graphemes`.
+//! Terminal cell widths, ported from Rich 15 `rich.cells` with Rich's own width table of
+//! Unicode 17.0.0 (`rich._unicode_data`, generated into [`super::cell_tables`]). Known
+//! divergence: Rich picks an older table when `UNICODE_VERSION` is set; bab ignores it.
+//! Control characters count 0; zero-width joiners and VS16 are handled like Rich's
+//! `_cell_len` / `split_graphemes`.
 
-use super::cell_tables::{TABLES, WIDE};
+use super::cell_tables::{WIDE, WIDTHS};
 use super::data::NARROW_TO_WIDE;
-use std::sync::OnceLock;
 
 const ZWJ: char = '\u{200d}';
 const VS16: char = '\u{fe0f}';
-
-/// Rich `_unicode_data._parse_version`: dot-separated Python ints, padded/truncated to 3.
-/// Components outside `i64` (or with non-ASCII digits, which Python's `int` accepts) are
-/// treated as invalid.
-fn parse_version(version: &str) -> Option<(i64, i64, i64)> {
-    let mut parts = Vec::new();
-    for part in version.split('.') {
-        parts.push(crate::pyfmt::parse_int(part)?);
-    }
-    parts.resize(parts.len().max(3), 0);
-    Some((parts[0], parts[1], parts[2]))
-}
-
-/// Rich `_unicode_data.load("auto")`: index into [`TABLES`] for the `UNICODE_VERSION`
-/// value; `None`/invalid -> latest, an exact version -> its table, else the newest table
-/// older than it (the oldest if there is none).
-fn resolve_version(env: Option<&str>) -> usize {
-    let latest = TABLES.len() - 1;
-    let Some(wanted) = env.and_then(parse_version) else {
-        return latest;
-    };
-    let as_i64 = |(a, b, c): (u32, u32, u32)| (i64::from(a), i64::from(b), i64::from(c));
-    if let Some(exact) = TABLES.iter().position(|(v, _)| as_i64(*v) == wanted) {
-        return exact;
-    }
-    let insert_at = TABLES.partition_point(|(v, _)| as_i64(*v) < wanted);
-    insert_at.saturating_sub(1)
-}
-
-/// The widths table in use (`UNICODE_VERSION` is read on first use, like Rich's cached
-/// `load`).
-fn widths() -> &'static [u32] {
-    static TABLE: OnceLock<&'static [u32]> = OnceLock::new();
-    TABLE.get_or_init(|| {
-        let env = std::env::var_os("UNICODE_VERSION");
-        TABLES[resolve_version(env.as_deref().and_then(|v| v.to_str()))].1
-    })
-}
 
 /// Width of `cp` in a table of flat `start | WIDE?, end` pairs (Rich's binary search).
 fn table_width(table: &[u32], cp: u32) -> usize {
@@ -79,7 +40,7 @@ pub fn char_width(ch: char) -> usize {
     if (0x20..0x7f).contains(&cp) {
         return 1;
     }
-    table_width(widths(), cp)
+    table_width(WIDTHS, cp)
 }
 
 fn is_narrow_to_wide(ch: char) -> bool {
@@ -279,53 +240,14 @@ pub fn chop_cells(text: &str, width: usize) -> Vec<String> {
 mod tests {
     use super::*;
 
-    fn version_of(env: Option<&str>) -> (u32, u32, u32) {
-        TABLES[resolve_version(env)].0
-    }
-
     #[test]
-    fn unicode_version_resolves_like_rich() {
-        // recorded with rich 15.0.0 `_unicode_data.load("auto")`
-        for (env, expected) in [
-            ("", (17, 0, 0)),
-            ("9", (9, 0, 0)),
-            ("9.0.0", (9, 0, 0)),
-            ("9.0.0.1", (9, 0, 0)),
-            ("9.0.x", (17, 0, 0)),
-            (" 9 ", (9, 0, 0)),
-            ("+9", (9, 0, 0)),
-            ("-1", (4, 1, 0)),
-            ("0", (4, 1, 0)),
-            ("4.1", (4, 1, 0)),
-            ("4.0.9", (4, 1, 0)),
-            ("5.1.5", (5, 1, 0)),
-            ("12.0.1", (12, 0, 0)),
-            ("17.0.0", (17, 0, 0)),
-            ("18", (17, 0, 0)),
-            ("100.0.0", (17, 0, 0)),
-            ("latest", (17, 0, 0)),
-            ("auto", (17, 0, 0)),
-            ("1_2", (12, 0, 0)),
-            ("9..0", (17, 0, 0)),
-            ("9.", (17, 0, 0)),
-            ("abc", (17, 0, 0)),
-        ] {
-            assert_eq!(version_of(Some(env)), expected, "{env:?}");
-        }
-        assert_eq!(version_of(None), (17, 0, 0));
-    }
-
-    #[test]
-    fn widths_depend_on_the_unicode_version() {
-        let table = |env: &str| TABLES[resolve_version(Some(env))].1;
+    fn table_widths() {
         // U+1FAE0 MELTING FACE (Unicode 14), U+231A WATCH (wide since Unicode 9)
-        assert_eq!(table_width(table("9.0.0"), 0x1fae0), 1);
-        assert_eq!(table_width(table("17.0.0"), 0x1fae0), 2);
-        assert_eq!(table_width(table("4.1.0"), 0x231a), 1);
-        assert_eq!(table_width(table("9.0.0"), 0x231a), 2);
-        assert_eq!(table_width(table("4.1.0"), 0x301), 0);
-        assert_eq!(table_width(table("17.0.0"), 0x10ffff), 1);
-        assert_eq!(table_width(table("17.0.0"), 0), 0);
+        assert_eq!(table_width(WIDTHS, 0x1fae0), 2);
+        assert_eq!(table_width(WIDTHS, 0x231a), 2);
+        assert_eq!(table_width(WIDTHS, 0x301), 0);
+        assert_eq!(table_width(WIDTHS, 0x10ffff), 1);
+        assert_eq!(table_width(WIDTHS, 0), 0);
     }
 
     #[test]

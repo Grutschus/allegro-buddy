@@ -3,8 +3,8 @@
 //! Python allegro-buddy prints everything through Rich; bab must emit the SAME bytes,
 //! including ANSI SGR sequences, wrapping, padding and trailing whitespace. Reference source:
 //! `rich==15.0.0`. When this code and Rich disagree, Rich wins. Each piece mirrors a Rich
-//! module; generated tables ([`data`], [`emoji_data`]) come from
-//! `tools/render/gen_rich_data.py`.
+//! module; generated tables ([`data`], [`cell_tables`], [`emoji_data`]) come from
+//! `tools/gen_rich_data.py`.
 //!
 //! # Pipeline (as in Rich)
 //!
@@ -27,23 +27,15 @@
 //!
 //! # Testing against Rich
 //!
-//! `tests/render_diff.rs` replays `tests/render/cases.json` and compares byte-for-byte with
-//! `tests/render/expected.json` (Rich's output). To change cases or re-verify live:
-//!
-//! ```text
-//! python3 tools/render/make_cases.py                       # edit cases there
-//! BAB_RICH_PY=/path/to/venv/bin/python BAB_RICH_REGEN=1 cargo test --test render_diff
-//! ```
-//!
-//! (the venv needs rich==15.0.0 and rich-click==1.9.9). `BAB_RANDOM_TABLES=600
-//! BAB_RANDOM_TEXTS=300` on `make_cases.py` produces a much larger seeded random set for
-//! one-off checks. `tools/render/gen_rich_data.py` regenerates [`data`], [`cell_tables`]
-//! and [`emoji_data`].
+//! The renderer was checked byte-for-byte against Rich on thousands of generated tables
+//! and texts; that harness lives at the git tag `equivalence-harness`
+//! (`tests/render_diff.rs`, `tools/render/`).
 //!
 //! # Known divergences
 //!
 //! Links/meta styles are ignored (Rich's link ids are random); ASCII-only encodings (Rich
-//! substitutes ASCII boxes) and legacy Windows are not supported; see [`console`] for the
+//! substitutes ASCII boxes) and legacy Windows are not supported; `UNICODE_VERSION` is
+//! ignored (always Unicode 17.0.0 widths, see [`cells`]); see [`console`] for the
 //! console-level ones.
 
 pub mod boxes;
