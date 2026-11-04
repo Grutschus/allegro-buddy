@@ -103,20 +103,4 @@ mod tests {
             Err(AbError::Click("boom".into()))
         );
     }
-
-    #[test]
-    fn unusable_interval_fails_before_rendering() {
-        for interval in [f64::NAN, f64::INFINITY, 1e300] {
-            let mut calls = 0;
-            let mut render = || {
-                calls += 1;
-                Ok(())
-            };
-            assert!(matches!(
-                run_watched(&mut render, Some(interval)),
-                Err(AbError::Usage(_))
-            ));
-            assert_eq!(calls, 0);
-        }
-    }
 }

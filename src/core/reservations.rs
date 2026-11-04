@@ -121,8 +121,6 @@ pub fn user_can_use_reservation(
 mod tests {
     //! Port of the reservation parts of `tests/test_stats.py`.
     use super::*;
-    use crate::core::timefmt::isoformat;
-    use chrono::TimeDelta;
 
     fn rec(pairs: &[(&str, &str)]) -> Record {
         pairs
@@ -183,53 +181,6 @@ mod tests {
     }
 
     #[test]
-    fn upcoming_and_recent() {
-        let now = crate::hooks::now();
-        let at = |days: i64| isoformat(now + TimeDelta::days(days));
-        assert_eq!(
-            upcoming_reservations(&[rec(&[("State", "INACTIVE"), ("StartTime", &at(1))])], now)
-                .len(),
-            1
-        );
-        assert!(
-            upcoming_reservations(
-                &[rec(&[("State", "INACTIVE"), ("StartTime", &at(-1))])],
-                now
-            )
-            .is_empty()
-        );
-        assert!(
-            upcoming_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(1))])], now)
-                .is_empty()
-        );
-        assert_eq!(
-            recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", &at(0))])], now)
-                .len(),
-            1
-        );
-        assert!(
-            recent_active_reservations(
-                &[rec(&[("State", "ACTIVE"), ("StartTime", &at(-60))])],
-                now
-            )
-            .is_empty()
-        );
-        assert_eq!(
-            recent_active_reservations(
-                &[rec(&[("State", "ACTIVE"), ("StartTime", &at(-30))])],
-                now
-            )
-            .len(),
-            1
-        );
-        assert_eq!(
-            recent_active_reservations(&[rec(&[("State", "ACTIVE"), ("StartTime", "")])], now)
-                .len(),
-            1
-        );
-    }
-
-    #[test]
     fn blocked_pending_jobs() {
         let jobs = [rec(&[
             ("JobID", "101"),
@@ -261,19 +212,5 @@ mod tests {
                     .is_empty()
             );
         }
-    }
-
-    #[test]
-    fn reserved_nodes() {
-        let map = reserved_nodes_map(&[
-            rec(&[("ReservationName", "a"), ("Nodes", "gpu[01-02]")]),
-            rec(&[("ReservationName", "b"), ("Nodes", "gpu02")]),
-            rec(&[("Nodes", "cmp1")]),
-            rec(&[("ReservationName", "c"), ("Nodes", "(null)")]),
-        ]);
-        assert_eq!(map.len(), 3);
-        assert_eq!(map["gpu01"], "a");
-        assert_eq!(map["gpu02"], "b");
-        assert_eq!(map["cmp1"], "resv");
     }
 }

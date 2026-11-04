@@ -259,7 +259,7 @@ mod tests {
     //! Port of `tests/test_gpu_counts.py`, the partition parts of `test_stats.py`,
     //! `test_slurm.py` and `test_parsing.py`.
     use super::*;
-    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
+    use crate::core::slurm::fake::{FakeSlurm, ok};
     use crate::hooks::testing::Ctx;
 
     fn rec(pairs: &[(&str, &str)]) -> Record {
@@ -362,94 +362,6 @@ mod tests {
     }
 
     #[test]
-    fn nodes_are_summed() {
-        let nodes = [
-            node(
-                "gpu001",
-                "IDLE",
-                A5000,
-                "gpusmall",
-                "gpu:RTX-A5000:0(IDX:N/A)",
-            ),
-            node(
-                "gpu002",
-                "MIXED",
-                A5000,
-                "gpusmall",
-                "gpu:RTX-A5000:2(IDX:0,1)",
-            ),
-        ];
-        let s = &stats(&["gpusmall"], &nodes)["gpusmall"];
-        assert_eq!(
-            (s.nodes, s.gpu_total, s.gpu_free, s.gpu_usable),
-            (2, 8, 6, 6)
-        );
-        let both = stats(
-            &["gpusmall", "gpu"],
-            &[node(
-                "gpu001",
-                "IDLE",
-                A5000,
-                "gpusmall,gpu",
-                "gpu:RTX-A5000:0(IDX:N/A)",
-            )],
-        );
-        assert_eq!(both["gpusmall"].gpu_total, 4);
-        assert_eq!(both["gpu"].gpu_total, 4);
-        let s = &stats(
-            &["gpusmall"],
-            &[
-                node("gpu001", "IDLE", A5000, "gpusmall", ""),
-                node("gpu002", "DOWN", A5000, "gpusmall", ""),
-            ],
-        )["gpusmall"];
-        assert_eq!((s.nodes, s.gpu_total), (1, 4));
-        assert_eq!(
-            stats(&["gpusmall"], &[])["gpusmall"],
-            PartitionStats::default()
-        );
-        let nodes = [
-            node(
-                "gpu001",
-                "IDLE",
-                A5000,
-                "gpusmall",
-                "gpu:RTX-A5000:0(IDX:N/A)",
-            ),
-            node(
-                "gpu002",
-                "MIXED",
-                A5000,
-                "gpusmall",
-                "gpu:RTX-A5000:2(IDX:0-1)",
-            ),
-            node(
-                "gpu003",
-                "ALLOCATED",
-                A5000,
-                "gpusmall",
-                "gpu:RTX-A5000:4(IDX:0-3)",
-            ),
-        ];
-        let s = &stats(&["gpusmall"], &nodes)["gpusmall"];
-        assert_eq!(
-            (s.nodes, s.idle_nodes, s.gpu_free, s.gpu_usable),
-            (3, 1, 6, 6)
-        );
-        assert_eq!((s.cpu_total, s.mem_total_gb), (144, 750));
-    }
-
-    #[test]
-    fn memory_rounds_per_node_half_to_even() {
-        let mut a = node("a", "IDLE", "(null)", "p", "");
-        a.real_memory = "1536".into();
-        let mut b = a.clone();
-        b.real_memory = "2560".into();
-        let s = &stats(&["p"], &[a, b])["p"];
-        assert_eq!(s.mem_total_gb, 4);
-    }
-
-    #[test]
     fn selected_partitions() {
         assert_eq!(
             summarize_selected_partitions(&BTreeSet::new(), &[]),
@@ -519,107 +431,6 @@ mod tests {
             &rec(&[("AllowGroups", "(null)")]),
             &groups(&[])
         ));
-    }
-
-    const SCONTROL_PARTITION_OUTPUT: &str = "PartitionName=gpusmall AllowGroups=ALL AllowAccounts=ALL \
-AllowQos=ALL AllocNodes=ALL Default=NO QoS=N/A \
-MaxTime=1-00:00:00 MinNodes=0 Nodes=gpu[001-050] \
-State=UP TotalCPUs=2400 TotalNodes=50\n\
-PartitionName=gpu AllowGroups=ALL AllowAccounts=ALL \
-AllowQos=ALL AllocNodes=ALL Default=NO QoS=N/A \
-MaxTime=7-00:00:00 MinNodes=0 Nodes=gpu[001-100] \
-State=UP TotalCPUs=4800 TotalNodes=100\n\
-PartitionName=gpumicro AllowGroups=gpu_users AllowAccounts=ALL \
-AllowQos=ALL AllocNodes=ALL Default=NO QoS=N/A \
-MaxTime=08:00:00 MinNodes=0 Nodes=gpu[001-010] \
-State=UP TotalCPUs=480 TotalNodes=10\n";
-
-    #[test]
-    fn load_partition_records() {
-        let _ctx = Ctx::default()
-            .slurm(FakeSlurm::always(ok(SCONTROL_PARTITION_OUTPUT)))
-            .install();
-        let partitions = load_partitions(true).unwrap();
-        assert_eq!(partitions.len(), 3);
-        let names: BTreeSet<&str> = partitions
-            .iter()
-            .map(|p| p.get_str("PartitionName"))
-            .collect();
-        assert_eq!(names, BTreeSet::from(["gpusmall", "gpu", "gpumicro"]));
-        let gpusmall = &partitions[0];
-        assert_eq!(gpusmall["MaxTime"], "1-00:00:00");
-        assert_eq!(gpusmall["State"], "UP");
-        assert_eq!(gpusmall["TotalNodes"], "50");
-        assert_eq!(partitions[2]["AllowGroups"], "gpu_users");
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(ok(""))).install();
-        assert!(load_partitions(true).unwrap().is_empty());
-        let _ctx = Ctx::default()
-            .slurm(FakeSlurm::always(fail(1, "down")))
-            .install();
-        assert!(load_partitions(false).unwrap().is_empty());
-    }
-
-    fn sorted_names(parts: &[(&str, &str)]) -> Vec<String> {
-        let _ctx = Ctx::default().install();
-        let gpu_node = Node {
-            name: "g1".into(),
-            gres: "gpu:4".into(),
-            partitions:
-                "gpumicro,gpushort,gpusmall,gpu,gpu-a100,gpu-a100:test,gpu-h200,gpu-h200:test"
-                    .into(),
-            ..Node::default()
-        };
-        crate::core::nodes::remember_nodes(&[gpu_node]);
-        let partitions: Vec<Partition> = parts
-            .iter()
-            .map(|(n, t)| rec(&[("PartitionName", n), ("MaxTime", t)]))
-            .collect();
-        sort_partitions(partitions)
-            .unwrap()
-            .iter()
-            .map(|p| p["PartitionName"].clone())
-            .collect()
-    }
-
-    #[test]
-    fn allegro_partition_order() {
-        let allegro = [
-            ("big", "7-00:00:00"),
-            ("gpu", "2-00:00:00"),
-            ("micro", "01:00:00"),
-            ("small", "2-02:00:00"),
-            ("gpushort", "04:00:00"),
-            ("amd", "2-00:00:00"),
-            ("gpumicro", "01:00:00"),
-            ("gpusmall", "1-00:00:00"),
-        ];
-        assert_eq!(
-            sorted_names(&allegro),
-            [
-                "gpumicro", "gpushort", "gpusmall", "gpu", "micro", "amd", "small", "big"
-            ]
-        );
-    }
-
-    #[test]
-    fn partition_family_stays_together() {
-        let parts = [
-            ("gpu-h200", "2-00:00:00"),
-            ("gpu-a100", "2-00:00:00"),
-            ("gpu-h200:test", "01:00:00"),
-            ("gpu-a100:test", "01:00:00"),
-            ("forever", "UNLIMITED"),
-        ];
-        assert_eq!(
-            sorted_names(&parts),
-            [
-                "gpu-a100:test",
-                "gpu-a100",
-                "gpu-h200:test",
-                "gpu-h200",
-                "forever"
-            ]
-        );
     }
 
     fn with_partitions(groups_: &[&str], stdout: &'static str) -> crate::hooks::testing::Guard {

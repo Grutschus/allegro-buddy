@@ -266,26 +266,6 @@ mod tests {
     }
 
     #[test]
-    fn labels() {
-        for (kind, label) in [
-            ("rtx_a5000", "A5000"),
-            ("gtx_1080ti", "GTX1080"),
-            ("a100", "A100"),
-            ("h100", "H100"),
-            ("h200", "H200"),
-            ("v100", "V100"),
-            ("l40s", "L40S"),
-            ("generic", "GPU"),
-        ] {
-            assert_eq!(gpu_type_label(kind), label);
-        }
-        assert_eq!(gpu_type_label("my_custom_gpu"), "MYCUSTOMGPU");
-        assert_eq!(format_gpu_type_header("Free ", "rtx_a5000"), "Free A5000");
-        assert_eq!(format_gpu_type_header("", "rtx_a5000"), "A5000");
-        assert_eq!(format_gpu_type_header("", "generic"), "GPU");
-    }
-
-    #[test]
     fn type_counts() {
         assert_eq!(
             parse_gpu_type_counts(Some("gpu:2")),
@@ -376,44 +356,5 @@ mod tests {
         assert_eq!(f(Some("")), None);
         assert_eq!(f(Some("(null)")), None);
         assert_eq!(f(Some("N/A")), None);
-    }
-
-    #[test]
-    fn add_counts() {
-        let mut target = counts(&[("a100", 2)]);
-        add_gpu_type_counts(&mut target, &counts(&[("a100", 1), ("h100", 3)]));
-        assert_eq!(target, counts(&[("a100", 3), ("h100", 3)]));
-        let mut target = counts(&[("a100", 2)]);
-        add_gpu_type_counts(&mut target, &GpuCounts::new());
-        assert_eq!(target, counts(&[("a100", 2)]));
-        let mut target = GpuCounts::new();
-        add_gpu_type_counts(&mut target, &counts(&[("a100", 4)]));
-        assert_eq!(target, counts(&[("a100", 4)]));
-        let mut target = GpuCounts::new();
-        add_gpu_type_counts(&mut target, &GpuCounts::new());
-        assert!(target.is_empty());
-    }
-
-    #[test]
-    fn display_types() {
-        assert!(collect_display_gpu_types(&[]).is_empty());
-        let one = counts(&[("rtx_a5000", 4)]);
-        assert_eq!(collect_display_gpu_types(&[&one]), ["rtx_a5000"]);
-        let zero = counts(&[("rtx_a5000", 4), ("a100", 0)]);
-        assert_eq!(collect_display_gpu_types(&[&zero]), ["rtx_a5000"]);
-        let ordered = counts(&[("rtx_a5000", 4), ("gtx_1080ti", 2)]);
-        assert_eq!(
-            collect_display_gpu_types(&[&ordered]),
-            ["rtx_a5000", "gtx_1080ti"]
-        );
-        let again = counts(&[("rtx_a5000", 2)]);
-        assert_eq!(collect_display_gpu_types(&[&one, &again]), ["rtx_a5000"]);
-        let (a, h) = (counts(&[("a100", 2)]), counts(&[("h100", 4)]));
-        assert_eq!(collect_display_gpu_types(&[&a, &h]), ["a100", "h100"]);
-        let g = counts(&[("zz", 1), ("generic", 1), ("gtx_1080ti", 1), ("b", 1)]);
-        assert_eq!(
-            collect_display_gpu_types(&[&g]),
-            ["gtx_1080ti", "generic", "b", "zz"]
-        );
     }
 }

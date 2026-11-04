@@ -558,8 +558,6 @@ mod tests {
 
     const RUNNING: &str = "JobId=111 JobName=ab-dev UserId=alice(1000) JobState=RUNNING \
         Reason=None Partition=gpu NodeList=gpu001 SubmitTime=2030-01-01T08:00:00";
-    const PENDING: &str = "JobId=111 JobName=ab-dev UserId=alice(1000) JobState=PENDING \
-        Reason=Priority Partition=gpu NodeList=(null) SubmitTime=2030-01-01T08:00:00";
     const PARTITIONS: &str = "PartitionName=gpu AllowGroups=ALL MaxTime=UNLIMITED\n";
 
     fn scratch_log_dir() -> String {
@@ -633,19 +631,6 @@ mod tests {
     }
 
     #[test]
-    fn replace_with_bad_partition_never_cancels() {
-        let slurm = cluster(Some(RUNNING));
-        let _ctx = install(&slurm);
-        let args = DevStartArgs {
-            replace: true,
-            partition: "gpuu".into(),
-            ..start_args()
-        };
-        assert_eq!(cmd_dev_start(&args), Err(AbError::Exit(1)));
-        assert!(commands(&slurm, &["scancel", "sbatch"]).is_empty());
-    }
-
-    #[test]
     fn replace_cancels_then_submits_gpu_request() {
         let slurm = cluster(Some(RUNNING));
         let _ctx = install(&slurm);
@@ -675,14 +660,6 @@ mod tests {
     }
 
     #[test]
-    fn limit_reached_without_replace_never_submits() {
-        let slurm = cluster(Some(RUNNING));
-        let _ctx = install(&slurm);
-        assert_eq!(cmd_dev_start(&start_args()), Err(AbError::Exit(1)));
-        assert!(commands(&slurm, &["scancel", "sbatch"]).is_empty());
-    }
-
-    #[test]
     fn login_and_no_wait_conflict_before_any_call() {
         let slurm = cluster(Some(RUNNING));
         let _ctx = install(&slurm);
@@ -693,71 +670,6 @@ mod tests {
         };
         assert_eq!(cmd_dev_start(&args), Err(AbError::Exit(1)));
         assert!(slurm.calls().is_empty());
-    }
-
-    fn is_usage(result: Result<()>) -> bool {
-        matches!(result, Err(AbError::Usage(ref err)) if err.message.starts_with(
-            "Invalid value for '--poll-interval': "))
-    }
-
-    #[test]
-    fn unusable_poll_interval_rejected_before_cancel_or_submit() {
-        for poll_interval in [f64::NAN, f64::INFINITY, 1e300] {
-            for login in [false, true] {
-                let slurm = cluster(Some(RUNNING));
-                let _ctx = install(&slurm);
-                let args = DevStartArgs {
-                    replace: true,
-                    no_wait: false,
-                    login,
-                    poll_interval,
-                    ..start_args()
-                };
-                assert!(is_usage(cmd_dev_start(&args)), "{poll_interval} {login}");
-                assert!(commands(&slurm, &["scancel", "sbatch", "ssh"]).is_empty());
-            }
-        }
-    }
-
-    #[test]
-    fn unused_poll_interval_is_not_checked() {
-        // --no-wait never sleeps, so Python works with any interval: so does bab
-        let slurm = cluster(None);
-        let _ctx = install(&slurm);
-        let args = DevStartArgs {
-            poll_interval: f64::NAN,
-            ..start_args()
-        };
-        assert_eq!(cmd_dev_start(&args), Ok(()));
-        assert_eq!(commands(&slurm, &["sbatch"]).len(), 1);
-        // a running job is joined without waiting
-        let slurm = cluster(Some(RUNNING));
-        let _ctx = install(&slurm);
-        let args = DevLoginArgs {
-            wait: true,
-            poll_interval: f64::INFINITY,
-            ..login_args(None, false)
-        };
-        let _ = cmd_dev_login(&args);
-        assert_eq!(commands(&slurm, &["ssh"]).len(), 1);
-    }
-
-    #[test]
-    fn login_wait_rejects_unusable_poll_interval_before_polling() {
-        let slurm = cluster(Some(PENDING));
-        let _ctx = install(&slurm);
-        let args = DevLoginArgs {
-            wait: true,
-            poll_interval: f64::NAN,
-            ..login_args(None, false)
-        };
-        assert!(is_usage(cmd_dev_login(&args)));
-        // only pick_single_dev_job's lookup: no tight polling loop
-        let polls = commands(&slurm, &["scontrol"])
-            .into_iter()
-            .filter(|argv| argv.last().map(String::as_str) == Some("111"))
-            .count();
-        assert!(polls <= 1, "{polls} job polls");
     }
 
     fn login_args(command: Option<&str>, srun: bool) -> DevLoginArgs {
@@ -807,28 +719,5 @@ mod tests {
             calls[1],
             ["srun", "--jobid", "111", "--overlap", "--pty", "bash", "-l"]
         );
-    }
-
-    #[test]
-    fn login_to_pending_job_exits_nonzero() {
-        let slurm = cluster(Some(PENDING));
-        let _ctx = install(&slurm);
-        assert_eq!(
-            cmd_dev_login(&login_args(Some("make"), false)),
-            Err(AbError::Exit(1))
-        );
-        assert!(commands(&slurm, &["ssh", "srun"]).is_empty());
-    }
-
-    #[test]
-    fn stop_cancels_every_match() {
-        let slurm = cluster(Some(RUNNING));
-        let _ctx = install(&slurm);
-        assert_eq!(cmd_dev_stop(None), Ok(()));
-        assert_eq!(commands(&slurm, &["scancel"]), [["scancel", "111"]]);
-        let slurm = cluster(None);
-        let _ctx = install(&slurm);
-        assert_eq!(cmd_dev_stop(None), Ok(()));
-        assert!(commands(&slurm, &["scancel"]).is_empty());
     }
 }

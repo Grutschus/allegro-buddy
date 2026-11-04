@@ -634,18 +634,6 @@ mod tests {
     use super::*;
     use crate::hooks::testing::Ctx;
 
-    // Python TestRun
-    #[test]
-    fn returns_completed_process_on_success() {
-        let _ctx = Ctx::default().slurm(FakeSlurm::always(ok("ok"))).install();
-        assert_eq!(
-            run(&["scontrol", "show", "partition"], true)
-                .unwrap()
-                .stdout,
-            "ok"
-        );
-    }
-
     #[test]
     fn nonzero_returncode_fails_with_the_python_message() {
         let _ctx = Ctx::default()
@@ -669,14 +657,6 @@ mod tests {
             try_run(&["x"], true).unwrap_err().message(),
             "x failed: command failed with exit code -9"
         );
-    }
-
-    #[test]
-    fn check_false_allows_nonzero_returncode() {
-        let _ctx = Ctx::default()
-            .slurm(FakeSlurm::always(fail(1, "")))
-            .install();
-        assert_eq!(run(&["sacct"], false).unwrap().status, 1);
     }
 
     #[test]

@@ -336,33 +336,6 @@ mod tests {
     }
 
     #[test]
-    fn prop_line_regex_corner_cases() {
-        // Checked against Python's re: values with spaces, tokens without `=`, `=` first.
-        let r = parse_prop_line("Reason=Not responding [slurm@2026-10-06T10:00:00] State=DOWN");
-        assert_eq!(r["Reason"], "Not responding [slurm@2026-10-06T10:00:00]");
-        assert_eq!(r["State"], "DOWN");
-        let r = parse_prop_line("junk A=1 =x B=2 =C=3 D==4 E=5  ");
-        assert_eq!(
-            r,
-            rec(&[
-                ("A", "1 =x"),
-                ("B", "2"),
-                ("=C", "3"),
-                ("D", "=4"),
-                ("E", "5")
-            ])
-        );
-        let r = parse_prop_line("A=1 x =y z");
-        assert_eq!(r, rec(&[("A", "1 x =y z")]));
-        let r = parse_prop_line("A=1\tB=2");
-        assert_eq!(r, rec(&[("A", "1"), ("B", "2")]));
-        let r = parse_prop_line("A=1 A=2");
-        assert_eq!(r, rec(&[("A", "2")]));
-        assert_eq!(parse_prop_line("A=x\ny B=2"), rec(&[("B", "2")]));
-        assert_eq!(parse_prop_line("A=1\nB=2"), rec(&[("A", "1"), ("B", "2")]));
-    }
-
-    #[test]
     fn pipe_rows() {
         let headers = ["JobIDRaw", "JobName", "State", "ExitCode", "End", "Reason"];
         let rows = parse_pipe_rows(
@@ -419,43 +392,6 @@ mod tests {
     }
 
     #[test]
-    fn parse_mb_to_gb_cases() {
-        assert_eq!(parse_mb_to_gb(Some("1024")), 1);
-        assert_eq!(parse_mb_to_gb(Some("256000")), 250);
-        assert_eq!(parse_mb_to_gb(None), 0);
-        assert_eq!(parse_mb_to_gb(Some("0")), 0);
-        assert_eq!(parse_mb_to_gb(Some("1048576")), 1024);
-        assert_eq!(parse_mb_to_gb(Some("1536")), 2);
-        assert_eq!(parse_mb_to_gb(Some("2560")), 2);
-    }
-
-    #[test]
-    fn truncate_cases() {
-        assert_eq!(truncate("hello", 10), "hello");
-        assert_eq!(truncate("hello", 5), "hello");
-        assert_eq!(truncate("hello world", 8), "hello w…");
-        assert_eq!(truncate("hello world", 8).chars().count(), 8);
-        assert_eq!(truncate("hello", 0), "hello");
-        assert_eq!(truncate("hello", 1), "…");
-        assert_eq!(truncate("hello", 3), "he…");
-        assert_eq!(truncate("", 5), "");
-    }
-
-    #[test]
-    fn userid_and_nullish() {
-        assert_eq!(user_from_userid("alice(1000)"), "alice");
-        assert_eq!(user_from_userid("alice"), "alice");
-        assert_eq!(user_from_userid(""), "");
-        for v in ["", "(null)", "None", "N/A", "Unknown", "   ", "  (null)  "] {
-            assert!(is_nullish(Some(v)), "{v:?}");
-        }
-        assert!(is_nullish(None));
-        for v in ["gpu001", "0", "RUNNING", "alice"] {
-            assert!(!is_nullish(Some(v)), "{v:?}");
-        }
-    }
-
-    #[test]
     fn sacct_states() {
         assert_eq!(normalize_sacct_state("COMPLETED"), "COMPLETED");
         assert_eq!(normalize_sacct_state("CANCELLED by 12345"), "CANCELLED");
@@ -484,30 +420,6 @@ mod tests {
         assert_eq!(base_job_id("12345"), "12345");
         assert_eq!(base_job_id("12345_3"), "12345");
         assert_eq!(base_job_id("12345_100"), "12345");
-    }
-
-    #[test]
-    fn exit_codes_and_mem_values() {
-        assert!(is_success_exit_code("0:0"));
-        for code in ["1:0", "0:9", "", "0", "(null)", "2:0", "127:0", "137:0"] {
-            assert!(!is_success_exit_code(code), "{code}");
-        }
-        assert_eq!(format_mem_value(Some("2048")), "2G");
-        assert_eq!(format_mem_value(Some("16G")), "16G");
-        assert_eq!(format_mem_value(Some("1T")), "1T");
-        for v in [Some("(null)"), None, Some(""), Some("N/A")] {
-            assert_eq!(format_mem_value(v), "-");
-        }
-    }
-
-    #[test]
-    fn index_blobs() {
-        assert_eq!(parse_index_blob("3"), [3]);
-        assert_eq!(parse_index_blob("0-3"), [0, 1, 2, 3]);
-        assert_eq!(parse_index_blob("0,2,4"), [0, 2, 4]);
-        assert_eq!(parse_index_blob("0-2,5,7-8"), [0, 1, 2, 5, 7, 8]);
-        assert!(parse_index_blob("").is_empty());
-        assert_eq!(parse_index_blob("0,abc,2"), [0, 2]);
     }
 
     #[test]

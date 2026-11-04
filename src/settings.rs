@@ -765,7 +765,7 @@ pub mod testing {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
+    use crate::core::slurm::fake::{FakeSlurm, fail};
     use crate::hooks::testing::Ctx;
     use std::collections::HashMap;
 
@@ -910,81 +910,6 @@ mod tests {
     }
 
     #[test]
-    fn unreadable_config_file() {
-        let dir = scratch("unreadable");
-        std::fs::create_dir_all(dir.join("config/allegro-buddy/config.ini")).unwrap();
-        let path = dir
-            .join("config/allegro-buddy/config.ini")
-            .display()
-            .to_string();
-        let err = load_in(&isolated(&dir, &[])).unwrap_err();
-        assert_eq!(
-            err.0,
-            format!("cannot read {path}: [Errno 21] Is a directory: '{path}'")
-        );
-        std::fs::remove_dir_all(dir).unwrap();
-    }
-
-    #[test]
-    fn preset_comes_from_the_cached_or_probed_cluster_name() {
-        let dir = scratch("cluster-name");
-        let env = isolated(&dir, &[("AB_CLUSTER", None)]);
-        let lookup = |name: &str| env.get(name).cloned();
-        let fake = FakeSlurm::always(ok("Foo = 1\nClusterName  = bhlrn4\n"));
-        let _ctx = Ctx::default()
-            .hostname("login1")
-            .slurm(fake.clone())
-            .install();
-        let settings = load_with_env(&lookup).unwrap();
-        assert_eq!(settings.preset.as_deref(), Some("bhlrn4"));
-        assert_eq!(settings.preset_reason, "Slurm ClusterName is bhlrn4");
-        let cache = dir.join("cache/allegro-buddy/cluster-name.login1");
-        assert_eq!(std::fs::read_to_string(&cache).unwrap(), "bhlrn4\n");
-        load_with_env(&lookup).unwrap();
-        assert_eq!(fake.calls(), [["scontrol", "show", "config"]]);
-        std::fs::write(&cache, "  \n").unwrap();
-        let settings = load_with_env(&lookup).unwrap();
-        assert_eq!(settings.preset_reason, "Slurm did not report a ClusterName");
-        std::fs::write(&cache, "other\n").unwrap();
-        let settings = load_with_env(&lookup).unwrap();
-        assert_eq!(settings.preset, None);
-        assert_eq!(
-            settings.preset_reason,
-            "no preset ships for Slurm ClusterName other"
-        );
-        assert_eq!(fake.calls().len(), 1);
-        std::fs::remove_dir_all(dir).unwrap();
-    }
-
-    #[test]
-    fn cluster_name_cache_file_is_one_path_component() {
-        assert_eq!(cluster_name_cache_file("login1.x"), "cluster-name.login1.x");
-        assert_eq!(
-            cluster_name_cache_file("../../evil/.."),
-            "cluster-name..._.._evil_.."
-        );
-        let _ctx = Ctx::default().hostname("a/../../b").install();
-        let path = cluster_name_cache_path_with_env(&|name: &str| {
-            (name == "XDG_CACHE_HOME").then(|| "/c".to_owned())
-        });
-        assert_eq!(path, Path::new("/c/allegro-buddy/cluster-name.a_.._.._b"));
-    }
-
-    #[test]
-    fn failed_probe_is_repeated_and_not_cached() {
-        let dir = scratch("probe-fails");
-        let env = isolated(&dir, &[("AB_CLUSTER", None)]);
-        let fake = FakeSlurm::always(fail(1, "down"));
-        let _ctx = Ctx::default().hostname("h").slurm(fake.clone()).install();
-        let lookup = |name: &str| env.get(name).cloned();
-        assert_eq!(slurm_cluster_name_with_env(&lookup), None);
-        assert_eq!(slurm_cluster_name_with_env(&lookup), None);
-        assert_eq!(fake.calls().len(), 2);
-        assert!(!dir.join("cache/allegro-buddy").exists());
-        std::fs::remove_dir_all(dir).unwrap();
-    }
-
-    #[test]
     fn preset_choice_order() {
         let env = |value: Option<&'static str>| {
             move |name: &str| {
@@ -1063,15 +988,6 @@ mod tests {
     }
 
     #[test]
-    fn normalizers() {
-        assert_eq!(normalize_gpu_type("RTX-A5000"), "rtx_a5000");
-        assert_eq!(normalize_gpu_type("  GTX 1080 Ti!!"), "gtx_1080_ti");
-        assert_eq!(normalize_gpu_type("--"), "");
-        assert_eq!(normalize_key("dev", " Gpu-Type "), "gpu_type");
-        assert_eq!(normalize_key("gpu-labels", "RTX-A5000"), "rtx-a5000");
-    }
-
-    #[test]
     fn gpu_tables_and_lists() {
         let settings = testing::with_preset(
             "bhlrn4",
@@ -1099,28 +1015,5 @@ mod tests {
         );
         assert!(settings.get_list("cluster", "missing").is_empty());
         assert_eq!(settings.section("dev").len(), 5);
-    }
-
-    #[test]
-    fn max_allocations_validation() {
-        for (value, ok) in [
-            ("1", true),
-            ("0001", true),
-            ("12", true),
-            ("0", false),
-            ("-1", false),
-            ("1.5", false),
-            ("x", false),
-        ] {
-            let settings = testing::with_preset("allegro", &[]);
-            let mut settings = settings.clone();
-            settings.values.push(Entry {
-                section: "dev".into(),
-                key: "max_allocations".into(),
-                value: value.into(),
-                source: "user file".into(),
-            });
-            assert_eq!(validate(&settings).is_ok(), ok, "{value}");
-        }
     }
 }

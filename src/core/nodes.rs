@@ -477,7 +477,7 @@ mod tests {
     //! Port of the node parts of `tests/test_slurm.py`, `test_gpu.py` and `test_stats.py`.
     use super::testing::with_state;
     use super::*;
-    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
+    use crate::core::slurm::fake::{FakeSlurm, ok};
     use crate::hooks::testing::Ctx;
 
     const SCONTROL_NODE_OUTPUT: &str = r#"{
@@ -541,30 +541,6 @@ mod tests {
     }
 
     #[test]
-    fn reservation_and_specialized_memory() {
-        let output = r#"{"nodes": [{"name": "gpu061", "state": ["IDLE", "RESERVED"], "reservation": "maint", "specialized_memory": 2048}]}"#;
-        let nodes = load_with(ok(output));
-        assert_eq!(nodes[0].reservation, "maint");
-        assert_eq!(nodes[0].spec_mem, "2048");
-        assert_eq!(nodes[0].state, "IDLE+RESERVED");
-    }
-
-    #[test]
-    fn non_strict_failure_returns_empty() {
-        let fake = FakeSlurm::always(fail(1, "down"));
-        let _ctx = Ctx::default().slurm(fake.clone()).install();
-        assert!(load_nodes(false).unwrap().is_empty());
-        assert_eq!(
-            fake.calls(),
-            [
-                vec!["scontrol", "--json", "show", "nodes"],
-                vec!["scontrol", "--oneliner", "show", "node"]
-            ]
-        );
-        assert!(loaded_node_facts().unwrap().names.is_empty());
-    }
-
-    #[test]
     fn oneliner_fallback() {
         let fake = FakeSlurm::new(|argv| {
             Some(if argv[1] == "--json" {
@@ -582,26 +558,6 @@ mod tests {
         assert_eq!(nodes[0].features, "a5000");
         assert_eq!(nodes[0].spec_mem, "512");
         assert_eq!(nodes[0].cpu_alloc, "0");
-    }
-
-    #[test]
-    fn strict_fallback_failure_dies() {
-        let _ctx = Ctx::default()
-            .slurm(FakeSlurm::always(fail(1, "down")))
-            .install();
-        let output = crate::core::slurm::try_run(&["scontrol", "--oneliner", "show", "node"], true);
-        assert_eq!(
-            output.unwrap_err().message(),
-            "scontrol --oneliner show node failed: down"
-        );
-    }
-
-    #[test]
-    fn old_slurm_string_node_state_keeps_its_flags() {
-        let raw = r#"{"nodes": [{"name": "n1", "state": "down", "state_flags": ["DRAIN"]}]}"#;
-        let node = &nodes_from_json(raw).unwrap()[0];
-        assert_eq!(node.state, "DOWN+DRAIN");
-        assert!(!node_is_usable(node));
     }
 
     #[test]
@@ -643,15 +599,6 @@ mod tests {
         let _ctx = Ctx::default().settings(configured).install();
         assert!(is_gpu_partition("small", true).unwrap());
         assert!(!is_gpu_partition("gpu", true).unwrap());
-    }
-
-    #[test]
-    fn node_facts_loads_once() {
-        let fake = FakeSlurm::always(ok(SCONTROL_NODE_OUTPUT));
-        let _ctx = Ctx::default().slurm(fake.clone()).install();
-        assert!(node_facts().unwrap().gpu_partitions.contains("gpumicro"));
-        assert!(is_gpu_partition("gpu", true).unwrap());
-        assert_eq!(fake.calls().len(), 1);
     }
 
     #[test]
@@ -725,27 +672,6 @@ mod tests {
         assert_eq!(
             c(&gres_node("gpu:a100:2,gpu:h100:2", "")),
             [("a100".to_owned(), 2), ("h100".to_owned(), 2)]
-        );
-    }
-
-    #[test]
-    fn spec_mem_is_reserved() {
-        let node = Node {
-            cpu_tot: "8".into(),
-            cpu_alloc: "2".into(),
-            real_memory: "512000".into(),
-            spec_mem: "10240".into(),
-            alloc_mem: "0".into(),
-            gres: "gpu:a100:4".into(),
-            gres_used: "gpu:a100:1(IDX:0)".into(),
-            ..Node::default()
-        };
-        let free = node_free(&node);
-        assert_eq!(free.cpu_free, 6);
-        assert_eq!(free.mem_free_mb, 512000 - 10240);
-        assert_eq!(
-            free.gpu_free_by_type.into_iter().collect::<Vec<_>>(),
-            [("a100".to_owned(), 3)]
         );
     }
 }

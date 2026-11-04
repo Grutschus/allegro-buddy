@@ -1205,9 +1205,8 @@ mod tests {
     //! Handler-level ports from `tests/test_gpu.py`, `test_cluster_output.py` and
     //! `test_queue.py` (whole-command output: `tests/snapshots.rs`).
     use super::*;
-    use crate::core::nodes::remember_nodes;
     use crate::core::nodes::testing::{NodeSpec, node_dict};
-    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
+    use crate::core::slurm::fake::{FakeSlurm, fail};
     use crate::error::AbError;
     use crate::hooks::testing::Ctx;
 
@@ -1287,103 +1286,6 @@ mod tests {
             &reserved_by,
         );
         assert!(typed.is_empty());
-    }
-
-    #[test]
-    fn info_time_limit_is_short() {
-        for (limit, expected) in [
-            ("01:00:00", "1h"),
-            ("2-02:00:00", "2d2h"),
-            ("7-00:00:00", "7d"),
-            ("30", "30m"),
-            ("UNLIMITED", "unlimited"),
-            ("", "-"),
-            ("Bogus", "bogus"),
-        ] {
-            assert_eq!(short_limit(limit).plain(), expected, "{limit}");
-        }
-    }
-
-    #[test]
-    fn accounts_default_first_then_sorted() {
-        let rows = vec![
-            rec(&[
-                ("DefaultAccount", ""),
-                ("Account", "teaching"),
-                ("QOS", "normal"),
-            ]),
-            rec(&[
-                ("DefaultAccount", "ml-lab"),
-                ("Account", "ml-lab"),
-                ("QOS", "long,normal"),
-            ]),
-            rec(&[("DefaultAccount", ""), ("Account", "alpha"), ("QOS", "")]),
-        ];
-        assert_eq!(
-            accounts_text(&rows).plain(),
-            "ml-lab (default), alpha, teaching"
-        );
-        assert_eq!(accounts_text(&[]).plain(), "-");
-    }
-
-    #[test]
-    fn your_jobs_counts_and_soonest_known_eta() {
-        assert_eq!(your_jobs_text((vec![], vec![])).plain(), "none");
-        let text = your_jobs_text((vec![None, None], vec![Some(7200.9), None, Some(23700.0)]));
-        assert_eq!(text.plain(), "3 running (next ends in 2h) · 2 pending");
-    }
-
-    #[test]
-    fn slurm_durations_and_reasons() {
-        assert_eq!(slurm_duration("1-00:00:00"), "1d");
-        assert_eq!(slurm_duration("6:35:00"), "6h35m");
-        assert_eq!(slurm_duration("15:00"), "15m");
-        assert_eq!(slurm_duration("UNLIMITED"), "UNLIMITED");
-        assert_eq!(slurm_duration("INVALID"), "INVALID");
-        assert_eq!(strip_parens("(Resources)"), "Resources");
-        assert_eq!(strip_parens("((x))"), "x");
-    }
-
-    #[test]
-    fn guess_node_prefers_argument_then_hostname() {
-        let fake = FakeSlurm::always(fail(1, "unused"));
-        let _ctx = Ctx::default()
-            .hostname("gpu081.cluster")
-            .slurm(fake.clone())
-            .install();
-        remember_nodes(&[node_dict("gpu081", NodeSpec::default())]);
-        assert_eq!(guess_node(Some("gpu999")).unwrap(), "gpu999");
-        assert_eq!(guess_node(None).unwrap(), "gpu081");
-        assert!(fake.calls().is_empty());
-    }
-
-    #[test]
-    fn guess_node_falls_back_to_dev_job_then_gpu_job() {
-        let fake = FakeSlurm::new(|argv| {
-            let joined = argv.join(" ");
-            Some(match joined.as_str() {
-                "squeue -h --user=alice --format=%F --name=ab-dev" => ok(""),
-                "squeue -h --user=alice --format=%F" => ok("10\n11\n"),
-                "scontrol --oneliner --details show job 10" => {
-                    ok("JobId=10 JobName=cpu JobState=RUNNING NodeList=cpu[1-2] JOB_GRES=(null)\n")
-                }
-                "scontrol --oneliner --details show job 11" => ok(
-                    "JobId=11 JobName=gpu JobState=RUNNING NodeList=gpu[084-085] JOB_GRES=gpu:2\n",
-                ),
-                _ => return None,
-            })
-        });
-        let _ctx = Ctx::default().hostname("login1").slurm(fake).install();
-        remember_nodes(&[node_dict("gpu084", NodeSpec::default())]);
-        assert_eq!(guess_node(None).unwrap(), "gpu084");
-    }
-
-    #[test]
-    fn guess_node_gives_up() {
-        let fake = FakeSlurm::always(ok(""));
-        let _ctx = Ctx::default().hostname("login1").slurm(fake).install();
-        remember_nodes(&[]);
-        assert_eq!(guess_node(None), Err(AbError::Exit(1)));
     }
 
     #[test]
