@@ -216,6 +216,8 @@ ship that one. `UPDATE_SNAPSHOTS=1 cargo test --test snapshots` rewrites
 [`equivalence-harness`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness).
 To rerun the live benchmark and redraw the plots, see
 [`bench/RESULTS.md`](bench/RESULTS.md#updating-the-numbers).
+Notes for coding agents (conventions, cluster rules, task skills in `.claude/skills/`):
+[`AGENTS.md`](AGENTS.md).
 
 ### Releasing
 

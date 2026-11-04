@@ -136,4 +136,6 @@ in ms, plus the run's `env.txt`), redraws `bench/plots/live.png` and
 (median speedup, total of all read-only commands) for this file and the README.
 `uv run bench/plot.py` alone redraws the plots from the committed summary. Commit
 `live.json` and the plots, not the raw run (`bench/.work/` is ignored); update the numbers
-quoted in the README (intro, Performance) and above.
+quoted above and in the README (header chart alt text, intro, the `-h` time under
+Commands, Performance). The local replay numbers do not come from this run (see the
+`equivalence-harness` tag).
