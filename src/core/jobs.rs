@@ -440,7 +440,7 @@ fn expand_tilde(part: &str) -> Option<String> {
 }
 
 /// `Path(path).expanduser()` as a string.
-fn pathlib_expanduser(path: &str) -> String {
+pub fn pathlib_expanduser(path: &str) -> String {
     let (root, parts) = posix_parts(path);
     if root.is_empty() {
         if let Some(first) = parts.first().filter(|p| p.starts_with('~')) {
