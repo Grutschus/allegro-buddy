@@ -24,6 +24,27 @@
 //! * [`table`], [`boxes`], [`padding`]: `Table` (incl. `Table.grid`) with Rich's column
 //!   width algorithm, box styles and `Padding`.
 //! * [`console`], [`status`]: consoles (detection, print, capture, clear) and the spinner.
+//!
+//! # Testing against Rich
+//!
+//! `tests/render_diff.rs` replays `tests/render/cases.json` and compares byte-for-byte with
+//! `tests/render/expected.json` (Rich's output). To change cases or re-verify live:
+//!
+//! ```text
+//! python3 tools/render/make_cases.py                       # edit cases there
+//! BAB_RICH_PY=/path/to/venv/bin/python BAB_RICH_REGEN=1 cargo test --test render_diff
+//! ```
+//!
+//! (the venv needs rich==15.0.0 and rich-click==1.9.9). `BAB_RANDOM_TABLES=600
+//! BAB_RANDOM_TEXTS=300` on `make_cases.py` produces a much larger seeded random set for
+//! one-off checks. `tools/render/gen_rich_data.py` regenerates [`data`]/[`emoji_data`].
+//!
+//! # Known divergences
+//!
+//! Links/meta styles are ignored (Rich's link ids are random); `UNICODE_VERSION` is not
+//! honoured (Rich's latest table, 17.0.0, is always used); ASCII-only encodings (Rich
+//! substitutes ASCII boxes) and legacy Windows are not supported; see [`console`] for the
+//! console-level ones.
 
 pub mod boxes;
 pub mod cells;
