@@ -1,0 +1,14 @@
+# The user-centric views, recorded with record.py --as-user USER (a user with pending
+# jobs): only read-only commands; never `job output` (another user's files).
+info
+free
+queue
+q --all
+why
+why --nodes
+why {my_pending}
+why {my_pending} --nodes
+why {my_running}
+job history
+job history --limit 0
+dev status

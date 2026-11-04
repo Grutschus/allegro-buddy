@@ -1,0 +1,67 @@
+{
+  "hostname": "allegro",
+  "started": "2026-11-04T18:51:35+01:00",
+  "finished": "2026-11-04T18:52:47+01:00",
+  "date_iseconds": "2026-11-04T18:52:47+01:00",
+  "tz": "Europe/Berlin",
+  "user": "user00",
+  "groups": [
+    "group02",
+    "group05",
+    "group07",
+    "group12",
+    "group11",
+    "group09",
+    "group10",
+    "group06",
+    "group08",
+    "group01",
+    "group03"
+  ],
+  "python_groups": [
+    "group01",
+    "group02",
+    "group03",
+    "group05",
+    "group06",
+    "group07",
+    "group08",
+    "group09",
+    "group10",
+    "group11",
+    "group12"
+  ],
+  "columns": "160",
+  "placeholders": {
+    "pending": "76059",
+    "pending2": "76833",
+    "array_pending": "69260",
+    "array_task": "69260_182",
+    "running": "74649",
+    "other_user": "user06",
+    "other_user2": "user02"
+  },
+  "scontrol_config": {
+    "AccountingStorageTRES": "cpu,mem,energy,node,billing,fs/disk,vmem,pages",
+    "AccountingStorageType": "accounting_storage/slurmdbd",
+    "ClusterName": "allegro",
+    "GresTypes": "gpu",
+    "MaxArraySize": "1051",
+    "PreemptMode": "OFF",
+    "PriorityType": "priority/multifactor",
+    "SchedulerType": "sched/backfill",
+    "SelectType": "select/cons_tres",
+    "SelectTypeParameters": "CR_CORE_MEMORY",
+    "SLURM_VERSION": "24.11.5"
+  },
+  "versions": {
+    "sinfo": "slurm-wlm 24.11.5",
+    "python": "3.13.5",
+    "uname": "Linux 6.12.111+deb13-amd64 x86_64",
+    "glibc": "glibc 2.41",
+    "reference": "allegro-buddy, version 2.7"
+  },
+  "commands": 52,
+  "real_user": "user00",
+  "anonymised": true
+}
