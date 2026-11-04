@@ -18,6 +18,99 @@ use std::path::{Path, PathBuf};
 /// One `scontrol --json show job` record (`jobs[i]`), used by `fit` and `why`.
 pub type JobRecord = serde_json::Value;
 
+/// The keys of a [`JobRecord`] that bab reads (`fit`, `handlers::why`); the ~100 others
+/// are skipped while parsing ([`job_records_json`]). Reading another key: add it here (the
+/// `job_keys_cover_reads` test checks fit.rs and why.rs).
+#[rustfmt::skip]
+pub const JOB_KEYS: [&str; 28] = [
+    "array_job_id", "array_task_id", "array_task_string", "cpus", "cpus_per_tres",
+    "excluded_nodes", "features", "het_job_id", "job_id", "job_state", "memory_per_cpu",
+    "memory_per_node", "memory_per_tres", "minimum_cpus_per_node", "node_count", "partition",
+    "required_nodes", "resv_name", "scheduled_nodes", "shared", "start_time", "state_reason",
+    "tasks", "tres_per_job", "tres_per_node", "tres_per_task", "tres_req_str", "user_name",
+];
+
+/// `json.loads(stdout)["jobs"]` of `scontrol --json show job` (missing or not a list: `[]`),
+/// each record reduced to [`JOB_KEYS`]; `None` when stdout is not a JSON object. Skipping
+/// the other keys while parsing makes the 2.5 MB of a busy cluster parse twice as fast.
+/// Unexpected shapes (a job that is not an object, ...) take the plain full parse, which also
+/// decides about errors.
+pub fn job_records_json(stdout: &str) -> Option<Vec<JobRecord>> {
+    use serde_core::Deserializer;
+    use serde_json::Value;
+    let mut de = serde_json::Deserializer::from_str(stdout);
+    let reduced = de.deserialize_map(reduced::Records::Top);
+    if let Ok(jobs) = reduced.and_then(|jobs| de.end().map(|()| jobs)) {
+        return Some(jobs);
+    }
+    match serde_json::from_str(stdout).ok()? {
+        Value::Object(mut top) => match top.remove("jobs") {
+            Some(Value::Array(jobs)) => Some(jobs),
+            _ => Some(Vec::new()),
+        },
+        _ => None,
+    }
+}
+
+/// The serde visitor of [`job_records_json`]: fails on anything but
+/// `{"jobs": [{...}, ...], ...}` (and on escaped keys, which Slurm never writes).
+mod reduced {
+    use super::{JOB_KEYS, JobRecord};
+    use serde_core::de::{
+        DeserializeSeed, Deserializer, IgnoredAny, MapAccess, SeqAccess, Visitor,
+    };
+    use serde_json::{Map, Value};
+
+    /// What is read: the top-level object, the `jobs` list (both: the jobs), or one job (a
+    /// list of just it).
+    #[derive(Clone, Copy)]
+    pub enum Records {
+        Top,
+        Jobs,
+        Job,
+    }
+
+    impl<'de> DeserializeSeed<'de> for Records {
+        type Value = Vec<JobRecord>;
+        fn deserialize<D: Deserializer<'de>>(self, de: D) -> Result<Vec<JobRecord>, D::Error> {
+            match self {
+                Records::Jobs => de.deserialize_seq(self),
+                _ => de.deserialize_map(self),
+            }
+        }
+    }
+
+    impl<'de> Visitor<'de> for Records {
+        type Value = Vec<JobRecord>;
+        fn expecting(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+            f.write_str("scontrol --json show job")
+        }
+        fn visit_seq<A: SeqAccess<'de>>(self, mut seq: A) -> Result<Vec<JobRecord>, A::Error> {
+            let mut jobs = Vec::new();
+            while let Some(mut job) = seq.next_element_seed(Records::Job)? {
+                jobs.append(&mut job);
+            }
+            Ok(jobs)
+        }
+        fn visit_map<A: MapAccess<'de>>(self, mut map: A) -> Result<Vec<JobRecord>, A::Error> {
+            let (mut jobs, mut job) = (Vec::new(), Map::new());
+            while let Some(key) = map.next_key::<&str>()? {
+                match self {
+                    Records::Top if key == "jobs" => jobs = map.next_value_seed(Records::Jobs)?,
+                    Records::Job if JOB_KEYS.binary_search(&key).is_ok() => {
+                        job.insert(key.to_owned(), map.next_value()?);
+                    }
+                    _ => drop(map.next_value::<IgnoredAny>()?),
+                }
+            }
+            Ok(match self {
+                Records::Job => vec![Value::Object(job)],
+                _ => jobs,
+            })
+        }
+    }
+}
+
 /// `USER_JOB_DETAIL_LIMIT`: past this many jobs one full listing beats per-job calls.
 pub const USER_JOB_DETAIL_LIMIT: usize = 20;
 /// `SQUEUE_PENDING_HEADERS`.
@@ -181,16 +274,13 @@ pub fn load_job_records(job_id: Option<&str>, strict: bool) -> Result<Vec<JobRec
     if !output.success() {
         return Ok(Vec::new());
     }
-    match serde_json::from_str::<serde_json::Value>(&output.stdout) {
-        Ok(serde_json::Value::Object(mut top)) => match top.remove("jobs") {
-            Some(serde_json::Value::Array(jobs)) => Ok(jobs),
-            _ => Ok(Vec::new()),
-        },
-        _ if strict => Err(die_with_code(
+    match job_records_json(&output.stdout) {
+        Some(jobs) => Ok(jobs),
+        None if strict => Err(die_with_code(
             "this needs a Slurm whose `scontrol --json show job` works",
             2,
         )),
-        _ => Ok(Vec::new()),
+        None => Ok(Vec::new()),
     }
 }
 
@@ -860,6 +950,65 @@ mod tests {
             .slurm(FakeSlurm::always(fail(1, "down")))
             .install();
         assert!(job_history_completion_ids("", Some("alice")).is_empty());
+    }
+
+    #[test]
+    fn job_records_reduced_like_full_parse() {
+        use serde_json::json;
+        let doc = r#"{"meta": {"x": [1, {"jobs": 2}]}, "jobs": [
+            {"job_id": 1, "job_state": ["PENDING"], "flags": ["A"], "cpus": {"set": true,
+             "infinite": false, "number": 4}, "job_resources": {"nodes": {"list": "a"}},
+             "user_name": "x", "user_name": "alice"},
+            {"job_id": 2, "command": "a \"b\""}], "warnings": []}"#;
+        assert_eq!(
+            job_records_json(doc).unwrap(),
+            [
+                json!({"job_id": 1, "job_state": ["PENDING"], "user_name": "alice",
+                       "cpus": {"set": true, "infinite": false, "number": 4}}),
+                json!({"job_id": 2}),
+            ]
+        );
+        // unexpected shapes: whatever the full parse says
+        let escaped = r#"{"jobs": [{"job\u005fid": 1}]}"#;
+        assert_eq!(job_records_json(escaped).unwrap(), [json!({"job_id": 1})]);
+        assert_eq!(
+            job_records_json(r#"{"jobs": [1, {"x": 2}]}"#).unwrap(),
+            [json!(1), json!({"x": 2})]
+        );
+        for empty in [r#"{"jobs": null}"#, r#"{"jobs": {}}"#, "{}"] {
+            assert_eq!(job_records_json(empty), Some(Vec::new()), "{empty}");
+        }
+        for bad in [
+            "not json",
+            "[]",
+            r#"{"jobs": []} x"#,
+            r#"{"jobs": [{"job_id": 1e999}]}"#,
+        ] {
+            assert_eq!(job_records_json(bad), None, "{bad}");
+        }
+    }
+
+    /// Every key fit.rs and why.rs read from a job record is in JOB_KEYS (sorted: it is
+    /// binary-searched).
+    #[test]
+    fn job_keys_cover_reads() {
+        assert!(JOB_KEYS.is_sorted());
+        let read = regex::Regex::new(
+            r#"(?:number|text|string_list|field_is|\.get)\(\s*(?:&?[a-z_]+,\s*)?"([a-z_]+)""#,
+        )
+        .unwrap();
+        // nested keys: Slurm's number wrapper, the parsed tres_req_str
+        let nested = ["set", "infinite", "number", "cpu", "mem"];
+        for source in [
+            include_str!("../fit.rs"),
+            include_str!("../handlers/why.rs"),
+        ] {
+            let code = source.split("#[cfg(test)]").next().unwrap();
+            for caps in read.captures_iter(code) {
+                let key = &caps[1];
+                assert!(JOB_KEYS.contains(&key) || nested.contains(&key), "{key}");
+            }
+        }
     }
 
     #[test]

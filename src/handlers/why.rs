@@ -15,7 +15,7 @@
 
 use crate::core::CLI_NAME;
 use crate::core::gpu::gpu_type_label;
-use crate::core::jobs::{JobRecord, load_job_records};
+use crate::core::jobs::{JobRecord, job_records_json, load_job_records};
 use crate::core::nodes::{load_nodes, node_from_props, nodes_from_json, remember_nodes};
 use crate::core::parse::{base_job_id, parse_prop_line};
 use crate::core::slurm::{self, Output, RunError};
@@ -56,16 +56,13 @@ fn job_records_from(ran: Ran, strict: bool) -> Result<Vec<JobRecord>> {
     if !output.success() {
         return Ok(Vec::new());
     }
-    match serde_json::from_str::<serde_json::Value>(&output.stdout) {
-        Ok(serde_json::Value::Object(mut top)) => match top.remove("jobs") {
-            Some(serde_json::Value::Array(jobs)) => Ok(jobs),
-            _ => Ok(Vec::new()),
-        },
-        _ if strict => Err(die_with_code(
+    match job_records_json(&output.stdout) {
+        Some(jobs) => Ok(jobs),
+        None if strict => Err(die_with_code(
             "this needs a Slurm whose `scontrol --json show job` works",
             2,
         )),
-        _ => Ok(Vec::new()),
+        None => Ok(Vec::new()),
     }
 }
 

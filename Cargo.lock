@@ -35,6 +35,7 @@ dependencies = [
  "fancy-regex",
  "libc",
  "regex",
+ "serde_core",
  "serde_json",
 ]
 
