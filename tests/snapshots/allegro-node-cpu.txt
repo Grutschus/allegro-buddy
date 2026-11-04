@@ -1,5 +1,0 @@
-cmp201  free 8/16 CPUs · 58/90G mem
-                   Jobs on cmp201                    
-JobID   User   Name         CPUs   Memory   Time left
-─────────────────────────────────────────────────────
-70130   bob    preprocess      8      32G       1h45m

@@ -1,6 +1,0 @@
-gpu201  free 0/4 GTX1080 · 0/16 CPUs · 26/90G mem
-                    Jobs on gpu201                     
-JobID   User   Name    GPUs   CPUs   Memory   Time left
-───────────────────────────────────────────────────────
-70102   bob    sweep   0,1       8      32G         19h
-70103   bob    sweep   2,3       8      32G      21h50m
