@@ -1,0 +1,24 @@
+{
+ "name": "job-output-sacct-array",
+ "category": "job",
+ "argv": [
+  "job",
+  "output",
+  "70080_3"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [
+  "demo/sweep-70080_3.out"
+ ],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

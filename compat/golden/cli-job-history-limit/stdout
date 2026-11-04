@@ -1,0 +1,5 @@
+                      Finished jobs                      
+JobID   Name          State       Exit code   Ended      
+─────────────────────────────────────────────────────────
+70090   prep-data     COMPLETED   0:0         today 08:41
+70085   train-small   FAILED      1:0         Mon 23:17  

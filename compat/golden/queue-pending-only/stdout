@@ -1,0 +1,6 @@
+                                     Queue · carol                                      
+JobID   Name   State     Partition   Time left   Start          Node/Reason             
+────────────────────────────────────────────────────────────────────────────────────────
+64613   eval   PENDING   gpu                8h   in 26356d22h   GPU-bound · max 2/4 free
+64614   post   PENDING   gpu                8h   -              Dependency              
+ⓘ `bab why` shows what is short and what would start now

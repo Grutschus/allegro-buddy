@@ -1,0 +1,6 @@
+gpu102  free 2/4 A5000 · 8/16 CPUs · 58/90G mem
+                      Jobs on gpu102                      
+JobID   User   Name       GPUs   CPUs   Memory   Time left
+──────────────────────────────────────────────────────────
+70104   bob    finetune   3         6      24G    1d23h20m
+free GPUs: 2 · GPUs 0,1 in use, owner unknown

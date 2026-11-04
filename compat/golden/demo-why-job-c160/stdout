@@ -1,0 +1,8 @@
+70120  gpu  4x A5000 · 16 CPU · 40G
+  waiting for GPUs and CPUs to free up · starts in 2h10m (Tue 12:10) on gpu101
+  no single change starts it now
+
+       Biggest free slots        
+GPUs       CPUs   Memory   Nodes 
+─────────────────────────────────
+3x A5000     12      73G   gpu101

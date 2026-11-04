@@ -1,0 +1,20 @@
+{
+ "name": "cpuonly-free",
+ "category": "cluster",
+ "argv": [
+  "free"
+ ],
+ "then": [],
+ "world": "cpuonly",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

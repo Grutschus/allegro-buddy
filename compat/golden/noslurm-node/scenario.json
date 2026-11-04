@@ -1,0 +1,21 @@
+{
+ "name": "noslurm-node",
+ "category": "errors",
+ "argv": [
+  "node",
+  "gpu101"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": true,
+ "normalize": []
+}

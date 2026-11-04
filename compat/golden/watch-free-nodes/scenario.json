@@ -1,0 +1,23 @@
+{
+ "name": "watch-free-nodes",
+ "category": "watch",
+ "argv": [
+  "free",
+  "--watch",
+  "30",
+  "--nodes"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": 3.0,
+ "path_without_slurm": false,
+ "normalize": []
+}

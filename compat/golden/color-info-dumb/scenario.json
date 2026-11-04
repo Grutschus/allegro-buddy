@@ -1,0 +1,22 @@
+{
+ "name": "color-info-dumb",
+ "category": "color",
+ "argv": [
+  "info"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "FORCE_COLOR": "1",
+  "TERM": "dumb"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

@@ -1,0 +1,11 @@
+{"argv": ["scontrol", "show", "config"], "exit": 0}
+{"argv": ["scontrol", "--json", "show", "nodes"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "show", "partition"], "exit": 0}
+{"argv": ["sacctmgr", "-nP", "show", "user", "alice", "withassoc", "cluster=allegro", "format=DefaultAccount,Account,QOS"], "exit": 0}
+{"argv": ["squeue", "-h", "--user=alice", "--format=%F"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "80001"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "80002"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "80003"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "--details", "show", "job", "80004"], "exit": 0}
+{"argv": ["scontrol", "--oneliner", "show", "reservation"], "exit": 0}
+{"argv": ["squeue", "-h", "--state=PD", "--user=alice", "--format=%i|%j|%P|%l|%R"], "exit": 0}

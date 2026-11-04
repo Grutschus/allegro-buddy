@@ -1,0 +1,22 @@
+{
+ "name": "watch-free-pty-color",
+ "category": "watch",
+ "argv": [
+  "free",
+  "-w"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "TERM": "xterm-256color"
+ },
+ "stdin": null,
+ "tty": "pty",
+ "files": [],
+ "capture": [],
+ "sigint_after": 3.0,
+ "path_without_slurm": false,
+ "normalize": []
+}

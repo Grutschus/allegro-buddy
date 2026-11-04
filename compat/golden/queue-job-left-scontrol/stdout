@@ -1,0 +1,5 @@
+                                 Queue · all users                                 
+JobID   User    Name   State     Partition   Time left   Start          Node/Reason
+───────────────────────────────────────────────────────────────────────────────────
+64613   carol   eval   PENDING   gpu                8h   in 26356d22h   Resources  
+bottleneck hints unavailable: scontrol returned no job or node data

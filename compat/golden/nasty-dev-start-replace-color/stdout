@@ -1,0 +1,3 @@
+[2mCanceled 70110.[0m
+Submitted dev job [36m70140[0m on [1;32mgpu[0m[2m (1 GPU, 2 CPUs, 8G, 8h)[0m
+[2mⓘ `bab l --wait` joins it once it runs (short for `bab dev login --wait`)[0m

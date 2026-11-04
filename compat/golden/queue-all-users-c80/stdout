@@ -1,0 +1,10 @@
+                               Queue · all users                                
+                                                        Time                    
+JobID   User    Name    State     Partit…   Elapsed     left   Start     Node/R…
+────────────────────────────────────────────────────────────────────────────────
+64612   bob     train   RUNNING   gpu          1h2m    6h57m             gpu081 
+64613   carol   eval    PENDING   gpu                     8h   in        GPU-bo…
+                                                               26356d…   · max  
+                                                                         2/4    
+                                                                         free   
+ⓘ `bab why` shows what is short and what would start now

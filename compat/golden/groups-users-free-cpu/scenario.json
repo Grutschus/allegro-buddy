@@ -1,0 +1,24 @@
+{
+ "name": "groups-users-free-cpu",
+ "category": "groups",
+ "argv": [
+  "free",
+  "--kind",
+  "cpu",
+  "--nodes"
+ ],
+ "then": [],
+ "world": "groups",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160",
+  "BAB_TEST_GROUPS": "users"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

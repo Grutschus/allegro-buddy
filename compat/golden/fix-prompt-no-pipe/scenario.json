@@ -1,0 +1,23 @@
+{
+ "name": "fix-prompt-no-pipe",
+ "category": "fix",
+ "argv": [
+  "why",
+  "64267",
+  "--fix"
+ ],
+ "then": [],
+ "world": "custom",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120",
+  "BAB_TEST_INTERACTIVE": "1"
+ },
+ "stdin": "n\n",
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

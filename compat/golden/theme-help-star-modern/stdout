@@ -1,0 +1,25 @@
+                                                                                                    
+  [1;33mUsage:[0m [33mbab[0m [[94mOPTIONS[0m] [94mCOMMAND[0m [[94mARGS[0m]...                                                            
+                                                                                                    
+  [39mAllegro Buddy: a friendly Slurm helper.[0m                                                           
+                                                                                                    
+[2m  [0m[39mOptions[0m[2m                                                                                         [0m[2m  [0m
+[2m [0m ──────────────────────────────────────────────────────────────────────────────────────────────── [2m [0m
+[2m [0m      [33m--version[0m   [39mShow the version and exit.[0m                                                      [2m [0m
+[2m [0m [33m-h[0m   [33m--help   [0m   [39mShow this message and exit.[0m                                                     [2m [0m
+[2m [0m                                                                                                  [2m [0m
+[2m                                                                                                    [0m
+[2m  [0m[39mCommands[0m[2m                                                                                        [0m[2m  [0m
+[2m [0m ──────────────────────────────────────────────────────────────────────────────────────────────── [2m [0m
+[2m [0m [33mcompletion      [0m[33m [0m  [39mgenerate or install shell completion                                         [0m [2m [0m
+[2m [0m [33mconfig          [0m[33m [0m  [39mshow where settings come from                                                [0m [2m [0m
+[2m [0m [33mdev             [0m[33m [0m  [39mstart, join and stop a dev job                                               [0m [2m [0m
+[2m [0m [33ml               [0m[33m [0m  [39mjoin a running dev job (short for bab dev login)                             [0m [2m [0m
+[2m [0m [33mfree            [0m[33m [0m  [39mshow free GPUs and cluster resources                                         [0m [2m [0m
+[2m [0m [33minfo            [0m[33m [0m  [39mshow your partitions and a cluster summary                                   [0m [2m [0m
+[2m [0m [33mjob             [0m[33m [0m  [39mshow finished jobs and their output                                          [0m [2m [0m
+[2m [0m [33mnode            [0m[33m [0m  [39mshow which jobs use a node's GPUs, CPUs and memory                           [0m [2m [0m
+[2m [0m [33mqueue[0m[39m, [0m[33mq[0m[33m        [0m[33m [0m  [39mshow your jobs in the queue                                                  [0m [2m [0m
+[2m [0m [33mwhy             [0m[33m [0m  [39mexplain what a pending job is waiting for                                    [0m [2m [0m
+[2m [0m                                                                                                  [2m [0m
+[2m                                                                                                    [0m

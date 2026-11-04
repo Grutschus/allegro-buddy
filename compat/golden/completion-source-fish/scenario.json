@@ -1,0 +1,19 @@
+{
+ "name": "completion-source-fish",
+ "category": "completion",
+ "argv": [],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100",
+  "_BAB_COMPLETE": "fish_source"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

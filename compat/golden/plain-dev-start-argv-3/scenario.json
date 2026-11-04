@@ -1,0 +1,28 @@
+{
+ "name": "plain-dev-start-argv-3",
+ "category": "cluster",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "-p",
+  "small",
+  "-g",
+  "0",
+  "-c",
+  "4"
+ ],
+ "then": [],
+ "world": "plain",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

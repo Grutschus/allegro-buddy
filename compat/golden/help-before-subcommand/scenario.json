@@ -1,0 +1,21 @@
+{
+ "name": "help-before-subcommand",
+ "category": "help",
+ "argv": [
+  "-h",
+  "queue"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

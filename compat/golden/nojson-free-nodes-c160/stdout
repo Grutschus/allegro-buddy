@@ -1,0 +1,9 @@
+                          GPU nodes                           
+Node     State       A5000   GTX1080   Free CPUs   Free memory
+──────────────────────────────────────────────────────────────
+gpu102   IDLE          4/4         -       16/16        90/90G
+gpu101   MIXED         3/4         -       12/16        90/90G
+gpu201   ALLOCATED       -       0/4        0/16        90/90G
+                                                              
+total                  7/8       0/4       28/48      270/270G
+free/total

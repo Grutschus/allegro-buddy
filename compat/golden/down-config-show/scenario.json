@@ -1,0 +1,21 @@
+{
+ "name": "down-config-show",
+ "category": "errors",
+ "argv": [
+  "config",
+  "show"
+ ],
+ "then": [],
+ "world": "down",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

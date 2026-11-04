@@ -1,0 +1,22 @@
+{
+ "name": "help-dev-start-lise-preset",
+ "category": "help",
+ "argv": [
+  "dev",
+  "start",
+  "-h"
+ ],
+ "then": [],
+ "world": "lise",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "100"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

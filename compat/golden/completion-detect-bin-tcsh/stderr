@@ -1,0 +1,8 @@
+                                                                                                    
+  Usage: bab completion [OPTIONS] [[bash|zsh|fish]]                                                 
+                                                                                                    
+ Try 'bab completion -h' for help                                                                   
+╭─ Error ──────────────────────────────────────────────────────────────────────────────────────────╮
+│ cannot detect a supported shell from $SHELL ('tcsh'); pass one of bash, zsh, fish                │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+                                                                                                    

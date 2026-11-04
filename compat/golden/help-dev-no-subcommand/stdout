@@ -1,0 +1,16 @@
+                                                                                                    
+  Usage: bab dev [OPTIONS] COMMAND [ARGS]...                                                        
+                                                                                                    
+  Options                                                                                           
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  -h   --help   Show this message and exit.                                                         
+                                                                                                    
+                                                                                                    
+  Commands                                                                                          
+  ────────────────────────────────────────────────────────────────────────────────────────────────  
+  login                  join a running dev job                                                     
+  start                  submit a detached dev job                                                  
+  status                 show your dev job                                                          
+  stop                   cancel your dev job                                                        
+                                                                                                    
+                                                                                                    

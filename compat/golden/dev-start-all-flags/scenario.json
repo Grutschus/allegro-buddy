@@ -1,0 +1,42 @@
+{
+ "name": "dev-start-all-flags",
+ "category": "dev",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "-p",
+  "gpusmall",
+  "-t",
+  "2:00:00",
+  "-g",
+  "2",
+  "--gpu-type",
+  "gtx1080",
+  "-c",
+  "8",
+  "-m",
+  "24G",
+  "--account",
+  "teaching",
+  "--constraint",
+  "Intel",
+  "--exclude",
+  "gpu201",
+  "-n",
+  "gpu202"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

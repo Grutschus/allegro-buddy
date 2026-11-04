@@ -1,0 +1,20 @@
+{
+ "name": "lise-free-c160",
+ "category": "cluster",
+ "argv": [
+  "free"
+ ],
+ "then": [],
+ "world": "lise",
+ "tweak": false,
+ "env": {
+  "COLUMNS": "160"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}

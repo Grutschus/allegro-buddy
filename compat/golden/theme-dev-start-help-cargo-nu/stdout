@@ -1,0 +1,22 @@
+ [1;32mUsage:[0m [1;36mbab dev start[0m [36m[[0m[36mOPTIONS[0m[36m][0m                                                                     
+                                                                                                    
+ Submit a detached dev job. Flags override the [dev] config (bab config show).                      
+                                                                                                    
+[32m ═[0m[32m [0m[1;32mOptions[0m[32m [0m[32m═══════════════════════════════════════════════════════════════════════════════════════[0m[32m═ [0m
+[32m [0m[1;36m--partition    [0m  [1;36m-p[0m  [39mpartition, or auto for Slurm's default[0m[39m [0m[36m[TEXT][0m[39m [0m[39m(Default: gpu)[0m                 [32m [0m
+[32m [0m[1;36m--time         [0m  [1;36m-t[0m  [39mSlurm time limit[0m[39m [0m[36m[TEXT][0m[39m [0m[39m(Default: 08:00:00)[0m                                  [32m [0m
+[32m [0m[1;36m--gpu          [0m  [1;36m-g[0m  [39mGPUs to request[0m[39m [0m[36m[INTEGER][0m[39m [0m[39m(Default: (1 on GPU partitions, else 0))[0m           [32m [0m
+[32m [0m[1;36m--gpu-type     [0m      [39mGPU type, e.g. a5000[0m[39m [0m[36m[TEXT][0m[39m [0m[39m(Default: (any))[0m                                 [32m [0m
+[32m [0m[1;36m--cpus         [0m  [1;36m-c[0m  [39mCPUs to request[0m[39m [0m[36m[INTEGER][0m[39m [0m[39m(Default: 2)[0m                                       [32m [0m
+[32m [0m[1;36m--mem          [0m  [1;36m-m[0m  [39mmemory to request[0m[39m [0m[36m[TEXT][0m[39m [0m[39m(Default: 8G)[0m                                       [32m [0m
+[32m [0m[1;36m--account      [0m      [39mSlurm account[0m[39m [0m[36m[TEXT][0m                                                         [32m [0m
+[32m [0m[1;36m--constraint   [0m      [39mSlurm node feature constraint (prefer [0m[1;36m--gpu-type[0m[39m)[0m[39m [0m[36m[TEXT][0m                     [32m [0m
+[32m [0m[1;36m--exclude      [0m      [39mcomma-separated nodes to exclude[0m[39m [0m[36m[TEXT][0m                                      [32m [0m
+[32m [0m[1;36m--node         [0m  [1;36m-n[0m  [39mrequest a specific node[0m[39m [0m[36m[TEXT][0m                                               [32m [0m
+[32m [0m[1;36m--replace      [0m      [39mcancel existing dev jobs first[0m                                               [32m [0m
+[32m [0m[1;36m--no-wait      [0m      [39mreturn right after submitting (not with [0m[1;36m--login[0m[39m)[0m                             [32m [0m
+[32m [0m[1;36m--login        [0m      [39mopen a shell once the job is RUNNING (not with [0m[1;36m--no-wait[0m[39m)[0m                    [32m [0m
+[32m [0m[1;36m--timeout      [0m      [39mmax seconds to wait for RUNNING[0m[39m [0m[36m[INTEGER][0m                                    [32m [0m
+[32m [0m[1;36m--poll-interval[0m      [39mseconds between checks while waiting[0m[39m [0m[36m[FLOAT RANGE x>=1][0m[39m [0m[39m(Default: 5.0)[0m       [32m [0m
+[32m [0m[1;36m--help         [0m  [1;36m-h[0m  [39mShow this message and exit.[0m                                                  [32m [0m
+[32m                                                                                                    [0m

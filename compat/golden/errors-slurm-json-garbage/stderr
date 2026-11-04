@@ -1,0 +1,1 @@
+error: this needs a Slurm whose `scontrol --json show job` works

@@ -1,0 +1,26 @@
+{
+ "name": "dev-start-auto-partition",
+ "category": "dev",
+ "argv": [
+  "dev",
+  "start",
+  "--no-wait",
+  "-p",
+  "auto",
+  "-g",
+  "0"
+ ],
+ "then": [],
+ "world": "demo",
+ "tweak": true,
+ "env": {
+  "COLUMNS": "120"
+ },
+ "stdin": null,
+ "tty": "pipe",
+ "files": [],
+ "capture": [],
+ "sigint_after": null,
+ "path_without_slurm": false,
+ "normalize": []
+}
