@@ -8,7 +8,7 @@
  "env": {
   "COLUMNS": "100",
   "_BAB_COMPLETE": "bash_complete",
-  "COMP_WORDS": "bab -",
+  "COMP_WORDS": "bab --",
   "COMP_CWORD": "1"
  },
  "stdin": null,

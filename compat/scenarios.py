@@ -1081,7 +1081,7 @@ def complete(name: str, kind: str, words: str, cword: str, **extra: Any) -> None
 for _kind in ('bash', 'zsh'):
     complete('commands', _kind, 'bab ', '1')
     complete('commands-prefix', _kind, 'bab d', '1')
-    complete('root-options', _kind, 'bab -', '1')
+    complete('root-options', _kind, 'bab --', '1')
     complete('queue-options', _kind, 'bab q --', '2')
     complete('dev-subcommands', _kind, 'bab dev ', '2')
     complete('job-output-ids', _kind, 'bab job output ', '3')
