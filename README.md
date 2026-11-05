@@ -141,7 +141,9 @@ it had to pass:
   Ctrl-C, completion, config layers, and job names full of Rich markup, emoji and wide
   characters. Since the second performance pass `bab` asks Slurm for cheaper forms of
   the same data, so its read-only calls differ; rechecked 846/846 with the fake taught
-  to answer those forms from the same world (tag `equivalence-harness-2`).
+  to answer those forms from the same world (tag `equivalence-harness-2`), and again
+  for the `node`, ETA and `q --all` hint queries (tag `equivalence-harness-3`: 833/846,
+  the other 13 bash-completion scenarios fail for the reference too on macOS's bash 3.2).
 - **Replay parity: 532 of 532 cases identical** on real Allegro Slurm answers (Slurm
   24.11.5), recorded read-only, anonymised and replayed: every recorded command ×
   `COLUMNS` 80/160/200 × plain/`FORCE_COLOR`.
@@ -149,7 +151,7 @@ it had to pass:
   rich-click, 85 rendering cases vs Rich, and live spot checks on the cluster.
 
 That harness (and the benchmark data) was heavier than the tool, so it now lives at the
-git tag [`equivalence-harness-2`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-2), with instructions to rerun it. The branch keeps
+git tag [`equivalence-harness-3`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-3), with instructions to rerun it. The branch keeps
 a small test suite in the spirit of the original: unit tests and the original's 23
 whole-command snapshots (`tests/snapshots/`, byte-exact reference output) against a tiny
 fake Slurm.
@@ -194,12 +196,14 @@ from a filtered `squeue --json` (~15 ms), converted to exactly what the JSON say
 Where it stops, honestly:
 
 - **Slurm is the floor.** Rust doesn't make slurmctld answer any faster. Most commands
-  are now one Slurm round trip (~15 ms) plus a few ms of `bab`. `node` still reads every
-  job's details (~40 ms), and `q --all` lists the queue before it knows which jobs get
-  a hint.
-- The cheaper queries follow Slurm's source for 24.05, 24.11 and 25.05, so only those versions
-  get them; anything else (or anything unexpected in an answer) gets `ab`'s queries,
-  about 4× faster than `ab` instead of 12×.
+  are now one Slurm round trip (~15 ms) plus a few ms of `bab`. `node` reads every
+  job's details when more than 20 jobs run on the node, and `q --all` lists the queue
+  before it knows which jobs get a hint.
+- The cheaper queries follow Slurm's source for 24.05, 24.11, 25.05, 25.11 and 26.05,
+  so only those versions get them; anything else (or anything unexpected in an answer)
+  gets `ab`'s queries, about 4× faster than `ab` instead of 12×. On big clusters that
+  difference is seconds: Slurm formats (and looks up the user and group of) every job
+  for `why`, `node` and `q --all` hints unless asked for just the ones needed.
 - These numbers come from a quiet night. Under daytime load Slurm takes longer; the
   absolute savings stay, but the ratios of Slurm-bound commands shrink.
 - At ~0.2 s saved per call, the rewrite pays for itself after a few million `bab q`s.
@@ -222,7 +226,7 @@ cargo test
 name via `BAB_TEST_*` variables) for the snapshot test; a normal build never reads them,
 ship that one. `UPDATE_SNAPSHOTS=1 cargo test --test snapshots` rewrites
 `tests/snapshots/`. The full differential harness: tag
-[`equivalence-harness-2`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-2).
+[`equivalence-harness-3`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-3).
 To rerun the live benchmark and redraw the plots, see
 [`bench/RESULTS.md`](bench/RESULTS.md#updating-the-numbers).
 Notes for coding agents (conventions, cluster rules, task skills in `.claude/skills/`):

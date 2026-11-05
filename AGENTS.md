@@ -23,7 +23,7 @@ new ones unless asked. Performance work is welcome only under this rule.
   rich-click 1.9.9.
 - Checking it: `cargo test` (byte-exact snapshots), and for any change to output,
   parsing or Slurm calls the full differential harness at the git tag
-  `equivalence-harness-2` (skill `verify-equivalence`).
+  `equivalence-harness-3` (skill `verify-equivalence`).
 
 ## Where to start reading
 
@@ -92,7 +92,7 @@ pushes to and PRs into `main`, and skips docs-only changes. Run them locally.
 - Benchmarks and plots: `bench/RESULTS.md` ("Updating the numbers"); skill
   `update-benchmarks`.
 - Releases and PyPI: README "Releasing", `.github/workflows/release.yml`; skill `release`.
-- Differential harness, replay data, perf tooling: `git tag -n99 equivalence-harness-2`;
+- Differential harness, replay data, perf tooling: `git tag -n99 equivalence-harness-3`;
   skill `verify-equivalence`.
 - Skills live in `.claude/skills/` (Claude Code and Copilot read them); `CLAUDE.md` only
   imports this file. If a pointer here breaks, fix it here.

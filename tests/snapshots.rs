@@ -4,7 +4,7 @@
 //!
 //! `tests/snapshots/<scenario>.txt` is stdout followed by stderr at `COLUMNS=160`, the
 //! scratch directory shown as `@TMP@`. They are byte-exact output of the Python reference
-//! (renamed to `bab`), see the `equivalence-harness-2` tag. `UPDATE_SNAPSHOTS=1` rewrites them.
+//! (renamed to `bab`), see the `equivalence-harness-3` tag. `UPDATE_SNAPSHOTS=1` rewrites them.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
