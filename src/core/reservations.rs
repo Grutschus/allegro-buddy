@@ -7,6 +7,7 @@ use super::parse::{expand_nodelist, is_nullish, parse_prop_line};
 use super::timefmt::{delta_micros, iso_to_dt};
 use super::{Record, RecordExt};
 use crate::error::Result;
+use crate::hooks::GroupSet;
 use crate::pyfmt;
 use chrono::NaiveDateTime;
 use std::collections::{BTreeSet, HashMap};
@@ -107,7 +108,7 @@ pub fn reserved_nodes_map(reservations: &[Record]) -> HashMap<String, String> {
 pub fn user_can_use_reservation(
     reservation: &Record,
     user: &str,
-    groups: &BTreeSet<String>,
+    groups: &(impl GroupSet + ?Sized),
 ) -> bool {
     let users = reservation.get_str("Users");
     if !is_nullish(Some(users)) {

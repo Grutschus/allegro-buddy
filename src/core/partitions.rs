@@ -12,6 +12,7 @@ use super::timefmt::parse_slurm_time;
 use super::{Record, RecordExt};
 use crate::error::Result;
 use crate::error::die;
+use crate::hooks::GroupSet;
 use crate::pyfmt;
 use std::collections::{BTreeSet, HashMap};
 
@@ -42,7 +43,7 @@ fn group_list(value: &str) -> impl Iterator<Item = &str> {
 
 /// `partition_allowed(partition, groups)` (DenyGroups first, then AllowGroups; `ALL`
 /// and nullish mean everyone).
-pub fn partition_allowed(partition: &Partition, groups: &BTreeSet<String>) -> bool {
+pub fn partition_allowed(partition: &Partition, groups: &(impl GroupSet + ?Sized)) -> bool {
     let deny = partition.get_str("DenyGroups");
     if !is_nullish(Some(deny))
         && pyfmt::strip(deny).to_uppercase() != "ALL"

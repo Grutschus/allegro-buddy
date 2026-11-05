@@ -11,7 +11,7 @@ pub fn current_user() -> &'static str {
 }
 
 /// `current_groups()` via [`crate::hooks::groups`].
-pub fn current_groups() -> &'static BTreeSet<String> {
+pub fn current_groups() -> &'static dyn crate::hooks::GroupSet {
     crate::hooks::groups()
 }
 

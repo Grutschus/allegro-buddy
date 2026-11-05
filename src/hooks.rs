@@ -24,7 +24,8 @@
 //! Elapsed time and sleeping (dev wait polling, `--watch`) stay real: use
 //! `std::time::Instant` and [`crate::signals::sleep`].
 //!
-//! Values that cannot change during a run (user, groups, hostname) are cached per process.
+//! Values that cannot change during a run (user, groups, hostname) are cached per process;
+//! the real groups are only looked up once a group name has to be checked.
 //!
 //! Unit tests (`cfg(test)`) replace all of this with a per-thread `testing::Ctx`
 //! (frozen clock, user, groups, fake Slurm, settings, node facts) that
@@ -141,22 +142,50 @@ pub fn home_of(user: Option<&str>) -> Option<String> {
     passwd_entry(user).map(|(_, dir)| dir)
 }
 
-/// Names of the groups of this process (`core.current_groups()`), or `BAB_TEST_GROUPS`.
-/// Uses `getgroups(2)` + `getgrgid_r(3)` (NSS, hence glibc and not musl). Cached.
-pub fn groups() -> &'static BTreeSet<String> {
+/// Membership in the groups of this process (`core.current_groups()`).
+pub trait GroupSet {
+    fn contains(&self, name: &str) -> bool;
+}
+
+impl GroupSet for BTreeSet<String> {
+    fn contains(&self, name: &str) -> bool {
+        BTreeSet::contains(self, name)
+    }
+}
+
+/// The real groups, resolved on the first membership question only. With directory
+/// services (sssd, LDAP) `getgrgid` fetches every member of the group, and with a cold
+/// cache that takes seconds per big group; most partitions say `AllowGroups=ALL` and never
+/// ask. Same set as Python's, just computed later.
+struct SystemGroups(OnceLock<BTreeSet<String>>);
+
+impl GroupSet for SystemGroups {
+    fn contains(&self, name: &str) -> bool {
+        self.0.get_or_init(system_groups).contains(name)
+    }
+}
+
+/// The groups of this process (`core.current_groups()`), or `BAB_TEST_GROUPS`.
+/// Uses `getgroups(2)` + `getgrgid_r(3)` (NSS, hence glibc and not musl), lazily. Cached.
+pub fn groups() -> &'static dyn GroupSet {
     #[cfg(test)]
     if let Some(groups) = testing::ctx().groups {
         return groups;
     }
-    static GROUPS: OnceLock<BTreeSet<String>> = OnceLock::new();
-    GROUPS.get_or_init(|| match test_hook("BAB_TEST_GROUPS") {
-        Some(list) => list
-            .split(',')
-            .filter(|g| !g.is_empty())
-            .map(str::to_owned)
-            .collect(),
-        None => system_groups(),
-    })
+    static LISTED: OnceLock<Option<BTreeSet<String>>> = OnceLock::new();
+    static SYSTEM: SystemGroups = SystemGroups(OnceLock::new());
+    let listed = LISTED.get_or_init(|| {
+        test_hook("BAB_TEST_GROUPS").map(|list| {
+            list.split(',')
+                .filter(|g| !g.is_empty())
+                .map(str::to_owned)
+                .collect()
+        })
+    });
+    match listed {
+        Some(set) => set,
+        None => &SYSTEM,
+    }
 }
 
 fn system_groups() -> BTreeSet<String> {
@@ -377,7 +406,8 @@ mod tests {
             .install();
         assert_eq!(now().to_string(), "2026-10-06 14:30:00");
         assert_eq!(user(), "bob");
-        assert_eq!(groups().iter().collect::<Vec<_>>(), ["gpu", "staff"]);
+        assert!(groups().contains("gpu") && groups().contains("staff"));
+        assert!(!groups().contains("users"));
         assert_eq!(hostname(), "login1");
     }
 
