@@ -242,7 +242,7 @@ fn text_list(value: &str) -> String {
         .join(",")
 }
 
-/// One line of `scontrol --oneliner --details show node` (Slurm 24.05/24.11
+/// One line of `scontrol --oneliner --details show node` (Slurm 24.05/24.11/25.05
 /// `slurm_sprint_node_table`) as [`nodes_from_json`] would have made it from the same
 /// node's JSON. None when the line is not exactly in that shape.
 fn node_from_details_line(line: &str) -> Option<Node> {
@@ -712,6 +712,8 @@ NodeName=gpu074 CoresPerSocket=6  CPUAlloc=0 CPUEfctv=12 CPUTot=12 CPULoad=0.00 
         for odd in [
             line("State=IDLE+MAINTENANCE", "State=IDLE+BLOCKED+MAINTENANCE"),
             line("State=IDLE+MAINTENANCE", "State=IDLE+?+MAINTENANCE"),
+            // 25.05 prints EXTERNAL; its JSON does not list it
+            line("State=IDLE+MAINTENANCE", "State=IDLE+EXTERNAL+MAINTENANCE"),
             line("State=IDLE+MAINTENANCE+RESERVED", "State=MAINT+RESERVED"),
             line(
                 "State=IDLE+MAINTENANCE+RESERVED",

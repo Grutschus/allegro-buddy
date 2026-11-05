@@ -197,7 +197,7 @@ Where it stops, honestly:
   are now one Slurm round trip (~15 ms) plus a few ms of `bab`. `node` still reads every
   job's details (~40 ms), and `q --all` lists the queue before it knows which jobs get
   a hint.
-- The cheaper queries follow Slurm's source for 24.05 and 24.11, so only those versions
+- The cheaper queries follow Slurm's source for 24.05, 24.11 and 25.05, so only those versions
   get them; anything else (or anything unexpected in an answer) gets `ab`'s queries,
   about 4× faster than `ab` instead of 12×.
 - These numbers come from a quiet night. Under daytime load Slurm takes longer; the

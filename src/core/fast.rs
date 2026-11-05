@@ -17,8 +17,10 @@
 //! the `scontrol` on `PATH`, so it is asked again only after Slurm changes.
 
 /// Slurm client versions (major, minor) whose `scontrol` text, JSON and `squeue --json`
-/// output the conversion was checked against (24.05: data_parser v0.0.41, 24.11: v0.0.42).
-const VERIFIED: [(u32, u32); 2] = [(24, 5), (24, 11)];
+/// output the conversion was checked against (24.05: data_parser v0.0.41, 24.11: v0.0.42,
+/// 25.05: v0.0.43, also compared on a live 25.05.8 cluster; its new node flag `EXTERNAL`,
+/// absent from the JSON, makes the node text fall back).
+const VERIFIED: [(u32, u32); 3] = [(24, 5), (24, 11), (25, 5)];
 
 /// Whether the fast queries may be used (see the module docs).
 pub fn enabled() -> bool {
