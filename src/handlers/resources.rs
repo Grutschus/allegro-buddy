@@ -477,14 +477,12 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
         argv.extend(["-p".to_owned(), partition.to_owned()]);
     }
     // All users: some pending job almost always gets a bottleneck hint, which needs the
-    // pending jobs' records, the nodes and the partitions; start those now.
+    // nodes and the partitions; start those now (the hinted jobs are known only later).
     let _prefetch = selected_user.is_none().then(|| {
-        let mut argvs = vec![
+        slurm::prefetch(vec![
             crate::core::nodes::query_argv(),
             slurm::argv(&crate::core::partitions::ARGV),
-        ];
-        argvs.extend(super::why::all_pending_argv());
-        slurm::prefetch(argvs)
+        ])
     });
     let jobs = slurm::run_parsable_rows(
         &argv,

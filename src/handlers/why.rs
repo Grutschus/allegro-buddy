@@ -101,26 +101,31 @@ fn fast_jobs_argv(wanted: Wanted<'_>) -> Option<Vec<String>> {
     if !crate::core::fast::enabled() {
         return None;
     }
-    let user = match wanted {
-        Wanted::Job(_) => return None,
-        Wanted::PendingOf(user) => Some(user),
-        Wanted::Hints { user, .. } => user,
-    };
     let mut argv = slurm::argv(&["squeue", "--json", "--state=PD"]);
-    match user {
-        Some(user) if user.is_empty() || user.starts_with('-') => return None,
-        Some(user) => argv.push(format!("--user={user}")),
-        None => {}
+    match wanted {
+        Wanted::Job(_) => return None,
+        Wanted::PendingOf(user)
+        | Wanted::Hints {
+            user: Some(user), ..
+        } => {
+            if user.is_empty() || user.starts_with('-') {
+                return None;
+            }
+            argv.push(format!("--user={user}"));
+        }
+        // Everyone's pending jobs can be thousands; only the hinted ones are read.
+        Wanted::Hints { ids, user: None } => {
+            let numeric = |id: &String| !id.is_empty() && id.bytes().all(|b| b.is_ascii_digit());
+            if ids.is_empty() || !ids.iter().all(numeric) {
+                return None;
+            }
+            argv.push(format!(
+                "--jobs={}",
+                ids.iter().map(String::as_str).collect::<Vec<_>>().join(",")
+            ));
+        }
     }
     Some(argv)
-}
-
-/// `squeue --json --state=PD` for `bab q --all` hints, started with the queue listing.
-pub fn all_pending_argv() -> Option<Vec<String>> {
-    fast_jobs_argv(Wanted::Hints {
-        ids: &BTreeSet::new(),
-        user: None,
-    })
 }
 
 /// `load_inputs(strict=, job_id=)`: `load_job_records`, `load_nodes`, `load_partitions`,

@@ -48,7 +48,7 @@ done
 - Both fake Slurms fail closed: an unexpected call is logged and exits 1. Mutating
   calls must be the same sequence as Python's. Read-only differences are expected only
   where bab asks cheaper forms (`src/core/fast.rs`: `scontrol --version`,
-  `scontrol --oneliner --details show node`, `squeue --json --state=PD [--user=U]`,
+  `scontrol --oneliner --details show node`, `squeue --json --state=PD [--user=U|--jobs=IDS]`,
   `squeue -h --user=U --format=%i|%T|%S|%e`) or
   prefetches; the harness's fake must answer those forms from the same world. `run.py`
   accepts exactly that (`_readonly_problems`): a query of ab's may be missing only if

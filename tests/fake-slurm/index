@@ -12,7 +12,7 @@ demo-dev-start 0 - squeue -h --user=alice --format=%F --name=ab-dev
 demo-* 0 demo-nodes.json scontrol --json show nodes
 demo-* 0 demo-nodes.txt scontrol --oneliner --details show node
 demo-* 0 demo-jobs-alice-pending.json squeue --json --state=PD --user=alice
-demo-* 0 demo-jobs-pending.json squeue --json --state=PD
+demo-* 0 demo-jobs-hints.json squeue --json --state=PD --jobs=70120,70121,70122
 demo-* 0 demo-jobs.json scontrol --json show job
 demo-* 0 job-70120.json scontrol --json show job 70120
 demo-* 0 job-70122.json scontrol --json show job 70122
