@@ -320,33 +320,43 @@ pub fn user_etas_argv(user: &str) -> Vec<String> {
     }
 }
 
-/// `squeue -h --user=U --format=%i|%T|%S|%e`: per job record what [`get_user_job_etas`]
-/// reads of `scontrol --oneliner --details show job` (Slurm prints `JobState` and
-/// `%T` with `job_state_string`, `StartTime`/`EndTime` and `%S`/`%e` with
+/// `squeue -h -r --user=U --format=%A|%i|%T|%S|%e`: per job record what
+/// [`get_user_job_etas`] reads of `scontrol --oneliner --details show job` (Slurm prints
+/// `JobState` and `%T` with `job_state_string`, `StartTime`/`EndTime` and `%S`/`%e` with
 /// `slurm_make_time_str`; only an unknown time is spelled differently, `Unknown`/`N/A`/
 /// `NONE`, which never parses). squeue lists the records `ab` gets from one
 /// `scontrol show job ID` per array or job id, except for heterogeneous jobs (`%i` =
-/// `123+0`), whose leader's listing repeats the components.
+/// `123+0`), whose leader's listing repeats the components. Without `-r` squeue merges
+/// pending array tasks that are separate records into one line; with it, a record that
+/// still holds several tasks is one line per task, all with its `%A`.
 fn job_times_argv(user: &str) -> Vec<String> {
     vec![
         "squeue".to_owned(),
         "-h".to_owned(),
+        "-r".to_owned(),
         format!("--user={user}"),
-        "--format=%i|%T|%S|%e".to_owned(),
+        "--format=%A|%i|%T|%S|%e".to_owned(),
     ]
 }
 
-/// `JobState`, `StartTime`, `EndTime` of each line of [`job_times_argv`]; None for a
-/// heterogeneous job or a line of another shape.
+/// `JobState`, `StartTime`, `EndTime` of each job record (first line per `%A`) of
+/// [`job_times_argv`]; None for a heterogeneous job or a line of another shape.
 fn job_times(stdout: &str) -> Option<Vec<(&str, &str, &str)>> {
-    data_lines(stdout)
-        .map(|line| {
-            let mut fields = line.split('|');
-            let id = fields.next()?;
-            let times = (fields.next()?, fields.next()?, fields.next()?);
-            (fields.next().is_none() && !id.contains('+')).then_some(times)
-        })
-        .collect()
+    let mut seen = std::collections::HashSet::new();
+    let mut rows = Vec::new();
+    for line in data_lines(stdout) {
+        let mut fields = line.split('|');
+        let record = fields.next()?;
+        let id = fields.next()?;
+        let times = (fields.next()?, fields.next()?, fields.next()?);
+        if fields.next().is_some() || id.contains('+') {
+            return None;
+        }
+        if seen.insert(record) {
+            rows.push(times);
+        }
+    }
+    Some(rows)
 }
 
 /// `get_user_job_etas(user, now=now)`: (pending start deltas, running end deltas).
@@ -907,6 +917,24 @@ mod tests {
     fn history(output: Output) -> Vec<Record> {
         let _ctx = Ctx::default().slurm(FakeSlurm::always(output)).install();
         load_job_history(Some("alice"), true, "now-30days").unwrap()
+    }
+
+    #[test]
+    fn job_times_one_row_per_record() {
+        // `-r` lists a record holding tasks 3-4 once per task, both with its %A
+        let out = "500|500_3|PENDING|N/A|N/A\n500|500_4|PENDING|N/A|N/A\n\
+                   502|500_2|PENDING|2026-11-05T21:52:00|2026-11-06T21:52:00\n\
+                   601|601|RUNNING|2026-11-05T08:00:00|2026-11-05T20:00:00\n";
+        assert_eq!(
+            job_times(out),
+            Some(vec![
+                ("PENDING", "N/A", "N/A"),
+                ("PENDING", "2026-11-05T21:52:00", "2026-11-06T21:52:00"),
+                ("RUNNING", "2026-11-05T08:00:00", "2026-11-05T20:00:00"),
+            ])
+        );
+        assert_eq!(job_times("700|700+0|RUNNING|N/A|N/A\n"), None);
+        assert_eq!(job_times("700|RUNNING|N/A|N/A\n"), None);
     }
 
     #[test]
