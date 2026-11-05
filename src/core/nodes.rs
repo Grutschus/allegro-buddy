@@ -178,8 +178,13 @@ const JSON_STATE_FLAGS: [&str; 22] = [
 
 /// `MIXED+MAINTENANCE+RESERVED` (scontrol) as the JSON list joins: `MIXED+RESERVED+MAINTENANCE`.
 /// None for anything scontrol would not print or JSON would show differently (`BLOCKED`
-/// is not in the JSON, flags JSON knows but scontrol prints as `?`).
+/// is not in the JSON, flags JSON knows but scontrol prints as `?`, and `POWER_DOWN` with
+/// `POWERED_DOWN`, which 26.05's JSON also lists as `POWER_DOWN_FORCE`).
 fn json_state_from_text(state: &str) -> Option<String> {
+    let has = |flag: &str| state.split('+').skip(1).any(|f| f == flag);
+    if has("POWER_DOWN") && has("POWERED_DOWN") {
+        return None;
+    }
     let mut parts = state.split('+');
     let base = parts.next().filter(|b| TEXT_BASE_STATES.contains(b))?;
     let mut previous = None;
@@ -242,7 +247,7 @@ fn text_list(value: &str) -> String {
         .join(",")
 }
 
-/// One line of `scontrol --oneliner --details show node` (Slurm 24.05/24.11/25.05
+/// One line of `scontrol --oneliner --details show node` (Slurm 24.05 to 26.05
 /// `slurm_sprint_node_table`) as [`nodes_from_json`] would have made it from the same
 /// node's JSON. None when the line is not exactly in that shape.
 fn node_from_details_line(line: &str) -> Option<Node> {
@@ -714,6 +719,11 @@ NodeName=gpu074 CoresPerSocket=6  CPUAlloc=0 CPUEfctv=12 CPUTot=12 CPULoad=0.00 
             line("State=IDLE+MAINTENANCE", "State=IDLE+?+MAINTENANCE"),
             // 25.05 prints EXTERNAL; its JSON does not list it
             line("State=IDLE+MAINTENANCE", "State=IDLE+EXTERNAL+MAINTENANCE"),
+            // 26.05's JSON adds POWER_DOWN_FORCE
+            line(
+                "State=IDLE+MAINTENANCE",
+                "State=IDLE+POWERED_DOWN+POWER_DOWN",
+            ),
             line("State=IDLE+MAINTENANCE+RESERVED", "State=MAINT+RESERVED"),
             line(
                 "State=IDLE+MAINTENANCE+RESERVED",
