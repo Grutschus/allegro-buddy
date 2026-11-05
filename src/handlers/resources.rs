@@ -20,7 +20,7 @@ use crate::core::gpu::{
 };
 use crate::core::jobs::{
     display_job_id, find_dev_jobs, get_user_job_etas, get_user_jobs, job_gres_on_node, job_on_node,
-    load_running_jobs, load_user_pending_jobs,
+    load_running_jobs_on, load_user_pending_jobs,
 };
 use crate::core::nodes::{
     Node, NodeFree, is_gpu_partition, load_nodes, node_facts, node_free, node_is_idle,
@@ -1059,10 +1059,14 @@ fn ids_text(ids: impl IntoIterator<Item = i64>) -> String {
 
 /// `cmd_node(node=)` (also `gpualloc`).
 pub fn cmd_node(node: Option<&str>) -> Result<()> {
-    let _prefetch = slurm::prefetch(vec![
-        crate::core::nodes::query_argv(),
-        crate::core::jobs::job_details_argv(None),
-    ]);
+    let jobs_argv = if crate::core::fast::enabled() {
+        node.and_then(crate::core::jobs::node_jobs_argv)
+    } else {
+        Some(crate::core::jobs::job_details_argv(None))
+    };
+    let mut argvs = vec![crate::core::nodes::query_argv()];
+    argvs.extend(jobs_argv);
+    let _prefetch = slurm::prefetch(argvs);
     let nodes = load_nodes(true)?; // also primes node_facts(), so guess_node won't reload
     let node_name = guess_node(node)?;
     let Some(node_info) = nodes.iter().find(|n| n.name == node_name) else {
@@ -1070,7 +1074,7 @@ pub fn cmd_node(node: Option<&str>) -> Result<()> {
     };
 
     let total_gpus = parse_gpu_count(Some(&node_info.gres));
-    let mut jobs: Vec<(Vec<i64>, String, Record)> = load_running_jobs()?
+    let mut jobs: Vec<(Vec<i64>, String, Record)> = load_running_jobs_on(&node_name)?
         .into_iter()
         .filter(|job| expand_nodelist(job.get_str("NodeList")).contains(&node_name))
         .map(|job| {

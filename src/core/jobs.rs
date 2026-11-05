@@ -269,6 +269,65 @@ pub fn load_running_jobs() -> Result<Vec<Record>> {
         .collect())
 }
 
+/// With [`super::fast`]: `squeue -h -w NODE -t R,CG,CF --format=%i`, the jobs and array
+/// tasks that can be running on `node` (`JobState` RUNNING, COMPLETING or CONFIGURING
+/// means base state RUNNING or the COMPLETING or CONFIGURING flag). None for a node name
+/// squeue would read as something else.
+pub fn node_jobs_argv(node: &str) -> Option<Vec<String>> {
+    let plain = !node.is_empty()
+        && !node.starts_with('-')
+        && !node.contains(|c: char| c == ',' || c == '[' || c.is_whitespace());
+    (super::fast::enabled() && plain).then(|| {
+        vec![
+            "squeue".to_owned(),
+            "-h".to_owned(),
+            format!("--nodelist={node}"),
+            "--states=R,CG,CF".to_owned(),
+            "--format=%i".to_owned(),
+        ]
+    })
+}
+
+/// [`load_running_jobs`] for a caller that only reads the jobs on `node`. Every job's
+/// details make Slurm format (and resolve the user and group of) every job, seconds on a
+/// big cluster; with [`node_jobs_argv`] only the jobs there are asked for, one `scontrol
+/// show job ID` each, in parallel, like [`get_user_jobs`] (at most
+/// [`USER_JOB_DETAIL_LIMIT`], no heterogeneous job). Same text, same records.
+pub fn load_running_jobs_on(node: &str) -> Result<Vec<Record>> {
+    if let Some(argv) = node_jobs_argv(node) {
+        let output = slurm::run(&argv, false)?;
+        let mut ids: Vec<&str> = Vec::new();
+        for id in pyfmt::split_whitespace(&output.stdout) {
+            if !ids.contains(&id) {
+                ids.push(id);
+            }
+        }
+        if output.success()
+            && ids.len() <= USER_JOB_DETAIL_LIMIT
+            && !ids.iter().any(|id| id.contains(['+', '[']))
+        {
+            let tasks: Vec<Task<'_, Vec<Record>>> = ids
+                .iter()
+                .map(|id| -> Task<'_, Vec<Record>> {
+                    Box::new(move || {
+                        slurm::try_run(&job_details_argv(Some(id)), false)
+                            .map(|output| parse_job_details(&output))
+                            .unwrap_or_default()
+                    })
+                })
+                .collect();
+            let jobs = slurm::parallel(tasks)
+                .into_iter()
+                .flatten()
+                .filter(|job| RUNNING_STATES.contains(&job.get_str("JobState")))
+                .collect();
+            slurm::check_interrupted()?;
+            return Ok(jobs);
+        }
+    }
+    load_running_jobs()
+}
+
 /// `load_job_records(job_id, strict=strict)`: `scontrol --json show job [id]`; checked
 /// only when strict and no id; non-zero -> `[]`; bad JSON -> strict:
 /// `die("this needs a Slurm whose `scontrol --json show job` works", exit_code=2)`, else `[]`.

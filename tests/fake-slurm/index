@@ -21,6 +21,13 @@ demo-* 0 demo-jobs.txt scontrol --oneliner --details show job
 demo-* 0 job-70090.txt scontrol --oneliner --details show job 70090
 demo-* 0 job-70110.txt scontrol --oneliner --details show job 70110
 demo-* 0 job-70140.txt scontrol --oneliner --details show job 70140
+demo-* 0 job-70102.txt scontrol --oneliner --details show job 70102
+demo-* 0 job-70103.txt scontrol --oneliner --details show job 70103
+demo-* 0 job-70104.txt scontrol --oneliner --details show job 70104
+demo-* 0 job-70130.txt scontrol --oneliner --details show job 70130
+demo-* 0 node-gpu102.txt squeue -h --nodelist=gpu102 --states=R,CG,CF --format=%i
+demo-* 0 node-gpu201.txt squeue -h --nodelist=gpu201 --states=R,CG,CF --format=%i
+demo-* 0 node-cmp201.txt squeue -h --nodelist=cmp201 --states=R,CG,CF --format=%i
 demo-* 0 squeue-alice.txt squeue -h --format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R -u alice
 demo-* 0 squeue-all.txt squeue -h --format=%i|%A|%u|%j|%T|%P|%M|%L|%S|%R
 demo-* 0 dev-jobs.txt squeue -h --user=alice --format=%F --name=ab-dev
