@@ -183,7 +183,7 @@ jobs:
           Install the `bab` binary (Linux x86_64/aarch64 with glibc ≥ 2.17, macOS x86_64/arm64):
 
           ```bash
-          mkdir -p ~/.local/bin && curl -fsSL https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-$(uname -s).tar.gz | tar -xz -C ~/.local/bin
+          mkdir -p ~/.local/bin && curl -fsSL "https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-$(uname -s).tar.gz" | tar -xz -C ~/.local/bin
           ```
 
           The wheels and the sdist are the files of the PyPI package `better-allegro-buddy`.

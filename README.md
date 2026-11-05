@@ -32,7 +32,7 @@ One command, no Python needed. It fetches the `bab` binary for Linux (x86_64/aar
 glibc ≥ 2.17: RHEL/CentOS 7 and newer) or macOS (Intel/Apple silicon):
 
 ```bash
-mkdir -p ~/.local/bin && curl -fsSL https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-$(uname -s).tar.gz | tar -xz -C ~/.local/bin
+mkdir -p ~/.local/bin && curl -fsSL "https://github.com/plainerman/better-allegro-buddy/releases/latest/download/bab-$(uname -m)-$(uname -s).tar.gz" | tar -xz -C ~/.local/bin
 bab completion --install               # optional: tab completion
 ```
 
