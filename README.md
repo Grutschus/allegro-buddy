@@ -6,7 +6,7 @@
   <picture align="center">
     <source media="(prefers-color-scheme: dark)" srcset="bench/plots/hero-dark.svg">
     <source media="(prefers-color-scheme: light)" srcset="bench/plots/hero-light.svg">
-    <img alt="Bar chart: running all 12 read-only commands once takes 0.23 s with bab and 2.99 s with ab." src="bench/plots/hero-light.svg">
+    <img alt="Bar chart: running all 12 read-only commands once takes 0.24 s with bab and 2.95 s with ab." src="bench/plots/hero-light.svg">
   </picture>
 </p>
 <p align="center">
@@ -23,7 +23,7 @@ The original is a great tool. Its only flaw: it is Python, so every call spends 
 importing itself before it asks Slurm anything. Rewriting things in Rust is a meme, so
 we did it as a joke and gave it the most modest name we could think of. Then the joke
 got a differential test harness, a benchmark suite and a CI pipeline. Now it is
-**12× faster** (median, live on Allegro). Same commands, flags, config and output, down
+**11× faster** (median, live on Allegro). Same commands, flags, config and output, down
 to the last ANSI escape code. Only the name changed, and it got one more `b`.
 
 ## Install
@@ -76,7 +76,7 @@ use the binaries above, which are built for glibc 2.17.
 | `bab job history / output` | Your finished jobs and their output |
 | `bab config show` | Every setting and where it came from |
 
-Every command has `-h`. It comes back in ~3 ms now, so you can afford to ask.
+Every command has `-h`. It comes back in ~4 ms now, so you can afford to ask.
 
 The screenshots below were taken with the original `ab`. We didn't redo them: apart
 from the program name, `bab` looks exactly the same. That's the whole point.
@@ -165,20 +165,22 @@ its own, `slurm-version.<host>` (which Slurm the faster queries were checked for
 
 ## Performance
 
-Live on Allegro (login node, Slurm 24.11.5, 188 jobs, 93 nodes, 10 runs each, mean
+Live on Allegro (login node, Slurm 24.11.5, 164 jobs, 93 nodes, 10 runs each, mean
 wall time):
 
 | command | `ab` | `bab` | speedup |
 | --- | ---: | ---: | ---: |
-| `--version` | 145 ms | 1.6 ms | **90×** |
-| `-h` | 161 ms | 3.5 ms | **46×** |
-| `q` | 147 ms | 15 ms | **10×** |
-| `q --all` | 571 ms | 32 ms | **18×** |
-| `free` | 229 ms | 19 ms | **12×** |
-| `info` | 255 ms | 19 ms | **13×** |
-| `why` | 364 ms | 18 ms | **21×** |
+| `--version` | 145 ms | 1.7 ms | **83×** |
+| `-h` | 163 ms | 3.7 ms | **44×** |
+| `q` | 147 ms | 17 ms | **9×** |
+| `q --all` | 549 ms | 48 ms | **11×** |
+| `free` | 228 ms | 18 ms | **12×** |
+| `info` | 263 ms | 19 ms | **14×** |
+| `why` | 368 ms | 18 ms | **20×** |
 
-Median over 13 commands: **12×** (geometric mean 15×); every call saves 130–540 ms.
+Median over 13 commands: **11×** (geometric mean 14×); every call saves 130–500 ms.
+On bigger clusters the savings are seconds: `why` 5.4 s → 0.06 s on one with ~500 jobs
+and an uncached LDAP (see [`bench/RESULTS.md`](bench/RESULTS.md), pass 3).
 Against an instant fake Slurm (pure tool overhead) the median is **19×**: `ab` needs
 85–222 ms per command, `bab` 0.6–15 ms.
 
@@ -201,11 +203,11 @@ Where it stops, honestly:
   before it knows which jobs get a hint.
 - The cheaper queries follow Slurm's source for 24.05, 24.11, 25.05, 25.11 and 26.05,
   so only those versions get them; anything else (or anything unexpected in an answer)
-  gets `ab`'s queries, about 4× faster than `ab` instead of 12×. On big clusters that
+  gets `ab`'s queries, about 4× faster than `ab` instead of 11×. On big clusters that
   difference is seconds: Slurm formats (and looks up the user and group of) every job
   for `why`, `node` and `q --all` hints unless asked for just the ones needed.
-- These numbers come from a quiet night. Under daytime load Slurm takes longer; the
-  absolute savings stay, but the ratios of Slurm-bound commands shrink.
+- These numbers come from a lightly loaded afternoon. Under heavier load Slurm takes
+  longer; the absolute savings stay, but the ratios of Slurm-bound commands shrink.
 - At ~0.2 s saved per call, the rewrite pays for itself after a few million `bab q`s.
   We're working on it.
 

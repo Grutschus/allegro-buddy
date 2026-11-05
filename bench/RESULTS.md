@@ -10,16 +10,20 @@ git tag
 
 ## Summary
 
-- **Live on Allegro** (2026-11-05, 00:03 CET, Slurm 24.11.5, 188 jobs, 93 nodes,
-  10 runs + 1 warmup each): `bab` is **12.2× faster** (median over 13 commands;
-  geometric mean 15.1×). Every call saves **130–540 ms**. Slurm-bound commands: 5.3×
-  (`node`) to 20.5× (`why`); most are now one Slurm round trip (~15 ms) plus a few ms.
-  Pure start-up: `--version` 145 → 1.6 ms. All 12 read-only commands once each: `ab`
-  **2.99 s**, `bab` **0.23 s** (the README header chart).
+- **Live on Allegro** (2026-11-05, 14:13 CET, `bab` 2.7.1, Slurm 24.11.5, 164 jobs,
+  93 nodes, 10 runs + 1 warmup each): `bab` is **11.4× faster** (median over 13
+  commands; geometric mean 14.3×). Every call saves **130–500 ms**. Slurm-bound
+  commands: 6.2× (`node`) to 19.9× (`why`); most are now one Slurm round trip (~15 ms)
+  plus a few ms. Pure start-up: `--version` 145 → 1.7 ms. All 12 read-only commands once
+  each: `ab` **2.95 s**, `bab` **0.24 s** (the README header chart).
 - **Second performance pass** (Slurm side, see [below](#performance-pass-2-the-slurm-side)):
   against the previous `bab` median 3.3× (geometric mean 2.6×), all 12 commands 0.88 →
   0.23 s; `why` 209 → 18 ms, `q --all` 181 → 32 ms, `info` 88 → 19 ms (118 → 19 ms for
   a user with 9 jobs).
+- **Third pass** (big clusters and newer Slurm, see [below](#performance-pass-3-big-clusters)):
+  on charite, lise and hydra (Slurm 25.05/25.11/26.05, up to ~2200 jobs) `why` 1.4–5.4 s
+  → 0.03–0.06 s, `node` up to 4.5 s → ~0.1 s, `q --all` up to 5.6 s → 0.3–0.7 s. On
+  Allegro `q --all` pays one more round trip (32 → 48 ms), `node` 52 → 42 ms.
 - **Local, instant fake Slurm** (pure tool overhead, 30 runs per command; first pass,
   `ab`'s queries): median **19×**, from 8.7× (`why`) to 154× (`--version`); `ab` needs
   85–222 ms per command, `bab` 0.6–15 ms. Peak RSS `ab` 23–32 MiB, `bab` 3.6–10 MiB.
@@ -31,26 +35,26 @@ git tag
 
 ## Live on Allegro
 
-Login node (2× Xeon E5-2690 v4), quiet night (load average 0.4). `ab` = console script of a private venv
+Login node (2× Xeon E5-2690 v4), early afternoon (load average 1.5). `ab` = console script of a private venv
 (Python 3.13.5, allegro-buddy 2.7, click 8.3.2, rich 15.0.0, rich-click 1.9.9); `bab` =
 release build without test hooks. Real clock, groups and host, no user config,
 `COLUMNS=160`, output to /dev/null, hyperfine `-N`. Speedup = mean(ab) / mean(bab).
 
 | command | ab mean ± σ (ms) | bab mean ± σ (ms) | speedup |
 |---|---:|---:|---:|
-| `--version` | 145.4 ± 2.7 | 1.62 ± 0.45 | **89.5×** |
-| `-h` | 161.5 ± 3.5 | 3.50 ± 0.27 | **46.1×** |
-| `info` | 254.9 ± 5.7 | 18.96 ± 2.21 | **13.4×** |
-| `info` (cold cache) | 272.1 ± 7.2 | 31.15 ± 1.60 | **8.7×** |
-| `free` | 229.0 ± 8.2 | 18.85 ± 1.06 | **12.2×** |
-| `free --nodes` | 267.3 ± 10.5 | 20.68 ± 1.78 | **12.9×** |
-| `q` | 147.5 ± 3.5 | 14.63 ± 0.92 | **10.1×** |
-| `q --all` | 571.3 ± 18.9 | 31.56 ± 3.22 | **18.1×** |
-| `why` | 364.5 ± 11.4 | 17.77 ± 1.04 | **20.5×** |
-| `why <pending job>` | 222.5 ± 9.1 | 19.20 ± 1.00 | **11.6×** |
-| `node gpu062` | 275.4 ± 19.5 | 52.22 ± 6.44 | **5.3×** |
-| `job history` | 146.0 ± 2.5 | 12.99 ± 1.33 | **11.2×** |
-| `config show` | 208.8 ± 5.6 | 18.47 ± 1.09 | **11.3×** |
+| `--version` | 145.3 ± 3.9 | 1.74 ± 0.27 | **83.3×** |
+| `-h` | 162.9 ± 2.6 | 3.73 ± 0.66 | **43.7×** |
+| `info` | 262.9 ± 7.8 | 19.36 ± 1.50 | **13.6×** |
+| `info` (cold cache) | 266.4 ± 8.7 | 32.39 ± 2.40 | **8.2×** |
+| `free` | 227.6 ± 8.8 | 18.47 ± 1.83 | **12.3×** |
+| `free --nodes` | 260.7 ± 8.6 | 20.14 ± 1.23 | **12.9×** |
+| `q` | 146.8 ± 4.6 | 17.24 ± 0.79 | **8.5×** |
+| `q --all` | 549.4 ± 14.9 | 48.01 ± 1.87 | **11.4×** |
+| `why` | 367.6 ± 9.2 | 18.43 ± 2.39 | **19.9×** |
+| `why <pending job>` | 211.9 ± 6.3 | 19.88 ± 2.10 | **10.7×** |
+| `node gpu062` | 260.4 ± 15.7 | 41.70 ± 2.63 | **6.2×** |
+| `job history` | 144.9 ± 2.0 | 12.80 ± 0.93 | **11.3×** |
+| `config show` | 206.5 ± 6.1 | 18.45 ± 1.07 | **11.2×** |
 
 ## Local replay
 
@@ -87,9 +91,10 @@ anonymised Allegro snapshot (225 jobs, `scontrol --json show job` = 2.4 MB), ser
 4. **All read-only queries of a command at once**, evaluated in `ab`'s order, so errors
    and output stay `ab`'s even when an earlier call fails.
 5. **The floor is Slurm.** Most commands are now one round trip (~15 ms) plus 2–5 ms of
-   `bab`. `node` still reads every job's details (~40 ms) and parses them (~10 ms);
-   `q --all` needs the queue listing before it knows which jobs get a hint. Under
-   daytime load the absolute savings stay, the ratios of Slurm-bound commands shrink.
+   `bab`. `node` lists the node's jobs, then asks for each one's details (~40 ms);
+   `q --all` needs the queue listing before it knows which jobs get a hint, then asks
+   for those (~48 ms). Under heavier load the absolute savings stay, the ratios of
+   Slurm-bound commands shrink.
 
 ## Performance pass
 
@@ -124,19 +129,41 @@ and live `ab` vs old vs new `bab` byte-identical on 17 read-only commands and, f
 | `why`: `squeue --json --state=PD --user=U` instead of every job's JSON; `q` hints: `squeue --json --state=PD [--user=U]` (same records, same order) | `why` 151 → 18 ms (210 before the pass), `q --all` 171 → 31 ms |
 | `info`: your jobs' ETAs from one `squeue --format=%i\|%T\|%S\|%e` instead of `squeue` + one `scontrol` per job | `info` as a user with 9 / 54 jobs: 118 / 141 → 19 / 20 ms (1 + 9 calls → 1) |
 
-The cheaper forms follow Slurm's source; `bab` uses them only with a 24.05/24.11 client
-(`scontrol --version`, cached in `~/.cache/allegro-buddy/slurm-version.<host>` with the
-binary's size and mtime) and goes back to `ab`'s queries on any failure or unexpected
+The cheaper forms follow Slurm's source; `bab` uses them only with a client whose
+version was checked (24.05/24.11 then; 25.05/25.11/26.05 since
+[pass 3](#performance-pass-3-big-clusters)) (`scontrol --version`, cached in
+`~/.cache/allegro-buddy/slurm-version.<host>` with the binary's size and mtime) and goes back to `ab`'s queries on any failure or unexpected
 answer (unknown or `BLOCKED` node flags, `Comment=`/`Extra=` on a node, a
 heterogeneous job, a hint job missing from the answer). Extra read-only calls are
 cheap: at most a query an earlier failure leaves unused, and `scontrol --version` once
 per Slurm install.
 
 Tried and rejected: `node` from `squeue -w NODE` plus one `scontrol show job` per job
-(saves ~10 ms but more calls), node GRES/CPU blocks from `squeue --json` (lossy
-conversion), speculative hint queries for `bab q` of your own jobs (three calls for
-the case without pending jobs), local CPU work (now 2–14 ms per command; `-h`'s
+(saves ~10 ms on Allegro but more calls; adopted in pass 3, where it saves seconds),
+node GRES/CPU blocks from `squeue --json` (lossy conversion), speculative hint queries
+for `bab q` of your own jobs (three calls for the case without pending jobs), local CPU
+work (now 2–14 ms per command; `-h`'s
 remaining regex compile ~0.3 ms, `node`'s text parse ~10 ms: small gain for the code).
+
+## Performance pass 3: big clusters
+
+Allegro (~170 jobs) hid what other clusters showed: Slurm formats every job on the
+client, and resolves its user and group, whenever a query asks for all of them. Measured
+live with the same `bab` with and without the cheaper queries (the second mode is
+`ab`'s queries), every read-only command byte-identical between the two, on charite
+(Slurm 25.05.8, ~2200 jobs, sssd/AD), lise (25.11.8, 1152 nodes, ~1250 jobs) and hydra
+(26.05.2, ~490 jobs, LDAP without a cache). Harness: tag `equivalence-harness-3`.
+
+| change | effect (live) |
+|---|---|
+| Your groups looked up only when a partition or reservation names one (sssd/AD returns every member of every group) | charite: no group lookups in `free`/`info` (were 244 `getgrgid_r`, ~20 s with a cold sssd cache) |
+| The cheaper queries also for Slurm 25.05, 25.11 and 26.05 (checked against live snapshots and Slurm's source; 26.05's `POWER_DOWN_FORCE` falls back) | `why` charite 1.7 s → 0.03 s, lise 1.4 s → 0.05 s, hydra 5.4 s → 0.06 s; `info`/`free` 2–5× |
+| `q --all` hints: `squeue --json --state=PD --jobs=<hinted ids>` after the listing instead of every pending job beside it | charite 1.8 s → 0.3 s, hydra 5.6 s → 0.7 s; Allegro 32 → 48 ms (one more round trip in sequence) |
+| `node`: `squeue -w NODE` and one `scontrol show job ID` per job (≤ 20, in parallel) instead of every job's details | charite 0.95 s → 0.04–0.16 s, hydra 4.5 s → 0.1 s, lise 0.26 s → 0.05–0.09 s; Allegro 52 → 42 ms |
+| `info` ETAs: `squeue -r … %A\|%i\|%T\|%S\|%e`, one row per job record (a fix: plain squeue merged pending array tasks, so `info` could count fewer than `ab`) | same speed |
+
+Not fixable in `bab`: on charite about one DNS lookup of the controller in 32 gets no
+answer and waits the resolver's 5 s timeout, for every Slurm command (`ab`'s too).
 
 ## Methodology notes
 
