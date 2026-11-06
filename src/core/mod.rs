@@ -44,9 +44,10 @@ pub mod users;
 
 use std::collections::HashMap;
 
-/// Program name in all user-facing text (Python `CLI_NAME = "ab"`).
-pub const CLI_NAME: &str = "bab";
-/// Slurm job name of dev jobs. Kept as `ab-dev` so `ab` and `bab` see each other's.
+/// Program name in hints and errors (Python `CLI_NAME = "ab"`), whatever name the
+/// program was started as (usage lines use that one: [`crate::cli::prog_name`]).
+pub const CLI_NAME: &str = "ab";
+/// Slurm job name of dev jobs (Python `DEV_JOB_NAME`).
 pub const DEV_JOB_NAME: &str = "ab-dev";
 pub const DEV_FRIENDLY_NAME: &str = "dev job";
 pub const DEFAULT_DEV_CPUS: i64 = 2;

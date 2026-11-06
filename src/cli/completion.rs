@@ -1,4 +1,4 @@
-//! Shell completion: click 8.3.2's completion protocol and scripts, plus `bab completion`.
+//! Shell completion: click 8.3.2's completion protocol and scripts, plus `ab completion`.
 //! Owned by P2-B (protocol, scripts) and P3-F (command wiring/`--install`).
 //!
 //! * Protocol (click `_main_shell_completion` / `shell_complete`): when
@@ -6,7 +6,7 @@
 //!   to `{bash,zsh,fish}_{source,complete}`, print the script or answer the request from
 //!   `COMP_WORDS`/`COMP_CWORD` (`BashComplete`/`ZshComplete`/`FishComplete` formats) and
 //!   exit 0; an unknown shell or instruction exits 1 silently.
-//! * `bab completion [SHELL] [--prog P] [--install]`: Python `completion_command`,
+//! * `ab completion [SHELL] [--prog P] [--install]`: Python `completion_command`,
 //!   `_completion_var`, `_completion_destinations`, `_install_completion`.
 
 use super::commands::{Command, Completer, ParamKind, ParamType};
@@ -692,13 +692,13 @@ mod tests {
 
     #[test]
     fn split_arg_string_like_shlex() {
-        assert_eq!(split_arg_string("bab dev  start"), ["bab", "dev", "start"]);
+        assert_eq!(split_arg_string("ab dev  start"), ["ab", "dev", "start"]);
         assert_eq!(split_arg_string("example 'my file"), ["example", "my file"]);
         assert_eq!(split_arg_string("example my\\"), ["example", "my"]);
         assert_eq!(split_arg_string("a '' b"), ["a", "", "b"]);
         assert_eq!(split_arg_string(r#"a "x\"y\z" c"#), ["a", r#"x"y\z"#, "c"]);
         assert_eq!(split_arg_string("a\\ b"), ["a b"]);
-        assert_eq!(split_arg_string("bab \""), ["bab", ""]);
+        assert_eq!(split_arg_string("ab \""), ["ab", ""]);
     }
 
     #[test]

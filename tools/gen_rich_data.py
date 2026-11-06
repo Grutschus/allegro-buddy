@@ -1,4 +1,4 @@
-"""Generate the tables bab copies from Rich and rich-click (the versions allegro-buddy 2.7 pins):
+"""Generate the tables the Rust port copies from Rich and rich-click (the versions allegro-buddy 2.7 pins):
 src/render/{data,cell_tables,emoji_data}.rs and src/cli/themes.rs.
 
     uv run --no-project --python 3.12 --with rich==15.0.0 --with rich-click==1.9.9 tools/gen_rich_data.py
@@ -37,7 +37,7 @@ def rs_str(s: str) -> str:
 def write_cell_tables() -> None:
     """src/render/cell_tables.rs: Rich's width table of the latest Unicode version.
 
-    Rich picks an older table when UNICODE_VERSION is set; bab ignores that variable.
+    Rich picks an older table when UNICODE_VERSION is set; the port ignores that variable.
     """
     from rich.cells import _SINGLE_CELL_UNICODE_RANGES
 

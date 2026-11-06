@@ -1,10 +1,11 @@
 //! Whole-command snapshots on a made-up Allegro-like cluster, like `tests/snapshots/` of
-//! allegro-buddy 2.7: the real `bab` binary (with the `test-hooks` clock, groups and host
+//! allegro-buddy 2.7: the real `ab` binary (with the `test-hooks` clock, groups and host
 //! name) against `tests/fake-slurm/`, a tiny fake Slurm that replays recorded answers.
 //!
 //! `tests/snapshots/<scenario>.txt` is stdout followed by stderr at `COLUMNS=160`, the
 //! scratch directory shown as `@TMP@`. They are byte-exact output of the Python reference
-//! (renamed to `bab`), see the `equivalence-harness-3` tag. `UPDATE_SNAPSHOTS=1` rewrites them.
+//! (goldens of the `equivalence-harness-3` tag with its `bab` renamed back to `ab`).
+//! `UPDATE_SNAPSHOTS=1` rewrites them.
 
 use std::io::Write;
 use std::path::{Path, PathBuf};
@@ -95,7 +96,7 @@ fn run(case: &Case) -> (String, i32, Vec<String>) {
     let log = tmp.join("slurm-calls");
     std::fs::write(&log, "").unwrap();
 
-    let mut child = Command::new(env!("CARGO_BIN_EXE_bab"))
+    let mut child = Command::new(env!("CARGO_BIN_EXE_ab"))
         .args(case.args)
         .current_dir(tmp.join("home"))
         .env_clear()
@@ -182,4 +183,43 @@ fn snapshots() {
         }
     }
     assert!(failed.is_empty(), "snapshots differ: {failed:?}");
+}
+
+/// Like click's `prog_name`, usage lines and `--version` use the name the program was
+/// started as; the aliases are the same program.
+#[test]
+fn program_name_is_argv0() {
+    let bins = [
+        ("ab", env!("CARGO_BIN_EXE_ab")),
+        ("allegro-buddy", env!("CARGO_BIN_EXE_allegro-buddy")),
+        ("bab", env!("CARGO_BIN_EXE_bab")),
+        (
+            "better-allegro-buddy",
+            env!("CARGO_BIN_EXE_better-allegro-buddy"),
+        ),
+    ];
+    for (name, bin) in bins {
+        let run = |arg: &str| {
+            Command::new(bin)
+                .arg(arg)
+                .env_clear()
+                .env("PATH", "/usr/bin:/bin")
+                .env("COLUMNS", "80")
+                .output()
+                .unwrap()
+        };
+        let version = run("--version");
+        assert_eq!(
+            String::from_utf8_lossy(&version.stdout),
+            format!("{name}, version {}\n", env!("CARGO_PKG_VERSION"))
+        );
+        let error = run("nosuch");
+        let stderr = String::from_utf8_lossy(&error.stderr);
+        assert_eq!(error.status.code(), Some(2));
+        assert!(
+            stderr.contains(&format!("Usage: {name} [OPTIONS] COMMAND [ARGS]..."))
+                && stderr.contains(&format!("Try '{name} -h' for help")),
+            "{name}: {stderr}"
+        );
+    }
 }

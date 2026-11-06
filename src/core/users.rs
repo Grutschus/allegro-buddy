@@ -1,4 +1,4 @@
-//! Who is running bab. Mirrors `core.current_user`, `core.current_groups`,
+//! Who is running ab. Mirrors `core.current_user`, `core.current_groups`,
 //! `core.user_accounts`. Owned by P2-C.
 
 use super::Record;

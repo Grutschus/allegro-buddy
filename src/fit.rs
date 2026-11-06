@@ -1214,7 +1214,7 @@ pub fn fix_phrase(fix: &Fix) -> String {
     }
 }
 
-/// `queue_hint(diagnosis)`: the `Node/Reason` cell of `bab q`.
+/// `queue_hint(diagnosis)`: the `Node/Reason` cell of `ab q`.
 pub fn queue_hint(diagnosis: &Diagnosis) -> String {
     let request = &diagnosis.request;
     if diagnosis.rows.is_empty() {

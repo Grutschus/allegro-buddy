@@ -1,4 +1,4 @@
-//! `bab info`, `bab free`, `bab queue`/`q`, `bab node` (and hidden `gpualloc`).
+//! `ab info`, `ab free`, `ab queue`/`q`, `ab node` (and hidden `gpualloc`).
 //! Port of `handlers/resources.py`. Owned by P3-D.
 //!
 //! Notes:
@@ -60,7 +60,7 @@ use std::collections::{BTreeSet, HashMap};
 /// Never wider than this: long lists wrap rather than span a wide terminal.
 pub const MAX_WIDTH: usize = 100;
 
-/// `--kind` of `bab free`.
+/// `--kind` of `ab free`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Gpu,
@@ -75,7 +75,7 @@ fn has_nodelist(job: &Record) -> bool {
 
 /// `guess_node(args_node)`: the argument, this host (full or short hostname via
 /// `hooks::hostname`) if it is a node, the node of your running dev job, or of your
-/// first running GPU job; else `die("could not guess the node; name it: bab node <node>")`.
+/// first running GPU job; else `die("could not guess the node; name it: ab node <node>")`.
 pub fn guess_node(node: Option<&str>) -> Result<String> {
     if let Some(node) = node.filter(|n| !n.is_empty()) {
         return Ok(node.to_owned());
@@ -613,7 +613,7 @@ pub fn cmd_queue(all_users: bool, user: Option<&str>, partition: Option<&str>) -
     Ok(())
 }
 
-/// `_FreeNode`: one node row of `bab free`: what `node_free()` says plus how to show it.
+/// `_FreeNode`: one node row of `ab free`: what `node_free()` says plus how to show it.
 #[derive(Debug, Clone)]
 struct FreeNode {
     name: String,
@@ -646,7 +646,7 @@ impl FreeNode {
     }
 }
 
-/// `_free_nodes(...)`: the nodes `bab free` counts, most free GPUs, then CPUs, first.
+/// `_free_nodes(...)`: the nodes `ab free` counts, most free GPUs, then CPUs, first.
 fn free_nodes(
     nodes: &[Node],
     partition_names: &BTreeSet<&str>,
@@ -797,7 +797,7 @@ fn render_free_by_node(entries: &[FreeNode], gpu_type: Option<&str>) {
     out.print(&line);
 }
 
-/// `_render_free_node_table(...)`: `bab free --nodes`, one row per node plus a total row.
+/// `_render_free_node_table(...)`: `ab free --nodes`, one row per node plus a total row.
 fn render_free_node_table(
     entries: &[FreeNode],
     kind: Kind,

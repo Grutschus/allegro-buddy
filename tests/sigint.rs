@@ -1,4 +1,4 @@
-//! Ctrl-C (SIGINT to bab alone, not to its process group) while Slurm hangs: bab must
+//! Ctrl-C (SIGINT to ab alone, not to its process group) while Slurm hangs: ab must
 //! stop waiting at once, kill and reap the child, and exit like Python (`Aborted.`,
 //! exit 1; `--watch` swallows the interrupt, exit 0).
 
@@ -51,7 +51,7 @@ fn alive(pid: i32) -> bool {
 
 fn interrupt(name: &str, args: &[&str]) -> (i32, String, Duration) {
     let root = hanging_slurm(name);
-    let child = Command::new(env!("CARGO_BIN_EXE_bab"))
+    let child = Command::new(env!("CARGO_BIN_EXE_ab"))
         .args(args)
         .env_clear()
         .env(

@@ -18,7 +18,7 @@
 
 use crate::render::text::Text;
 
-/// The Result type used everywhere in bab.
+/// The Result type used everywhere in the crate.
 pub type Result<T, E = AbError> = std::result::Result<T, E>;
 
 /// Why a command stopped early. See the module docs for the mapping to Python.
@@ -44,12 +44,12 @@ pub struct UsageError {
     /// Full message as click formats it, e.g. `No such option: --foo` or
     /// `Invalid value for '-w' / '--watch': 5.0 is not in the range x>=10.`
     pub message: String,
-    /// Command path whose usage line is shown, e.g. `["bab", "dev", "start"]`. Empty with
+    /// Command path whose usage line is shown, e.g. `["ab", "dev", "start"]`. Empty with
     /// `show_help_hint` means "the invoked command" (filled in by `cli::run` for errors a
     /// handler returns); empty without it means click had no context (no usage line and
     /// no hint, e.g. `Option '--user' requires an argument.`).
     pub command_path: Vec<String>,
-    /// Whether rich-click prints the usage line and `Try 'bab ... -h' for help` (click
+    /// Whether rich-click prints the usage line and `Try 'ab ... -h' for help` (click
     /// attached a context to the error).
     pub show_help_hint: bool,
 }

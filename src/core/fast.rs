@@ -1,16 +1,16 @@
-//! Cheaper Slurm queries that carry the same information as the ones `ab` makes.
+//! Cheaper Slurm queries that carry the same information as the ones Python `ab` makes.
 //!
 //! `scontrol --json` spends most of its time formatting JSON on the client: on Allegro
 //! (Slurm 24.11, ~200 jobs, ~90 nodes) `scontrol --json show nodes` takes ~50 ms and
 //! `scontrol --json show job` ~130 ms, while `scontrol --oneliner --details show node`
-//! takes ~14 ms and `squeue --json` filtered to the jobs needed ~15 ms. bab uses those
+//! takes ~14 ms and `squeue --json` filtered to the jobs needed ~15 ms. The port uses those
 //! instead and converts them to exactly what the JSON would have said
 //! ([`super::nodes::nodes_from_details_text`]; `squeue --json` prints the same job records
 //! as `scontrol --json show job`, in the same order, just fewer of them).
 //!
 //! The conversion follows the Slurm source of the versions in [`VERIFIED`], so it is only
 //! used there; with any other client version, or when a fast query fails or prints
-//! something unexpected, bab makes `ab`'s queries and handles them like `ab`.
+//! something unexpected, it makes Python's queries and handles them like Python.
 //!
 //! The client version (`scontrol --version`, no RPC) is cached in
 //! `~/.cache/allegro-buddy/slurm-version.<host>` together with the path, size and mtime of

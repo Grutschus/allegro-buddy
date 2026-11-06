@@ -257,7 +257,7 @@ fn system_hostname() -> String {
         .into_owned()
 }
 
-/// Per-thread replacements for the hooks and the process-wide state bab keeps (settings,
+/// Per-thread replacements for the hooks and the process-wide state ab keeps (settings,
 /// node facts, Slurm), so unit tests run in parallel without touching the environment.
 #[cfg(test)]
 pub mod testing {

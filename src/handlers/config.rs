@@ -1,4 +1,4 @@
-//! `bab config show`. Port of `handlers/config.py`. Owned by P3-F.
+//! `ab config show`. Port of `handlers/config.py`. Owned by P3-F.
 
 use crate::core::RecordExt;
 use crate::core::gpu::{collect_display_gpu_types, gpu_type_label};

@@ -18,7 +18,7 @@ use std::path::{Path, PathBuf};
 /// One `scontrol --json show job` record (`jobs[i]`), used by `fit` and `why`.
 pub type JobRecord = serde_json::Value;
 
-/// The keys of a [`JobRecord`] that bab reads (`fit`, `handlers::why`); the ~100 others
+/// The keys of a [`JobRecord`] that the port reads (`fit`, `handlers::why`); the ~100 others
 /// are skipped while parsing ([`job_records_json`]). Reading another key: add it here (the
 /// `job_keys_cover_reads` test checks fit.rs and why.rs).
 #[rustfmt::skip]
@@ -829,7 +829,7 @@ pub fn resolve_job_output_path(
 /// `read_log_tail(path, max_lines=)`: last N lines (UTF-8, errors replaced, universal
 /// newlines; 0 = all); OSError -> `die("could not read {path}: {exc}")` with Python's
 /// `str(OSError)` format (`[Errno 13] Permission denied: '/path'`). Python keeps the last
-/// N lines in a deque; bab reads the file backwards from the end, so memory is bounded by
+/// N lines in a deque; the port reads the file backwards from the end, so memory is bounded by
 /// the size of those lines as well (and a huge log is not read in full).
 pub fn read_log_tail(path: &Path, max_lines: usize) -> Result<String> {
     let fail = |err: std::io::Error| {

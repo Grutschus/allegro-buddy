@@ -1,7 +1,7 @@
 //! Ctrl-C handling (Python `KeyboardInterrupt`). Owned by P2-B.
 //!
 //! Python turns SIGINT into `KeyboardInterrupt` wherever the interpreter happens to be.
-//! bab installs a SIGINT handler at startup ([`install`], called by `cli::main`) that only
+//! ab installs a SIGINT handler at startup ([`install`], called by `cli::main`) that only
 //! sets a flag; the places where Python can realistically be interrupted check it:
 //!
 //! * [`sleep`] (dev wait polling, `--watch` interval) returns `Err(AbError::Interrupted)`.
@@ -16,8 +16,8 @@
 //!
 //! [`restore_default`] resets SIGINT (and SIGPIPE) to default before `execvp`
 //! (`core::slurm::exec_replace`), so ssh/srun behave as when started by Python.
-//! SIGPIPE: Python ignores it and rich-click exits 1 on `BrokenPipeError`; bab exits 1
-//! from a SIGPIPE handler (quietly, like `bab q | head` in Python).
+//! SIGPIPE: Python ignores it and rich-click exits 1 on `BrokenPipeError`; ab exits 1
+//! from a SIGPIPE handler (quietly, like `ab q | head` in Python).
 
 use crate::error::{AbError, Result};
 use std::os::fd::RawFd;

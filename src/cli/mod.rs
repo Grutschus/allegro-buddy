@@ -6,12 +6,13 @@
 //!
 //! * [`main`] is called by `main.rs` with the raw argv and returns the process exit code.
 //!   It installs the SIGINT flag handler and `SIGPIPE=SIG_DFL` ([`crate::signals`]),
-//!   answers completion requests (`_BAB_COMPLETE`), parses argv against
+//!   answers completion requests (`_AB_COMPLETE`), parses argv against
 //!   [`commands::MAIN`], runs the handler via [`dispatch`], and turns an
 //!   [`AbError`] into output + exit code (see [`crate::error`]).
-//! * Program name: always [`crate::core::CLI_NAME`] (`bab`) in usage lines, independent
-//!   of argv[0] (the Python reference is patched to `bab` the same way). The completion
-//!   env var follows click: `_{BASENAME(argv[0])}_COMPLETE`, so `--prog` scripts work.
+//! * Program name: click's `prog_name`, the basename of argv[0] ([`prog_name`]: `ab`,
+//!   `allegro-buddy` or an alias), in usage lines, `Try '... -h'`, `--version` and the
+//!   completion env var `_{PROG_NAME}_COMPLETE`. Hints, errors and the `completion --prog`
+//!   default always say [`crate::core::CLI_NAME`] (`ab`), like Python's `CLI_NAME`.
 //! * `ctx.default_map`: built by [`load_default_map`] from the merged config `[dev]`
 //!   section (`settings::DEV_START_KEYS` maps config keys to `dev start` params) at the
 //!   moment click runs the main group callback; a `ConfigError` becomes
@@ -36,17 +37,27 @@ use crate::handlers::{self, dev, resources, why};
 use commands::Action;
 use parser::{Args, DefaultMap, Parsed};
 use std::ffi::OsString;
+use std::sync::OnceLock;
+
+static PROG_NAME: OnceLock<String> = OnceLock::new();
+
+/// click's `ctx.find_root().info_name`: the name the program was started as, set by
+/// [`main`]; [`crate::core::CLI_NAME`] before that (unit tests).
+pub fn prog_name() -> &'static str {
+    PROG_NAME
+        .get()
+        .map_or(crate::core::CLI_NAME, String::as_str)
+}
 
 /// Entry point: returns the exit code (only `main.rs` exits).
 pub fn main(argv: Vec<OsString>) -> i32 {
     crate::signals::install();
     // Python imports cli.py, whose RichHelpConfiguration applies the theme, before anything
     help::apply_theme_warning();
-    let prog_name = argv
-        .first()
-        .map(|a| program_name(&a.to_string_lossy()))
-        .unwrap_or_else(|| crate::core::CLI_NAME.to_owned());
-    if let Some(code) = completion::handle_env_request(&prog_name) {
+    if let Some(argv0) = argv.first() {
+        let _ = PROG_NAME.set(program_name(&argv0.to_string_lossy()));
+    }
+    if let Some(code) = completion::handle_env_request(prog_name()) {
         return code;
     }
     let args: Vec<String> = argv
@@ -89,7 +100,7 @@ pub fn run(argv: &[String]) -> Result<()> {
         Parsed::Version => {
             echo(&format!(
                 "{}, version {}",
-                crate::core::CLI_NAME,
+                prog_name(),
                 crate::VERSION_DISPLAY
             ));
             Ok(())

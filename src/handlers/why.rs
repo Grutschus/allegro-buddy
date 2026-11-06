@@ -1,5 +1,5 @@
-//! `bab why [JOBID] [--nodes] [--fix [auto|mem|cpus|gpus]] [-y]`, plus `queue_hints` used
-//! by `bab q`. Port of `handlers/why.py`. Owned by P3-E.
+//! `ab why [JOBID] [--nodes] [--fix [auto|mem|cpus|gpus]] [-y]`, plus `queue_hints` used
+//! by `ab q`. Port of `handlers/why.py`. Owned by P3-E.
 //!
 //! Notes:
 //! * `--fix` confirmation: `hooks::interactive()` replaces `sys.stdin.isatty()`;
@@ -82,11 +82,11 @@ fn limits_from(ran: Ran) -> Result<MemLimits> {
 /// The job records a caller of [`load_inputs`] reads; the others only cost time.
 #[derive(Debug, Clone, Copy)]
 pub enum Wanted<'a> {
-    /// `bab why JOBID`: `scontrol --json show job JOBID` (base id).
+    /// `ab why JOBID`: `scontrol --json show job JOBID` (base id).
     Job(&'a str),
-    /// `bab why`: the user's pending jobs.
+    /// `ab why`: the user's pending jobs.
     PendingOf(&'a str),
-    /// `bab q` hints: these raw job ids, pending jobs of `user` (`None`: of anyone).
+    /// `ab q` hints: these raw job ids, pending jobs of `user` (`None`: of anyone).
     Hints {
         ids: &'a BTreeSet<String>,
         user: Option<&'a str>,
@@ -151,7 +151,7 @@ pub fn load_inputs(strict: bool, wanted: Wanted<'_>) -> Result<Inputs> {
         let output = slurm::run(argv, false)?;
         if output.success() {
             records = job_records_json(&output.stdout).filter(|jobs| match wanted {
-                // the pending jobs `bab q` just listed; one gone: ask like Python
+                // the pending jobs `ab q` just listed; one gone: ask like Python
                 Wanted::Hints { ids, .. } => ids.iter().all(|id| {
                     jobs.iter()
                         .any(|job| job.get("job_id").is_some_and(|v| pyfmt::json_str(v) == *id))
@@ -177,7 +177,7 @@ pub fn load_inputs(strict: bool, wanted: Wanted<'_>) -> Result<Inputs> {
 }
 
 /// `queue_hints(job_ids)` -> (raw job id -> hint, error text). Never fails: the hints
-/// decorate `bab q` and must never break it. Python turns unexpected exceptions into
+/// decorate `ab q` and must never break it. Python turns unexpected exceptions into
 /// `"<ExceptionType>: <message>"`; the Rust port of the record parsing is total, so the
 /// only error left is Ctrl-C (Python's KeyboardInterrupt), which yields no hints here:
 /// callers notice it with `core::slurm::check_interrupted()`.
@@ -479,7 +479,7 @@ fn render_summary(diagnosis: &Diagnosis, detailed: bool) {
 }
 
 // ---------------------------------------------------------------------------
-// bab why (overview)
+// ab why (overview)
 // ---------------------------------------------------------------------------
 
 /// `record.get(key)` compared with `==` against a string.
@@ -523,7 +523,7 @@ fn render_overview(records: &[JobRecord], nodes: &[NodeCapacity], limits: &MemLi
 }
 
 // ---------------------------------------------------------------------------
-// bab why JOBID
+// ab why JOBID
 // ---------------------------------------------------------------------------
 
 fn render_other_fixes(diagnosis: &Diagnosis) {
@@ -607,7 +607,7 @@ fn render_nodes(diagnosis: &Diagnosis) {
             let mut free = format_free(dim, fit.free.get(dim));
             let total = format_free(dim, fit.total.get(dim));
             if free.ends_with('G') && total.ends_with('G') {
-                free.pop(); // 73/89G, as in bab free
+                free.pop(); // 73/89G, as in ab free
             }
             let style = if short.contains(&dim) { "red" } else { "" };
             row.push(Cell::Text(Text::styled(format!("{free}/{total}"), style)));
@@ -655,7 +655,7 @@ fn render_detail(diagnosis: &Diagnosis, show_nodes: bool) {
 }
 
 // ---------------------------------------------------------------------------
-// bab why JOBID --fix
+// ab why JOBID --fix
 // ---------------------------------------------------------------------------
 
 /// `_resources(request)`: the fields a fix changes.

@@ -10,7 +10,7 @@
 //! Order of events (click): the main group parses its own args; eager `--version`/`--help`
 //! end parsing; then the subcommand is resolved, then the main group callback runs
 //! (`load_default_map`, which may fail with `AbError::Click`), THEN the subcommand's args
-//! are parsed (so `bab info --help` with a broken config shows the config error).
+//! are parsed (so `ab info --help` with a broken config shows the config error).
 //!
 //! The same engine runs in click's `resilient_parsing` mode for shell completion
 //! ([`resolve_context`]): errors are swallowed, callbacks of groups and eager options are
@@ -92,7 +92,7 @@ impl Args {
 #[derive(Debug, Clone, PartialEq)]
 pub enum Parsed {
     /// Run `command` (a leaf, or `info` for the bare main group) with `args`; `path` is
-    /// the command path for messages (`["bab", "dev", "start"]`).
+    /// the command path for messages (`["ab", "dev", "start"]`).
     Run {
         path: Vec<String>,
         command: &'static Command,
@@ -100,20 +100,20 @@ pub enum Parsed {
     },
     /// Print the help page of `path` to stdout and exit with `code` (0 for `-h`, 2 for a
     /// group invoked without subcommand: click's `NoArgsIsHelpError`). `default_map` is
-    /// the `[dev]` map when the page is `bab dev start` (shown as defaults).
+    /// the `[dev]` map when the page is `ab dev start` (shown as defaults).
     Help {
         path: Vec<String>,
         default_map: Option<DefaultMap>,
         code: i32,
     },
-    /// `--version`: print `bab, version 2.7`, exit 0.
+    /// `--version`: print `ab, version 0.2.0`, exit 0.
     Version,
 }
 
 /// `[dev]` default map entries: click param dest -> raw string from config.
 pub type DefaultMap = Vec<(&'static str, String)>;
 
-/// click's `ParameterSource` (the values bab needs).
+/// click's `ParameterSource` (the values ab needs).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Source {
     CommandLine,
@@ -204,7 +204,7 @@ pub fn list_commands(group: &'static Command) -> Vec<&'static Command> {
     names
 }
 
-/// The command at `path` (`["bab", "dev", "start"]`, aliases allowed).
+/// The command at `path` (`["ab", "dev", "start"]`, aliases allowed).
 pub fn command_at(path: &[String]) -> &'static Command {
     let mut command = &MAIN;
     for name in path.iter().skip(1) {
@@ -217,7 +217,7 @@ pub fn command_at(path: &[String]) -> &'static Command {
 #[derive(Debug, Clone)]
 pub struct Ctx {
     pub command: &'static Command,
-    /// Info names from the root (`["bab", "q"]`).
+    /// Info names from the root (`["ab", "q"]`).
     pub path: Vec<String>,
     /// `ctx.params` by dest; `None` = UNSET.
     pub values: Vec<(&'static str, Option<Value>)>,
@@ -815,10 +815,10 @@ fn check_range(value: f64, min: f64) -> std::result::Result<Value, String> {
 /// on it raises `OverflowError`, and `nan` raises `ValueError`.
 const PY_SLEEP_LIMIT_NS: f64 = 9_223_372_036_854_775_808.0;
 
-/// bab-only guard for a FloatRange value that becomes a sleep (`--watch`,
+/// Rust-only guard for a FloatRange value that becomes a sleep (`--watch`,
 /// `--poll-interval`). click accepts `nan`, `inf` and huge values, and Python then crashes
 /// in `time.sleep` with a traceback (possibly after `dev start` already submitted a job);
-/// bab rejects them with a click-style `BadParameter` before using the value.
+/// The port rejects them with a click-style `BadParameter` before using the value.
 pub fn sleep_duration(param: &Param, value: f64) -> Result<std::time::Duration> {
     if value * 1e9 < PY_SLEEP_LIMIT_NS
         && let Ok(duration) = std::time::Duration::try_from_secs_f64(value)
@@ -1094,7 +1094,13 @@ fn parse_inner(
     argv: &[String],
     load_default_map: &dyn Fn() -> Result<DefaultMap>,
 ) -> std::result::Result<Parsed, Stop> {
-    let mut ctx = make_context(&MAIN, vec![MAIN.name.to_owned()], argv, None, false)?;
+    let mut ctx = make_context(
+        &MAIN,
+        vec![super::prog_name().to_owned()],
+        argv,
+        None,
+        false,
+    )?;
     loop {
         if !ctx.command.is_group {
             return Ok(Parsed::Run {
@@ -1137,7 +1143,7 @@ pub fn resolve_context(args: &[String]) -> Ctx {
         Err(Stop::Help(ctx, _)) => Some(*ctx),
         Err(_) => None,
     };
-    let root_path = vec![MAIN.name.to_owned()];
+    let root_path = vec![super::prog_name().to_owned()];
     let Some(mut ctx) = resilient(make_context(&MAIN, root_path.clone(), args, None, true)) else {
         return Ctx::new(&MAIN, root_path, None, None, true);
     };
@@ -1305,7 +1311,7 @@ mod tests {
     #[test]
     fn bare_invocation_runs_info() {
         let (path, args) = parse_ok(&[]);
-        assert_eq!(path, ["bab", "info"]);
+        assert_eq!(path, ["ab", "info"]);
         assert!(!args.flag("all_partitions"));
         assert!(
             parse_ok(&["info", "--all-partitions"])
@@ -1317,7 +1323,7 @@ mod tests {
     #[test]
     fn queue_options_and_alias() {
         let (path, args) = parse_ok(&["q", "--user", "alice", "-pgpusmall", "--all"]);
-        assert_eq!(path, ["bab", "q"]);
+        assert_eq!(path, ["ab", "q"]);
         assert_eq!(args.opt_str("user"), Some("alice"));
         assert_eq!(args.opt_str("partition"), Some("gpusmall"));
         assert!(args.flag("all_users"));
@@ -1421,19 +1427,19 @@ mod tests {
         assert_eq!((args.str("jobid"), args.flag("stderr")), ("12345", true));
         let err = usage_error(&["job", "output"]);
         assert_eq!(err.message, "Missing argument 'JOBID'.");
-        assert_eq!(err.command_path, ["bab", "job", "output"]);
+        assert_eq!(err.command_path, ["ab", "job", "output"]);
         let (_, args) = parse_ok(&["dev", "start", "-g", "2", "-c4"]);
         assert_eq!(args.str("partition"), "auto");
         assert_eq!(args.str("time_limit"), "08:00:00");
         assert_eq!((args.opt_int("gpu"), args.int("cpus")), (Some(2), 4));
         assert_eq!(args.float("poll_interval"), 5.0);
         let (path, args) = parse_ok(&["l", "--command", "nvidia-smi"]);
-        assert_eq!(path, ["bab", "l"]);
+        assert_eq!(path, ["ab", "l"]);
         assert_eq!(args.opt_str("command"), Some("nvidia-smi"));
         assert!(!args.flag("srun"));
         assert_eq!(
             usage_error(&["l", "--poll-interval", "0"]).command_path,
-            ["bab", "l"]
+            ["ab", "l"]
         );
     }
 
@@ -1495,7 +1501,7 @@ mod tests {
         assert!(matches!(parse_raw(&["dev"]), Parsed::Help { code: 2, .. }));
         match parse_raw(&["q", "--watch", "5", "-h"]) {
             Parsed::Help { path, code, .. } => {
-                assert_eq!((path, code), (vec!["bab".into(), "q".into()], 0))
+                assert_eq!((path, code), (vec!["ab".into(), "q".into()], 0))
             }
             other => panic!("{other:?}"),
         }

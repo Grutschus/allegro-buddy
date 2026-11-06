@@ -1,5 +1,5 @@
                                                                                                     
-  Usage: bab [OPTIONS] COMMAND [ARGS]...                                                            
+  Usage: ab [OPTIONS] COMMAND [ARGS]...                                                             
                                                                                                     
   Allegro Buddy: a friendly Slurm helper.                                                           
                                                                                                     
@@ -14,7 +14,7 @@
   completion         generate or install shell completion                                           
   config             show where settings come from                                                  
   dev                start, join and stop a dev job                                                 
-  l                  join a running dev job (short for bab dev login)                               
+  l                  join a running dev job (short for ab dev login)                                
   free               show free GPUs and cluster resources                                           
   info               show your partitions and a cluster summary                                     
   job                show finished jobs and their output                                            

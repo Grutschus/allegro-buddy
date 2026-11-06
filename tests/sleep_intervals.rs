@@ -1,6 +1,6 @@
 //! `--watch` / `--poll-interval` values click accepts but `time.sleep` cannot take (nan,
 //! inf, >= 2**63 ns): Python crashes with a traceback (`dev start` only after cancelling
-//! and submitting); bab must reject them up front with a usage error (exit 2) and never
+//! and submitting); ab must reject them up front with a usage error (exit 2) and never
 //! touch Slurm state.
 
 use std::os::unix::fs::PermissionsExt;
@@ -41,10 +41,10 @@ fn fake_slurm(name: &str) -> PathBuf {
     root
 }
 
-/// Run bab; returns (exit code, stderr, logged Slurm calls).
-fn bab(name: &str, args: &[&str]) -> (i32, String, Vec<String>) {
+/// Run ab; returns (exit code, stderr, logged Slurm calls).
+fn run(name: &str, args: &[&str]) -> (i32, String, Vec<String>) {
     let root = fake_slurm(name);
-    let output = Command::new(env!("CARGO_BIN_EXE_bab"))
+    let output = Command::new(env!("CARGO_BIN_EXE_ab"))
         .args(args)
         .env_clear()
         .env(
@@ -71,7 +71,7 @@ fn bab(name: &str, args: &[&str]) -> (i32, String, Vec<String>) {
 }
 
 fn assert_rejected(name: &str, args: &[&str], option: &str, value: &str) {
-    let (code, stderr, calls) = bab(name, args);
+    let (code, stderr, calls) = run(name, args);
     assert_eq!(code, 2, "{args:?}: {stderr}");
     assert!(
         stderr.contains(&format!(
@@ -79,7 +79,7 @@ fn assert_rejected(name: &str, args: &[&str], option: &str, value: &str) {
         )),
         "{args:?}: {stderr}"
     );
-    assert!(stderr.contains("Try 'bab "), "{args:?}: {stderr}");
+    assert!(stderr.contains("Try 'ab "), "{args:?}: {stderr}");
     for call in &calls {
         for mutating in ["sbatch", "scancel", "ssh", "srun"] {
             assert!(!call.starts_with(mutating), "{args:?} ran {call}");
@@ -139,7 +139,7 @@ fn dev_login_wait_rejects_before_polling() {
 
 #[test]
 fn no_wait_ignores_the_interval_like_python() {
-    let (code, stderr, calls) = bab(
+    let (code, stderr, calls) = run(
         "sleep-no-wait",
         &[
             "dev",

@@ -12,7 +12,7 @@
 //!   write captured stderr to stderr, flush; write captured stdout to stdout, flush
 //!   signals::sleep(interval)  (Ctrl-C -> Ok(()))
 //! ```
-//! bab-only: an interval `time.sleep` cannot take (nan, inf, >= 2**63 ns) is rejected
+//! Rust-only: an interval `time.sleep` cannot take (nan, inf, >= 2**63 ns) is rejected
 //! up front as a usage error, where Python renders once and crashes with a traceback.
 //! The clock comes from `hooks::now()`; `{interval:g}` from `pyfmt::format_g`.
 

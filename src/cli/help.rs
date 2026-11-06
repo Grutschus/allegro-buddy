@@ -157,7 +157,7 @@ pub fn python_warning_filters_mutated() {
 /// rich-click's `apply_theme()` (a `RichHelpConfiguration` or help formatter is created)
 /// with an unknown `RICH_CLICK_THEME`: `get_theme` warns
 /// `RichClickTheme '<name>' not found.` through `warnings.warn(..., stacklevel=2)`, shown
-/// by `warnings.showwarning` unless the registry still holds it. bab prints the same two
+/// by `warnings.showwarning` unless the registry still holds it. The port prints the same two
 /// lines with the module path relative to site-packages (Python's starts with the venv
 /// path; the compat harness normalises that prefix).
 pub fn apply_theme_warning() {
@@ -1249,8 +1249,8 @@ pub fn render_help(path: &[String], default_map: Option<&[(&'static str, String)
     out
 }
 
-/// Print the help page of the command at `path` (`["bab", "dev"]`) to stdout;
-/// `default_map` is the `[dev]` config map of `bab dev start` (shown as defaults).
+/// Print the help page of the command at `path` (`["ab", "dev"]`) to stdout;
+/// `default_map` is the `[dev]` config map of `ab dev start` (shown as defaults).
 pub fn print_help(path: &[String], default_map: Option<&[(&'static str, String)]>) {
     super::write_stream(&mut std::io::stdout(), &render_help(path, default_map));
 }

@@ -1,6 +1,6 @@
 //! Terminal cell widths, ported from Rich 15 `rich.cells` with Rich's own width table of
 //! Unicode 17.0.0 (`rich._unicode_data`, generated into [`super::cell_tables`]). Known
-//! divergence: Rich picks an older table when `UNICODE_VERSION` is set; bab ignores it.
+//! divergence: Rich picks an older table when `UNICODE_VERSION` is set; the port ignores it.
 //! Control characters count 0; zero-width joiners and VS16 are handled like Rich's
 //! `_cell_len` / `split_graphemes`.
 

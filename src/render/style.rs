@@ -187,7 +187,7 @@ impl Style {
         Ok(style)
     }
 
-    /// Parse a definition that is a compile-time constant in bab; panics on bad syntax.
+    /// Parse a definition that is a compile-time constant here; panics on bad syntax.
     pub fn of(definition: &str) -> Style {
         Style::parse(definition).unwrap_or_else(|e| panic!("bad style {definition:?}: {e:?}"))
     }

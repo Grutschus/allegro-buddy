@@ -1,6 +1,6 @@
 //! A byte-exact subset of Rich 15.0.0 (owned by P2-A).
 //!
-//! Python allegro-buddy prints everything through Rich; bab must emit the SAME bytes,
+//! Python allegro-buddy prints everything through Rich; the port must emit the SAME bytes,
 //! including ANSI SGR sequences, wrapping, padding and trailing whitespace. Reference source:
 //! `rich==15.0.0`. When this code and Rich disagree, Rich wins. Each piece mirrors a Rich
 //! module; generated tables ([`data`], [`cell_tables`], [`emoji_data`]) come from

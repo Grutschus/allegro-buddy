@@ -29,7 +29,7 @@
 //!
 //! # Divergences (documented)
 //!
-//! * Capture is per console (Rich's buffer is thread-local); bab prints from one thread.
+//! * Capture is per console (Rich's buffer is thread-local); the port prints from one thread.
 //! * A broken pipe makes Rich raise `SystemExit(1)` from inside `print`; here the console
 //!   goes quiet, stdout is pointed at /dev/null (as Rich does) and [`broken_pipe`] returns
 //!   true so `main` can exit with status 1.

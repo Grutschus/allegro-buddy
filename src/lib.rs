@@ -1,14 +1,15 @@
-//! better-allegro-buddy (`bab`): a 1:1 Rust rewrite of the Python CLI allegro-buddy 2.7 (`ab`).
+//! allegro-buddy (`ab`): a 1:1 Rust rewrite of the Python CLI allegro-buddy 2.7.
 //!
 //! # Ground rules for every module (binding for all agents)
 //!
 //! * **Byte-identical UI.** Every byte on stdout/stderr, every exit code and every mutating
 //!   Slurm call (in order) must match the Python reference (allegro-buddy==2.7 with rich==15.0.0, click==8.3.2,
-//!   rich-click==1.9.9), except the program name: `ab` -> `bab` ([`core::CLI_NAME`]). The
-//!   Python source is commit `91689b9` (upstream v2.7): `git show 91689b9:src/allegro_buddy/<file>`.
+//!   rich-click==1.9.9), except the version ([`VERSION_DISPLAY`]). The program calls
+//!   itself what it was started as ([`cli::prog_name`]), hints say `ab` ([`core::CLI_NAME`]).
+//!   The Python source is commit `91689b9` (v2.7): `git show 91689b9:src/allegro_buddy/<file>`.
 //!   Each Rust item names the Python function it mirrors (`Mirrors core.foo`).
 //! * **Drop-in compatible**: same config paths, env vars (`AB_CLUSTER`, `AB_SITE_CONFIG`, ...),
-//!   cache files and dev job name (`ab-dev`), so `ab` and `bab` can be used side by side.
+//!   cache files and dev job name (`ab-dev`) as the Python version.
 //! * **Errors are values.** Python's `die()` raises `SystemExit`; here [`error::die`] prints the
 //!   message and *returns* an [`error::AbError`] that callers propagate with `?` /
 //!   `return Err(die(..))`. Only `main.rs` calls `std::process::exit` (`--watch` must be able
@@ -65,6 +66,6 @@ pub mod signals;
 
 pub use error::{AbError, Result, die};
 
-/// What `bab --version` prints after `"bab, version "` (click's version_option with the
-/// reference renamed: `ab, version 2.7` -> `bab, version 2.7`).
-pub const VERSION_DISPLAY: &str = "2.7";
+/// What `ab --version` prints after `"ab, version "` (click's version_option: the package
+/// version).
+pub const VERSION_DISPLAY: &str = env!("CARGO_PKG_VERSION");

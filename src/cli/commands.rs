@@ -7,13 +7,11 @@
 //! command, `context_settings help_option_names=['-h', '--help']`, help
 //! `Show this message and exit.`). The main group additionally has click's
 //! `version_option` (`--version`, `Show the version and exit.`, eager, prints
-//! `bab, version 2.7`), declared below as [`ParamType::Version`].
+//! `ab, version 0.2.0`), declared below as [`ParamType::Version`].
 //! Subcommands are listed sorted by name in help, except `l`, which `_Main.list_commands`
 //! moves right after `dev`. `queue` has the rich-click alias `q` (help shows `queue, q`).
 //! `gpualloc` is hidden. `l` is a copy of `dev login` registered as `l` with its own
 //! short help.
-//!
-//! Text changes vs Python (ab -> bab renames): `dev start`'s docstring and `l`'s short help.
 
 use crate::core::{DEFAULT_DEV_CPUS, DEFAULT_DEV_MEM, DEFAULT_DEV_TIME};
 
@@ -475,7 +473,7 @@ const DEV: Command = Command::group(
     &[
         Command {
             help: Some(
-                "Submit a detached dev job. Flags override the [dev] config (bab config show).",
+                "Submit a detached dev job. Flags override the [dev] config (ab config show).",
             ),
             params: DEV_START_PARAMS,
             ..Command::leaf("start", "submit a detached dev job", Action::DevStart)
@@ -510,12 +508,12 @@ const L: Command = Command {
     params: DEV_LOGIN_PARAMS,
     ..Command::leaf(
         "l",
-        "join a running dev job (short for bab dev login)",
+        "join a running dev job (short for ab dev login)",
         Action::DevLogin,
     )
 };
 
-/// The `bab` group (Python `main`), subcommands in registration order.
+/// The `ab` group (Python `main`), subcommands in registration order.
 pub static MAIN: Command = Command {
     name: crate::core::CLI_NAME,
     aliases: &[],

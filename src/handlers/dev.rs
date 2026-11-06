@@ -1,4 +1,4 @@
-//! `bab dev start|status|login|stop` and `bab l`. Port of `handlers/dev.py`. Owned by P3-F.
+//! `ab dev start|status|login|stop` and `ab l`. Port of `handlers/dev.py`. Owned by P3-F.
 //!
 //! Notes:
 //! * Mutations (scancel, sbatch) run strictly sequentially, in Python's order, after every
@@ -6,7 +6,7 @@
 //! * `wait_for_job_running` shows `console.status(...)` (spinner only on a terminal),
 //!   polls with `signals::sleep(poll_interval)` and real elapsed time (`Instant`).
 //!   On Ctrl-C during `dev start`'s wait, print
-//!   `muted("Detached; {id} stays queued (bab dev stop cancels it).")` and return
+//!   `muted("Detached; {id} stays queued (ab dev stop cancels it).")` and return
 //!   `Err(AbError::Interrupted)`.
 //! * `cmd_dev_login` ends in `core::slurm::exec_replace` (ssh / srun); a not-running job
 //!   without `--wait` ends with a bare `SystemExit(1)` -> `Err(AbError::Exit(1))`.
@@ -312,7 +312,7 @@ pub fn cmd_dev_start(args: &DevStartArgs) -> Result<()> {
         )));
     }
 
-    // bab-only: Python would submit (and maybe cancel the old job) before crashing in
+    // Rust-only: Python would submit (and maybe cancel the old job) before crashing in
     // `time.sleep(nan)`; reject an unusable --poll-interval while nothing has changed yet.
     if args.login || !args.no_wait {
         poll_pause(args.poll_interval)?;

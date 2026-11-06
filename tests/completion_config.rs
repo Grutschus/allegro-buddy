@@ -8,13 +8,13 @@ use std::process::Command;
 fn gpu_type_completion_survives_an_invalid_config() {
     let home = std::path::Path::new(env!("CARGO_TARGET_TMPDIR")).join("completion-config");
     std::fs::create_dir_all(&home).unwrap();
-    let output = Command::new(env!("CARGO_BIN_EXE_bab"))
+    let output = Command::new(env!("CARGO_BIN_EXE_ab"))
         .env_clear()
         .env("PATH", "/usr/bin:/bin")
         .env("HOME", &home)
         .env("AB_CLUSTER", "not-a-preset")
-        .env("_BAB_COMPLETE", "bash_complete")
-        .env("COMP_WORDS", "bab free -G a100 --")
+        .env("_AB_COMPLETE", "bash_complete")
+        .env("COMP_WORDS", "ab free -G a100 --")
         .env("COMP_CWORD", "4")
         .output()
         .unwrap();

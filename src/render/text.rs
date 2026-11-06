@@ -5,7 +5,7 @@
 //!   styles the padding added when justifying. Constructing strips control codes (BEL, BS,
 //!   VT, FF, CR).
 //! * Span styles are resolved [`Style`]s (Rich resolves style names at render time with the
-//!   console theme; bab only ever uses the default theme, see [`super::theme`]).
+//!   console theme; ab only ever uses the default theme, see [`super::theme`]).
 //! * Offsets are code points, like Rich; `len()` is code points, not cells.
 //! * `Console.print(text)` re-joins the text (Rich `_collect_renderables`), which drops the
 //!   text's own `justify`/`overflow`/`no_wrap`/`end`; see [`super::console`].

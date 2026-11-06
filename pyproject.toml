@@ -1,19 +1,20 @@
-# Python packaging for PyPI: maturin puts the `bab` binary into platform wheels
-# (`bindings = "bin"`), no Python code. The version comes from Cargo.toml. Releasing: README.
+# Python packaging for PyPI: maturin puts the binaries (`ab`, `allegro-buddy` and the
+# aliases `bab`, `better-allegro-buddy`: every [[bin]] in Cargo.toml) into platform wheels
+# (`bindings = "bin"`), no Python code. The version comes from Cargo.toml.
+# Releasing: CONTRIBUTING.md.
 [build-system]
 requires = ["maturin>=1.9.2,<2"]  # 1.9.2: PEP 639 `license`/`license-files`
 build-backend = "maturin"
 
 [project]
-name = "better-allegro-buddy"
+name = "allegro-buddy"
 dynamic = ["version"]
-description = "A friendly Slurm helper: allegro-buddy rewritten in Rust (the `bab` command), byte-for-byte compatible and several times faster."
+description = "A friendly Slurm helper, with presets for the Allegro cluster."
 readme = "README.md"
 requires-python = ">=3.8"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "Grutschus" }, { name = "Michael Plainer" }]
-maintainers = [{ name = "Michael Plainer" }]
 keywords = ["slurm", "hpc", "cluster", "gpu", "cli", "allegro", "sbatch", "squeue"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -30,10 +31,8 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/plainerman/better-allegro-buddy"
-Repository = "https://github.com/plainerman/better-allegro-buddy"
-Issues = "https://github.com/plainerman/better-allegro-buddy/issues"
-Original = "https://github.com/Grutschus/allegro-buddy"
+Source = "https://github.com/Grutschus/allegro-buddy"
+Issues = "https://github.com/Grutschus/allegro-buddy/issues"
 
 [tool.maturin]
 bindings = "bin"

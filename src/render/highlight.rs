@@ -14,7 +14,7 @@ use std::sync::{LazyLock, OnceLock};
 
 /// A regex compiled on first use. Unicode `\w`/`\W`/`\d` classes (Python `re` semantics)
 /// take milliseconds to compile, yet on ASCII text they match exactly their ASCII parts:
-/// ASCII haystacks (nearly everything bab prints) use an ASCII twin of the pattern
+/// ASCII haystacks (nearly everything ab prints) use an ASCII twin of the pattern
 /// ([`ascii_twin`]); the Unicode original is compiled only for non-ASCII text.
 #[derive(Debug)]
 pub struct LazyRegex {
@@ -93,7 +93,7 @@ fn ascii_twin(pattern: &str) -> String {
     out
 }
 
-/// One highlight pattern (Rich's patterns are expensive to compile and most strings bab
+/// One highlight pattern (Rich's patterns are expensive to compile and most strings ab
 /// prints need only some of them).
 #[derive(Debug)]
 struct Pattern {

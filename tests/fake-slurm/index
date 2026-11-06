@@ -4,7 +4,7 @@
 # (@TMP@ replaced by $FAKE_SLURM_TMP), <file>.err to stderr. "demo" is a busy made-up
 # Allegro-like cluster (jobs of alice and bob), "plain" the same nodes without jobs. The
 # *-nodes.txt and squeue --json answers carry the same data as the *-nodes.json and
-# demo-jobs.json ones (Slurm 24.11 formats), for bab's cheaper queries (src/core/fast.rs).
+# demo-jobs.json ones (Slurm 24.11 formats), for the port's cheaper queries (src/core/fast.rs).
 demo-dev-start 0 - squeue -h --user=alice --format=%F --name=ab-dev
 * 0 config scontrol show config
 * 0 version scontrol --version

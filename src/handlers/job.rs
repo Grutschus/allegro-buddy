@@ -1,4 +1,4 @@
-//! `bab job history` and `bab job output`. Port of `handlers/job.py`. Owned by P3-F.
+//! `ab job history` and `ab job output`. Port of `handlers/job.py`. Owned by P3-F.
 
 use crate::core::jobs::{OutputStream, get_job_detail, get_job_output, get_user_job_history};
 use crate::core::parse::{base_job_id, user_from_userid};

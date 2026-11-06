@@ -1,11 +1,11 @@
 [package]
-name = "better-allegro-buddy"
-version = "2.7.1"
+name = "allegro-buddy"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.88"
-description = "A friendly Slurm helper (Rust rewrite of allegro-buddy), with presets for the Allegro cluster."
+description = "A friendly Slurm helper, with presets for the Allegro cluster."
 license = "MIT"
-repository = "https://github.com/plainerman/better-allegro-buddy"
+repository = "https://github.com/Grutschus/allegro-buddy"
 readme = "README.md"
 publish = false
 # What a source package (`maturin sdist` for PyPI, `cargo package`) contains: only what
@@ -20,13 +20,25 @@ include = [
     "/src/**/*.rs",
 ]
 
+# One program under four names; it calls itself by the name it was started as (click's
+# prog_name), like the Python package's two console scripts `ab` and `allegro-buddy`.
+# `bab` and `better-allegro-buddy` keep installs of the former Rust fork working. Every
+# [[bin]] lands in the wheel (maturin `bindings = "bin"`), each a full copy.
 [[bin]]
-name = "bab"
+name = "ab"
 path = "src/main.rs"
 
-[lib]
+[[bin]]
+name = "allegro-buddy"
+path = "src/bin/allegro-buddy.rs"
+
+[[bin]]
 name = "bab"
-path = "src/lib.rs"
+path = "src/bin/bab.rs"
+
+[[bin]]
+name = "better-allegro-buddy"
+path = "src/bin/better-allegro-buddy.rs"
 
 # Kept minimal on purpose (startup time + binary size); justify any addition here.
 [dependencies]
@@ -51,8 +63,8 @@ serde_core = "1.0.229"
 test-hooks = []
 
 [dev-dependencies]
-# Self-reference so integration tests get a `bab` binary with the test hooks.
-better-allegro-buddy = { path = ".", features = ["test-hooks"] }
+# Self-reference so integration tests get an `ab` binary with the test hooks.
+allegro-buddy = { path = ".", features = ["test-hooks"] }
 
 [profile.release]
 opt-level = 3

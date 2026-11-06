@@ -290,8 +290,8 @@ fn cluster_name_cache_path_with_env(env: Env<'_>) -> PathBuf {
     cache_dir_with_env(env).join(cluster_name_cache_file(crate::hooks::hostname()))
 }
 
-/// `<cache dir>/<name>.<host>`: the directory `ab` caches the cluster name in, for a file
-/// only `bab` uses.
+/// `<cache dir>/<name>.<host>`: the directory Python `ab` caches the cluster name in, for a
+/// file only the Rust port uses.
 pub fn bab_cache_path(name: &str) -> PathBuf {
     cache_dir_with_env(&process_env).join(format!(
         "{name}.{}",
@@ -300,7 +300,7 @@ pub fn bab_cache_path(name: &str) -> PathBuf {
 }
 
 /// `cluster-name.<host>`, always one path component. Python joins the raw hostname, so a
-/// (pathological) `/` in it would point outside the cache directory; bab writes `_`
+/// (pathological) `/` in it would point outside the cache directory; the port writes `_`
 /// instead. Any real hostname is unchanged.
 fn cluster_name_cache_file(hostname: &str) -> String {
     format!("cluster-name.{}", hostname.replace('/', "_"))
