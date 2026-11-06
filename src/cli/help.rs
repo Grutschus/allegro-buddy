@@ -159,7 +159,7 @@ pub fn python_warning_filters_mutated() {
 /// `RichClickTheme '<name>' not found.` through `warnings.warn(..., stacklevel=2)`, shown
 /// by `warnings.showwarning` unless the registry still holds it. The port prints the same two
 /// lines with the module path relative to site-packages (Python's starts with the venv
-/// path; the compat harness normalises that prefix).
+/// path; a comparison has to normalise that prefix).
 pub fn apply_theme_warning() {
     static UNKNOWN: OnceLock<Option<String>> = OnceLock::new();
     let unknown = UNKNOWN.get_or_init(|| env_theme().filter(|name| !theme_exists(name)));

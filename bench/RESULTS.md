@@ -1,14 +1,13 @@
 # ab vs bab: performance
 
-Python `allegro-buddy` 2.7 (`ab`) vs its byte-identical Rust rewrite, called `bab` here (as
-it was while it was developed in the fork plainerman/better-allegro-buddy; it still answers
-to that name, which `bench/live.sh` uses to tell the two apart), every
+Python `allegro-buddy` 2.7 (`ab`) vs its byte-identical Rust rewrite, called `bab` here (its
+name while it was developed; it still answers to that name, which `bench/live.sh` uses to
+tell the two apart), every
 read-only command. The live numbers, the plots and this file's live table come from
 `bench/live.sh` (run on the cluster), summarised into `bench/results/live.json` and
 plotted by `bench/plot.py`; see [Updating the numbers](#updating-the-numbers). The local
-replay (anonymised Allegro recordings, replay fake, raw hyperfine exports) is kept at the
-git tag
-[`equivalence-harness-3`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-3/bench).
+replay numbers come from tooling (anonymised Allegro recordings, a replay fake) used while
+porting and not part of this repository.
 
 ## Summary
 
@@ -154,7 +153,7 @@ client, and resolves its user and group, whenever a query asks for all of them. 
 live with the same `bab` with and without the cheaper queries (the second mode is
 `ab`'s queries), every read-only command byte-identical between the two, on charite
 (Slurm 25.05.8, ~2200 jobs, sssd/AD), lise (25.11.8, 1152 nodes, ~1250 jobs) and hydra
-(26.05.2, ~490 jobs, LDAP without a cache). Harness: tag `equivalence-harness-3`.
+(26.05.2, ~490 jobs, LDAP without a cache).
 
 | change | effect (live) |
 |---|---|
@@ -206,5 +205,4 @@ in ms, plus the run's `env.txt`), redraws `bench/plots/live.png`, and prints the
 (median speedup, total of all read-only commands) for this file.
 `uv run bench/plot.py` alone redraws the plots from the committed summary. Commit
 `live.json` and the plots, not the raw run (`bench/.work/` is ignored); update the numbers
-quoted above. The local replay numbers do not come from this run (see the
-`equivalence-harness-3` tag).
+quoted above. The local replay numbers do not come from this run.

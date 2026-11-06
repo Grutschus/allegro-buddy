@@ -29,10 +29,9 @@ Everything observable is meant to be identical to allegro-buddy 2.7: stdout and 
 something (in order). Read-only Slurm queries may be cheaper ones carrying the same
 information (`src/core/fast.rs`). How that was checked: a differential harness against
 the pinned Python reference (846 scenarios, all identical but the 4 `--version` ones) and
-a replay of recorded Allegro answers (532 cases); both live at the git tag
-[`equivalence-harness-3`](https://github.com/plainerman/better-allegro-buddy/tree/equivalence-harness-3)
-of the repository where the port was written (`git tag -n99 equivalence-harness-3`
-there says how to run them). Benchmarks: [`bench/RESULTS.md`](bench/RESULTS.md).
+a replay of recorded Allegro answers (532 cases), both run while the port was written;
+the snapshot tests in `tests/snapshots/` keep checking it. Benchmarks:
+[`bench/RESULTS.md`](bench/RESULTS.md).
 
 Deliberate differences, all where 2.7 falls over or for speed:
 

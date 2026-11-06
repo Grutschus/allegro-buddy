@@ -22,11 +22,9 @@ deviations (the version among them) are listed in CONTRIBUTING.md ("Compatibilit
   Rust items name what they port (`Mirrors core.foo`), so grep for the Python name.
 - Pinned Python dependencies whose behaviour is reproduced: rich 15.0.0, click 8.3.2,
   rich-click 1.9.9.
-- Checking it: `cargo test` (byte-exact snapshots), and for any change to output,
-  parsing or Slurm calls the full differential harness at the git tag
-  `equivalence-harness-3` of the fork the port was written in,
-  github.com/plainerman/better-allegro-buddy (`git tag -n99 equivalence-harness-3` there
-  says how to run it).
+- Checking it: `cargo test` (byte-exact snapshots of 2.7's output), and for any change
+  to output, parsing or Slurm calls a comparison with the Python reference (commit
+  `91689b9`) on the same input.
 
 ## Where to start reading
 
@@ -76,7 +74,7 @@ pushes to and PRs into `main`, and skips docs-only changes. Run them locally.
   reported, in Python's order. Never add, reorder or parallelize mutations (`sbatch`,
   `scancel`, `scontrol update`, `ssh`/`srun`); don't add calls to the common path
   unless they are much cheaper.
-- The fake Slurms (`tests/fake-slurm/`, the harness's) fail closed: a new call form
+- The fake Slurm (`tests/fake-slurm/`) fails closed: a new call form
   needs a fixture whose data matches what the fake answers to Python's query.
 
 ## Real clusters (Allegro or any Slurm)
@@ -96,6 +94,4 @@ pushes to and PRs into `main`, and skips docs-only changes. Run them locally.
 - Releases and PyPI: CONTRIBUTING.md "Releasing", `.github/workflows/release.yml`. Ask
   before tagging or pushing to `main`: a tag publishes a GitHub release and, with PyPI
   enabled, an upload that can never be replaced.
-- Differential harness, replay data, perf tooling: `git tag -n99 equivalence-harness-3`
-  (fetch the tags from the fork).
 - `CLAUDE.md` only imports this file. If a pointer here breaks, fix it here.
