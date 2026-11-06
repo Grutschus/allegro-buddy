@@ -55,7 +55,7 @@ jobs:
       - run: cargo clippy --all-targets --locked --features test-hooks -- -D warnings
       - run: cargo test --locked
   msrv:
-    # The oldest Rust that builds bab (Cargo.toml `rust-version`, README): let-chains need
+    # The oldest Rust that builds ab (Cargo.toml `rust-version`, CONTRIBUTING.md): let-chains need
     # 1.88. --locked proves the pinned dependencies build with it too.
     if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
     runs-on: ubuntu-latest

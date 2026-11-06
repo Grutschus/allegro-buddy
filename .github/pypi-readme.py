@@ -12,7 +12,7 @@ Run by release.yml before maturin builds the sdist and wheels.
 import re
 from pathlib import Path
 
-REPO = 'plainerman/better-allegro-buddy'
+REPO = 'Grutschus/allegro-buddy'
 REF = 'main'
 
 
