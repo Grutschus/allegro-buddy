@@ -1,44 +1,143 @@
 name: PyPI
 
-# Runs only in the public repo, on the release that release.yml creates there, so
-# the sdist holds only the public snapshot and the PyPI provenance names the public
+# Runs only in the public repo, on the release that the dev repo's mirror creates there,
+# so the sdist holds only the public snapshot and the PyPI provenance names the public
 # repo. Uses PyPI Trusted Publishing (no token): the PyPI project trusts
 # Grutschus/allegro-buddy, workflow pypi.yml, environment pypi.
+# Builds the `ab` binary (and `allegro-buddy`) as maturin wheels (pyproject.toml) for Linux
+# (manylinux2014: glibc >= 2.17, x86_64/aarch64) and macOS (x86_64/arm64), plus the sdist.
+# workflow_dispatch: build and smoke-test only, in either repo.
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+env:
+  CARGO_TERM_COLOR: always
+  # Same maturin for every artifact; pyproject.toml accepts >=1.9.2,<2.
+  MATURIN_VERSION: v1.16.0
+
 jobs:
   build:
-    if: github.repository == 'Grutschus/allegro-buddy'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    # Linux: glibc (manylinux2014 = glibc 2.17), not musl, because group names come from
+    # NSS (getgrgid_r), on clusters often sssd/LDAP. Native runners everywhere, so every
+    # binary is smoke-tested on its own architecture.
+    if: github.event_name == 'workflow_dispatch' || github.repository == 'Grutschus/allegro-buddy'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { target: x86_64, runner: ubuntu-24.04, manylinux: '2014' }
+          - { target: aarch64, runner: ubuntu-24.04-arm, manylinux: '2014' }
+          - { target: x86_64, runner: macos-15-intel, manylinux: '' }
+          - { target: aarch64, runner: macos-15, manylinux: '' }
+    name: build (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-      - run: uv build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/checkout@v7
+      - uses: PyO3/maturin-action@v1
         with:
-          name: dist
-          path: dist/
+          maturin-version: ${{ env.MATURIN_VERSION }}
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          args: --release --locked --out dist
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: false
+      - name: Smoke test the wheel
+        run: |
+          wheel=$(ls dist/*.whl)
+          uvx --from "$wheel" ab -h > /dev/null
+          for name in ab allegro-buddy; do
+            uvx --from "$wheel" "$name" --version | grep -x "$name, version [0-9.]*"
+          done
+      - name: Linux binary needs only glibc <= 2.17 symbols and runs on glibc 2.17
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p bin
+          unzip -o -j dist/*.whl '*.data/scripts/ab' -d bin
+          chmod 755 bin/ab
+          newest=$(objdump -T bin/ab | grep -o 'GLIBC_[0-9.]*' | sort -Vu | tail -n 1)
+          echo "newest glibc symbol version: $newest"
+          if [ "$(printf '%s\n' "$newest" GLIBC_2.17 | sort -V | tail -n 1)" != GLIBC_2.17 ]; then
+            echo "::error::ab needs $newest, newer than manylinux2014's GLIBC_2.17"
+            exit 1
+          fi
+          docker run --rm -v "$PWD/bin:/b:ro" quay.io/pypa/manylinux2014_${{ matrix.target }} \
+            sh -c 'ldd --version | head -n 1; /b/ab --version'
+      - uses: actions/upload-artifact@v7
+        with:
+          name: wheel-${{ matrix.target }}-${{ runner.os }}
+          path: dist/*.whl
+          if-no-files-found: error
+
+  sdist:
+    if: github.event_name == 'workflow_dispatch' || github.repository == 'Grutschus/allegro-buddy'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches the pyproject.toml version
+        if: github.event_name == 'release'
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"$/\1/p' pyproject.toml | head -n 1)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match pyproject.toml version $version"
+            exit 1
+          fi
+      - uses: PyO3/maturin-action@v1
+        with:
+          maturin-version: ${{ env.MATURIN_VERSION }}
+          command: sdist
+          args: --out dist
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: false
+      - name: The sdist builds a working wheel (cargo + maturin from PyPI)
+        run: |
+          uv build --wheel --out-dir sdist-wheel dist/*.tar.gz
+          uvx --from "$(ls sdist-wheel/*.whl)" ab --version
+      - uses: actions/upload-artifact@v7
+        with:
+          name: sdist
+          path: dist/*.tar.gz
+          if-no-files-found: error
+
+  check:
+    # Metadata and README rendering of everything that goes to PyPI.
+    needs: [build, sdist]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - uses: astral-sh/setup-uv@v10.3.3
+        with:
+          enable-cache: false
+      - run: ls -l dist
+      - run: uvx twine check --strict dist/*
 
   # Separate job so a required reviewer on the pypi environment can download and
-  # inspect the dist artifact before approving the upload.
+  # inspect the artifacts before approving the upload.
   publish:
-    needs: build
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    if: github.event_name == 'release'
+    needs: [check]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
     environment:
       name: pypi
       url: https://pypi.org/project/allegro-buddy/
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
-          name: dist
-          path: dist/
+          path: dist
+          merge-multiple: true
       - uses: pypa/gh-action-pypi-publish@release/v1

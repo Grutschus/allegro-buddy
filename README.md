@@ -4,6 +4,9 @@ A small Slurm companion for everyday cluster work: what is free, why your job is
 waiting, and a dev node in one command. It reads what it needs from Slurm, so it
 works beyond the Allegro cluster it was born on.
 
+allegro-buddy is now written in Rust: same commands, flags, config and output as
+before, it just starts much faster.
+
 <img src="https://raw.githubusercontent.com/Grutschus/allegro-buddy/main/.github/assets/queue.svg" alt="ab queue: your jobs, start estimates and why pending jobs wait">
 
 ## Install
