@@ -1,6 +1,6 @@
 ---
 name: update-benchmarks
-description: Re-run the live ab vs bab benchmark on the Allegro cluster after performance work, regenerate bench/results/live.json and the plots, and update every number quoted in README.md and bench/RESULTS.md. Use when asked to update, refresh or rerun the benchmarks, plots or performance numbers.
+description: Re-run the live ab vs bab benchmark on the Allegro cluster after performance work, regenerate bench/results/live.json and the plots, and update every number quoted in bench/RESULTS.md. Use when asked to update, refresh or rerun the benchmarks, plots or performance numbers.
 ---
 
 # Updating the benchmark numbers
@@ -14,7 +14,8 @@ checks around it and the list of places to update.
 1. Only benchmark a build that behaves identically: `cargo test --locked` passes and,
    after changes to anything but docs, the `verify-equivalence` skill passes too.
 2. Build without test hooks: `cargo build --release --locked`. The binary is in
-   `$CARGO_TARGET_DIR/release/bab` if that is set, else `target/release/bab`. Its glibc
+   `$CARGO_TARGET_DIR/release/bab` if that is set, else `target/release/bab` (the alias
+   of `ab`; `bench/live.sh` needs that name to tell it from Python's `ab`). Its glibc
    must not be newer than the cluster's: compare `ldd --version` locally and via
    `ssh allegro`, else build on the cluster or use a release binary.
 3. Print the current numbers so you can find them later:
@@ -42,21 +43,14 @@ Update each with the new values, keeping the current wording and rounding:
   - "Live on Allegro" table: paste the table printed by `plot.py`.
   - "Where the speedup comes from": the live ms figures and the `why` speedup.
   - "Performance pass": add a row per new optimisation (what changed, measured effect).
-- `README.md`
-  - header chart `<img alt=...>`: command count and totals.
-  - intro: "**N× faster**" (median, live).
-  - Commands: the `-h` time ("comes back in ~N ms").
-  - Performance: the setup line (jobs, nodes, runs), the short table (a subset of the
-    RESULTS rows), the median/geometric mean/saved-ms line, and the `why` figures and
-    speedup under "Where it stops".
-- Local replay numbers (README "instant fake Slurm" sentence, RESULTS "Local replay"
-  table and bullets) are not produced by `live.sh`. Rerun them with the tooling at the
+- `README.md` quotes no numbers (it only says the Rust version starts much faster).
+- Local replay numbers (RESULTS "Local replay" table and bullets) are not produced by `live.sh`. Rerun them with the tooling at the
   `equivalence-harness-3` tag (`bench/run_local.sh`, `bench/README.md` there) or leave
   them as they are; never mix numbers from different builds in one table.
 
 ## Verify
 
-- `git grep -nF '<old value>' -- README.md bench/RESULTS.md` for each old figure from
+- `git grep -nF '<old value>' -- bench/RESULTS.md` for each old figure from
   step 3 finds nothing that should have changed.
 - `uv run bench/plot.py` leaves `git status` clean (plots match `live.json`).
 - Commit `bench/results/live.json`, `bench/plots/*` and the docs, not `bench/.work/`.
