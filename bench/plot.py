@@ -2,13 +2,12 @@
 # requires-python = ">=3.10"
 # dependencies = ["matplotlib==3.10.*"]
 # ///
-"""The README's benchmark plots from the live ab vs bab comparison (bench/live.sh).
+"""The benchmark plot from the live ab vs bab comparison (bench/live.sh).
 
     uv run bench/plot.py --run DIR   # summarise a live.sh output dir into bench/results/live.json
     uv run bench/plot.py             # plots from bench/results/live.json
 
-Writes bench/plots/live.png (per command) and bench/plots/hero-{light,dark}.svg (README
-header: every read-only command once) and prints the table and summary for
+Writes bench/plots/live.png (per command) and prints the table and summary for
 bench/RESULTS.md. Means with one standard deviation; speedup = mean(ab) / mean(bab).
 """
 
@@ -17,7 +16,6 @@ from __future__ import annotations
 import argparse
 import io
 import json
-import re
 import statistics
 from pathlib import Path
 
@@ -119,58 +117,10 @@ def live_plot(summary: dict, out: Path) -> None:
     print(f'wrote {out}')
 
 
-def hero_totals(summary: dict) -> dict[str, float]:
+def totals_of(summary: dict) -> dict[str, float]:
     """Seconds to run every distinct read-only command once (sum of means)."""
     rows = [row for key, row in summary['commands'].items() if key != 'info-cold']
     return {impl: sum(row[impl]['mean'] for row in rows) / 1000 for impl in ('bab', 'ab')}
-
-
-def hero(totals: dict[str, float], out_dir: Path) -> None:
-    """Small uv-README-style chart: one bar per tool, light and dark variant."""
-    w, h, left, top, row, bar, axis = 496, 76, 60, 2, 26, 14, 20
-    plot_w, plot_h = 400, row * len(totals)
-    font = ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Helvetica', 'Arial',
-            'sans-serif']
-    css_font = ', '.join(f"'{f}'" if ' ' in f else f for f in font)
-    xmax = max(totals.values()) * 1.18
-    for variant, text in (('light', '#333333'), ('dark', '#C9D1D9')):
-        with plt.rc_context({'svg.fonttype': 'none', 'svg.hashsalt': 'bab', 'font.family': font,
-                             'font.size': 12, 'text.color': text, 'xtick.color': text,
-                             'ytick.color': text, 'figure.facecolor': 'none',
-                             'axes.facecolor': 'none', 'savefig.facecolor': 'none'}):
-            fig = plt.figure(figsize=(w / 72, h / 72), dpi=72)
-            ax = fig.add_axes((left / w, (h - top - plot_h) / h, plot_w / w, plot_h / h))
-            names = list(totals)
-            ax.barh(range(len(names)), [totals[n] for n in names], height=bar / row,
-                    color=BAB_COLOR)
-            # baselines 4.3 px below the bar centre: cap height of 12 px text, centred
-            for y, n in enumerate(names):
-                weight = 'bold' if n == 'bab' else 'normal'
-                ax.annotate(f'{totals[n]:.2f}s', (totals[n], y), xytext=(4, -4.3),
-                            textcoords='offset points', va='baseline', ha='left',
-                            fontweight=weight)
-                ax.annotate(n, (0, y), xytext=(-10, -4.3), textcoords='offset points',
-                            va='baseline', ha='right', fontweight=weight)
-            ax.set_xlim(0, xmax)
-            ax.set_ylim(len(names) - 0.5, -0.5)
-            ax.set_xticks(range(int(xmax) + 1), [f'{t}s' for t in range(int(xmax) + 1)])
-            ax.set_yticks([])
-            ax.tick_params(length=0, pad=axis - 15)
-            ax.grid(axis='x', color='#7f7f7f', alpha=0.25, linewidth=1)
-            ax.set_axisbelow(True)
-            for spine in ax.spines.values():
-                spine.set_visible(False)
-            path = out_dir / f'hero-{variant}.svg'
-            fig.savefig(path, transparent=True, metadata={
-                'Date': None, 'Creator': None, 'Format': None, 'Type': None})
-            plt.close(fig)
-            svg = path.read_text()
-            # 1 pt = 1 px at 72 dpi; px makes GitHub render it at exactly w×h like uv's
-            svg = svg.replace(f'width="{w}pt" height="{h}pt"', f'width="{w}" height="{h}"', 1)
-            # matplotlib expands sans-serif into its own fallback list; keep uv's stack
-            svg = re.sub(r"font-family: [^;]*;", f"font-family: {css_font};", svg)
-            path.write_text(svg)
-            print(f'wrote {path}')
 
 
 def report(summary: dict, totals: dict[str, float]) -> None:
@@ -198,9 +148,7 @@ def main() -> int:
     summary = json.loads(SUMMARY.read_text())
     PLOTS.mkdir(exist_ok=True)
     live_plot(summary, PLOTS / 'live.png')
-    totals = hero_totals(summary)
-    hero(totals, PLOTS)
-    report(summary, totals)
+    report(summary, totals_of(summary))
     return 0
 
 

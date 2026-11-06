@@ -1,8 +1,8 @@
 # Contributing
 
 allegro-buddy is a Rust port of the Python allegro-buddy 2.7 (commit `91689b9`) that
-must behave exactly like it. Notes for coding agents (conventions, cluster rules, task
-skills in `.claude/skills/`): [`AGENTS.md`](AGENTS.md).
+must behave exactly like it. Notes for coding agents (conventions, cluster rules):
+[`AGENTS.md`](AGENTS.md).
 
 ## Development
 

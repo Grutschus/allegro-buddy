@@ -788,7 +788,7 @@ mod tests {
             .parent()
             .and_then(Path::parent)
             .expect("target dir")
-            .join("bab-test-scratch")
+            .join("ab-test-scratch")
             .join(format!("{name}-{}", std::process::id()));
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).expect("scratch dir");

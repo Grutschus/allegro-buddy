@@ -565,7 +565,7 @@ mod tests {
         exe.parent()
             .and_then(std::path::Path::parent)
             .expect("target dir")
-            .join("bab-test-scratch")
+            .join("ab-test-scratch")
             .join(format!("dev-logs-{}", std::process::id()))
             .display()
             .to_string()

@@ -17,7 +17,7 @@ git tag
   commands; geometric mean 14.3×). Every call saves **130–500 ms**. Slurm-bound
   commands: 6.2× (`node`) to 19.9× (`why`); most are now one Slurm round trip (~15 ms)
   plus a few ms. Pure start-up: `--version` 145 → 1.7 ms. All 12 read-only commands once
-  each: `ab` **2.95 s**, `bab` **0.24 s** (`bench/plots/hero-*.svg`).
+  each: `ab` **2.95 s**, `bab` **0.24 s**.
 - **Second performance pass** (Slurm side, see [below](#performance-pass-2-the-slurm-side)):
   against the previous `bab` median 3.3× (geometric mean 2.6×), all 12 commands 0.88 →
   0.23 s; `why` 209 → 18 ms, `q --all` 181 → 32 ms, `info` 88 → 19 ms (118 → 19 ms for
@@ -202,8 +202,7 @@ uv run bench/plot.py --run bench/.work/live-<stamp>
 ```
 
 `plot.py --run` rewrites `bench/results/live.json` (per command and tool: n, mean, σ, min
-in ms, plus the run's `env.txt`), redraws `bench/plots/live.png` and
-`bench/plots/hero-{light,dark}.svg`, and prints the live table and the summary numbers
+in ms, plus the run's `env.txt`), redraws `bench/plots/live.png`, and prints the live table and the summary numbers
 (median speedup, total of all read-only commands) for this file.
 `uv run bench/plot.py` alone redraws the plots from the committed summary. Commit
 `live.json` and the plots, not the raw run (`bench/.work/` is ignored); update the numbers

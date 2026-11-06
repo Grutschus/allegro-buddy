@@ -1184,8 +1184,8 @@ mod tests {
         assert!(tilde.starts_with(home.trim_end_matches('/')), "{tilde}");
         assert!(tilde.ends_with("/slurm-output/job-12345.out"));
         assert_eq!(
-            r("~nosuchuser-bab/x", "1").as_deref(),
-            Some("~nosuchuser-bab/x")
+            r("~nosuchuser-ab/x", "1").as_deref(),
+            Some("~nosuchuser-ab/x")
         );
     }
 
