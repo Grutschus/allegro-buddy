@@ -1,0 +1,13 @@
+                                   GPU nodes                                   
+Node     State                        A5000   GTX1080   Free CPUs   Free memory
+───────────────────────────────────────────────────────────────────────────────
+gpu101   IDLE                           4/4         -       16/16        90/90G
+gpu102   MIXED                          4/4         -        8/16         0/90G
+gpu104   MIXED+REBOOT                   2/4         -        8/16        60/90G
+gpu103   ALLOCATED+REBOOT               0/4         -        0/16        26/90G
+gpu105   DOWN+DRAIN+NOT_RESPONDING      0/4         -        0/16         0/90G
+gpu106   IDLE+RESERVED+MAINTENANCE      0/4         -        0/16         0/90G
+gpu201   IDLE+DRAIN                       -       0/4        0/16         0/90G
+                                                                               
+total                                4+6/24       0/4      32/112      176/630G
+free/total · +n idle, but on full or drained nodes

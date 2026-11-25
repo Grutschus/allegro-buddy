@@ -23,14 +23,15 @@ use crate::core::jobs::{
     load_running_jobs_on, load_user_pending_jobs,
 };
 use crate::core::nodes::{
-    Node, NodeFree, is_gpu_partition, load_nodes, node_facts, node_free, node_is_idle,
-    node_is_mixed, node_is_usable,
+    Node, NodeFree, is_gpu_partition, load_nodes, node_awaits_reboot, node_facts, node_free,
+    node_is_idle, node_is_usable, node_takes_jobs,
 };
 use crate::core::parse::{
     expand_nodelist, format_mem_value, is_nullish, parse_index_blob, truncate, user_from_userid,
 };
 use crate::core::partitions::{
-    PartitionStats, get_accessible_partitions, summarize_partitions, summarize_selected_partitions,
+    NotFree, PartitionStats, get_accessible_partitions, summarize_partitions,
+    summarize_selected_partitions,
 };
 use crate::core::reservations::{
     active_reservations, load_reservations, recent_active_reservations,
@@ -230,7 +231,11 @@ fn short_limit(value: &str) -> Text {
 
 /// `_node_state_with_resv(state, resv_name, upcoming_resv_name)`.
 fn node_state_with_resv(state: &str, resv_name: Option<&str>, upcoming: Option<&str>) -> Text {
-    let mut text = state_text(state);
+    let mut text = if state.ends_with("+REBOOT") {
+        Text::styled(state, "yellow")
+    } else {
+        state_text(state)
+    };
     if let Some(name) = resv_name.filter(|n| !n.is_empty()) {
         text.append(&format!(" [{name}]"), Some("magenta"));
     } else if let Some(name) = upcoming.filter(|n| !n.is_empty()) {
@@ -253,11 +258,10 @@ fn resv_nodes(resv: &Record) -> String {
 }
 
 /// `_render_reservations()`.
-fn render_reservations() -> Result<()> {
-    let all_resvs = load_reservations()?;
+fn render_reservations(all_resvs: &[Record]) -> Result<()> {
     let now = crate::hooks::now();
-    let active = recent_active_reservations(&all_resvs, now);
-    let upcoming = upcoming_reservations(&all_resvs, now);
+    let active = recent_active_reservations(all_resvs, now);
+    let upcoming = upcoming_reservations(all_resvs, now);
     if active.is_empty() && upcoming.is_empty() {
         return Ok(());
     }
@@ -386,8 +390,15 @@ pub fn cmd_info(all_partitions: bool) -> Result<()> {
         .iter()
         .map(|p| p.get_str("PartitionName").to_owned())
         .collect();
-    let summaries = summarize_partitions(&names, &nodes);
-    let cluster_stats = summarize_selected_partitions(&names.iter().cloned().collect(), &nodes);
+    // Unchecked (only Ctrl-C fails it); 2.7 loaded it last, for the reservation table.
+    let all_resvs = load_reservations()?;
+    let not_free = not_free_nodes(
+        &nodes,
+        &reservation_by_node(&active_reservations(&all_resvs)),
+    );
+    let summaries = summarize_partitions(&names, &nodes, &not_free);
+    let cluster_stats =
+        summarize_selected_partitions(&names.iter().cloned().collect(), &nodes, &not_free);
 
     let mut rows: Vec<TableRow> = vec![overview_row(
         Text::styled("all", "bold"),
@@ -438,7 +449,7 @@ pub fn cmd_info(all_partitions: bool) -> Result<()> {
         &breaks,
         None,
     );
-    render_reservations()
+    render_reservations(&all_resvs)
 }
 
 /// `_slurm_duration(value)`: squeue's `1-00:00:00` / `6:35:00` / `15:00` as `1d` /
@@ -621,8 +632,10 @@ struct FreeNode {
     partitions: String,
     free: NodeFree,
     idle: bool,
-    /// IDLE or MIXED: can take a job now.
+    /// Can take a job now ([`node_takes_jobs`]; 2.7: IDLE or MIXED).
     schedulable: bool,
+    /// Down, drained or in maintenance: listed only with `--all`.
+    hidden: bool,
 }
 
 impl FreeNode {
@@ -646,13 +659,72 @@ impl FreeNode {
     }
 }
 
-/// `_free_nodes(...)`: the nodes `ab free` counts, most free GPUs, then CPUs, first.
+/// The active reservation of each node it covers.
+fn reservation_by_node(active: &[Record]) -> HashMap<String, &Record> {
+    let by_name: HashMap<&str, &Record> = active
+        .iter()
+        .map(|resv| (resv.get_str("ReservationName"), resv))
+        .collect();
+    reserved_nodes_map(active)
+        .into_iter()
+        .filter_map(|(node, resv)| by_name.get(resv.as_str()).map(|r| (node, *r)))
+        .collect()
+}
+
+/// The nodes that count in the totals but are never free, with why. Not in 2.7, which
+/// dropped unusable nodes entirely and counted nodes reserved for others as free. A node
+/// awaiting a reboot ([`node_awaits_reboot`]) or in a maintenance reservation the user
+/// may use is not among them.
+fn not_free_nodes(nodes: &[Node], reserved_by: &HashMap<String, &Record>) -> NotFree {
+    let usable_resv = |name: &str| {
+        reserved_by.get(name).is_some_and(|resv| {
+            !resv.is_empty() && user_can_use_reservation(resv, current_user(), current_groups())
+        })
+    };
+    let mut not_free = NotFree::new();
+    for node in nodes {
+        let state = node.state.to_uppercase();
+        let reason = if node_awaits_reboot(node) {
+            continue;
+        } else if !node_is_usable(node) {
+            if state.contains("MAINT") && state.contains("RESERVED") && usable_resv(&node.name) {
+                continue;
+            }
+            hidden_reason(&state)
+        } else if reserved_by.contains_key(&node.name) && !usable_resv(&node.name) {
+            "reserved"
+        } else {
+            continue;
+        };
+        not_free.insert(node.name.clone(), reason);
+    }
+    not_free
+}
+
+/// Why an unusable node is not free: `down`, `drained` or `in maintenance`.
+fn hidden_reason(state: &str) -> &'static str {
+    let state = state.to_uppercase();
+    if state.contains("MAINT") {
+        "in maintenance"
+    } else if ["DOWN", "NOT_RESPONDING", "FAIL"]
+        .iter()
+        .any(|flag| state.contains(flag))
+    {
+        "down"
+    } else {
+        "drained"
+    }
+}
+
+/// `_free_nodes(...)`: the nodes of `ab free`, most free GPUs, then CPUs, first; the
+/// [`not_free_nodes`] last, as `hidden` entries (rows only with `--all`). Not in 2.7: nodes
+/// awaiting a reboot ([`node_awaits_reboot`]) as `<BASE>+REBOOT`, and the hidden entries.
 fn free_nodes(
     nodes: &[Node],
     partition_names: &BTreeSet<&str>,
     kind: Kind,
     gpu_type: Option<&str>,
-    reserved_by: &HashMap<String, &Record>,
+    not_free: &NotFree,
 ) -> Vec<FreeNode> {
     let mut entries: Vec<FreeNode> = Vec::new();
     for node in nodes {
@@ -671,35 +743,67 @@ fn free_nodes(
         {
             continue;
         }
-        let mut state = node.state.clone();
-        if !node_is_usable(node) {
-            // Surface MAINT+RESERVED nodes when the user can use the reservation.
-            let upper = state.to_uppercase();
-            let usable_resv = reserved_by.get(&node.name).is_some_and(|resv| {
-                !resv.is_empty() && user_can_use_reservation(resv, current_user(), current_groups())
-            });
-            if !(upper.contains("MAINT") && upper.contains("RESERVED") && usable_resv) {
-                continue;
-            }
-            state = "RESERVED".to_owned();
-        }
-        let idle = node_is_idle(node);
+        let hidden = not_free.contains_key(&node.name);
+        let state = if node_awaits_reboot(node) {
+            format!(
+                "{}+REBOOT",
+                node.state.split('+').next().unwrap_or_default()
+            )
+        } else if !hidden && !node_is_usable(node) {
+            // A maintenance reservation the user may use.
+            "RESERVED".to_owned()
+        } else {
+            node.state.clone()
+        };
         entries.push(FreeNode {
             name: node.name.clone(),
             state,
             partitions: overlap.join(","),
+            idle: node_is_idle(node),
+            schedulable: !hidden && node_takes_jobs(node, &free),
             free,
-            idle,
-            schedulable: idle || node_is_mixed(node),
+            hidden,
         });
     }
     entries.sort_by(|a, b| {
-        b.gpu_free()
-            .cmp(&a.gpu_free())
+        a.hidden
+            .cmp(&b.hidden)
+            .then(b.gpu_free().cmp(&a.gpu_free()))
             .then(b.free.cpu_free.cmp(&a.free.cpu_free))
             .then_with(|| a.name.cmp(&b.name))
     });
     entries
+}
+
+/// Under `ab free` and `ab free --nodes` (not `--all`): the dim line naming the nodes not
+/// listed, e.g.
+/// `hidden: 3 down (gpu060, gpu074, gpu130), 11 in maintenance (gpu061, gpu064, gpu066, …)
+/// · show them with --all`. Not in 2.7.
+fn render_hidden_rows(entries: &[FreeNode], not_free: &NotFree) {
+    let groups: Vec<String> = ["down", "drained", "in maintenance", "reserved"]
+        .iter()
+        .filter_map(|reason| {
+            let names: Vec<&str> = entries
+                .iter()
+                .filter(|e| e.hidden && not_free.get(&e.name) == Some(reason))
+                .map(|e| e.name.as_str())
+                .collect();
+            if names.is_empty() {
+                return None;
+            }
+            let mut shown = names.iter().take(3).copied().collect::<Vec<_>>().join(", ");
+            if names.len() > 3 {
+                shown.push_str(", …");
+            }
+            Some(format!("{} {reason} ({shown})", names.len()))
+        })
+        .collect();
+    if !groups.is_empty() {
+        console::stdout().print(&muted(&format!(
+            "hidden: {} · show them with --all",
+            groups.join(", ")
+        )));
+    }
 }
 
 /// `_render_free_gpu_partitions(...)`.
@@ -800,6 +904,7 @@ fn render_free_by_node(entries: &[FreeNode], gpu_type: Option<&str>) {
 /// `_render_free_node_table(...)`: `ab free --nodes`, one row per node plus a total row.
 fn render_free_node_table(
     entries: &[FreeNode],
+    all: bool,
     kind: Kind,
     gpu_types: &[String],
     resv_map: &HashMap<String, String>,
@@ -811,10 +916,31 @@ fn render_free_node_table(
     let mut rows: Vec<TableRow> = Vec::new();
     for e in entries {
         let (mem_free_gb, mem_total_gb) = e.mem_gb();
-        cpu_free += e.free.cpu_free;
         cpu_total += e.free.cpu_total;
-        mem_free += mem_free_gb;
         mem_total += mem_total_gb;
+        for (i, gt) in gpu_types.iter().enumerate() {
+            total_gpus[i] += e.free.gpu_total_by_type.get(gt).copied().unwrap_or(0);
+        }
+        if e.hidden {
+            // In the totals only, a row only with --all.
+            if all {
+                let mut row: TableRow =
+                    vec![muted(&e.name).into(), Text::styled(&e.state, "dim").into()];
+                if kind == Kind::Cpu {
+                    row.push(muted(&e.partitions).into());
+                }
+                for gt in gpu_types {
+                    let g_total = e.free.gpu_total_by_type.get(gt).copied().unwrap_or(0);
+                    row.push(ratio_text(0, g_total, "", "dim").into());
+                }
+                row.push(ratio_text(0, e.free.cpu_total, "", "dim").into());
+                row.push(ratio_text(0, mem_total_gb, "G", "dim").into());
+                rows.push(row);
+            }
+            continue;
+        }
+        cpu_free += e.free.cpu_free;
+        mem_free += mem_free_gb;
         let state = node_state_with_resv(
             &e.state,
             resv_map.get(&e.name).map(String::as_str),
@@ -836,7 +962,6 @@ fn render_free_node_table(
             let g_total = e.free.gpu_total_by_type.get(gt).copied().unwrap_or(0);
             usable[i] += if e.schedulable { g_free } else { 0 };
             free_gpus[i] += g_free;
-            total_gpus[i] += g_total;
             row.push(ratio_text(g_free, g_total, "", style).into());
         }
         row.push(ratio_text(e.free.cpu_free, e.free.cpu_total, "", "green").into());
@@ -887,10 +1012,12 @@ fn render_free_node_table(
 }
 
 /// `cmd_free(kind=, show_nodes=, partition_filter=, gpu_type=)`; `gpu_type` is already
-/// canonical (cli's `_normalize_gpu_type` callback).
+/// canonical (cli's `_normalize_gpu_type` callback). `all` (not in 2.7) also lists the
+/// hidden nodes and implies `show_nodes`.
 pub fn cmd_free(
     kind: Kind,
     show_nodes: bool,
+    all: bool,
     partition_filter: Option<&str>,
     gpu_type: Option<&str>,
 ) -> Result<()> {
@@ -912,10 +1039,7 @@ pub fn cmd_free(
     let resv_map = reserved_nodes_map(&active_resvs);
     let upcoming = upcoming_reservations(&all_resvs, now);
     let upcoming_resv_map = reserved_nodes_map(&upcoming);
-    let mut active_resv_by_name: HashMap<&str, &Record> = HashMap::new();
-    for resv in &active_resvs {
-        active_resv_by_name.insert(resv.get_str("ReservationName"), resv);
-    }
+    let not_free = not_free_nodes(&nodes, &reservation_by_node(&active_resvs));
 
     let partitions = partitions?;
     let mut names: Vec<String> = Vec::new();
@@ -935,9 +1059,12 @@ pub fn cmd_free(
         }
         return Err(die("no partitions matched this filter"));
     }
-    let summaries = summarize_partitions(&names, &nodes);
-    let cluster_stats = summarize_selected_partitions(&names.iter().cloned().collect(), &nodes);
+    let summaries = summarize_partitions(&names, &nodes, &not_free);
+    let cluster_stats =
+        summarize_selected_partitions(&names.iter().cloned().collect(), &nodes, &not_free);
 
+    let name_set: BTreeSet<&str> = names.iter().map(String::as_str).collect();
+    let entries = free_nodes(&nodes, &name_set, kind, gpu_type, &not_free);
     let mut count_maps = vec![
         &cluster_stats.gpu_total_by_type,
         &cluster_stats.gpu_free_by_type,
@@ -948,25 +1075,18 @@ pub fn cmd_free(
         gpu_types.retain(|gt| gt == gpu_type);
     }
 
-    let reserved_by: HashMap<String, &Record> = resv_map
-        .iter()
-        .filter_map(|(node, resv)| {
-            active_resv_by_name
-                .get(resv.as_str())
-                .map(|r| (node.clone(), *r))
-        })
-        .collect();
-    let name_set: BTreeSet<&str> = names.iter().map(String::as_str).collect();
-    let entries = free_nodes(&nodes, &name_set, kind, gpu_type, &reserved_by);
-
-    if show_nodes {
+    if show_nodes || all {
         render_free_node_table(
             &entries,
+            all,
             kind,
             if kind == Kind::Gpu { &gpu_types } else { &[] },
             &resv_map,
             &upcoming_resv_map,
         );
+        if !all {
+            render_hidden_rows(&entries, &not_free);
+        }
     } else if kind == Kind::Cpu {
         // Partition overview; GPU columns are always empty there.
         let mut overview = vec![overview_row(
@@ -1006,10 +1126,15 @@ pub fn cmd_free(
             render_free_gpu_partitions(&names, &summaries, &cluster_stats, &gpu_types);
         }
         render_free_by_node(&entries, gpu_type);
+        render_hidden_rows(&entries, &not_free);
     }
 
-    // One warning per reservation that covers a node counted above.
-    let shown: BTreeSet<&str> = entries.iter().map(|e| e.name.as_str()).collect();
+    // One warning per reservation that covers a node shown above.
+    let shown: BTreeSet<&str> = entries
+        .iter()
+        .filter(|e| all || !e.hidden)
+        .map(|e| e.name.as_str())
+        .collect();
     let active_names: BTreeSet<&str> = shown
         .iter()
         .filter_map(|n| resv_map.get(*n).map(String::as_str))
@@ -1255,11 +1380,13 @@ mod tests {
             gpus_used,
             ..NodeSpec::default()
         };
-        let nodes = vec![
+        let mut nodes = vec![
             node_dict("gpu1", spec("MIXED", 3)),
             node_dict("gpu2", spec("MIXED", 1)),
             node_dict("gpu3", spec("MAINT+RESERVED", 0)),
             node_dict("gpu4", spec("MAINT+RESERVED", 0)),
+            node_dict("gpu6", spec("IDLE+RESERVED", 0)),
+            node_dict("gpu7", spec("ALLOCATED+DRAIN+REBOOT_REQUESTED", 4)),
             node_dict(
                 "cmp1",
                 NodeSpec {
@@ -1275,35 +1402,36 @@ mod tests {
                 },
             ),
         ];
+        nodes[5].resumes_after_reboot = true;
         let resv = rec(&[("ReservationName", "mine"), ("Users", "alice")]);
-        let reserved_by = HashMap::from([("gpu3".to_owned(), &resv)]);
-        let entries = free_nodes(
-            &nodes,
-            &BTreeSet::from(["gpu"]),
-            Kind::Gpu,
-            None,
-            &reserved_by,
+        let theirs = rec(&[("ReservationName", "theirs"), ("Users", "bob")]);
+        let reserved_by = HashMap::from([("gpu3".to_owned(), &resv), ("gpu6".to_owned(), &theirs)]);
+        let not_free = not_free_nodes(&nodes, &reserved_by);
+        assert_eq!(
+            not_free,
+            NotFree::from([
+                ("gpu4".to_owned(), "in maintenance"),
+                ("gpu6".to_owned(), "reserved")
+            ])
         );
-        let got: Vec<(&str, &str, i64)> = entries
+        let entries = free_nodes(&nodes, &BTreeSet::from(["gpu"]), Kind::Gpu, None, &not_free);
+        let got: Vec<(&str, &str, i64, bool)> = entries
             .iter()
-            .map(|e| (e.name.as_str(), e.state.as_str(), e.gpu_free()))
+            .map(|e| (e.name.as_str(), e.state.as_str(), e.gpu_free(), e.hidden))
             .collect();
         assert_eq!(
             got,
             [
-                ("gpu3", "RESERVED", 4),
-                ("gpu2", "MIXED", 3),
-                ("gpu1", "MIXED", 1)
+                ("gpu3", "RESERVED", 4, false),
+                ("gpu2", "MIXED", 3, false),
+                ("gpu1", "MIXED", 1, false),
+                ("gpu7", "ALLOCATED+REBOOT", 0, false),
+                ("gpu4", "MAINT+RESERVED", 4, true),
+                ("gpu6", "IDLE+RESERVED", 4, true),
             ]
         );
 
-        let cpu = free_nodes(
-            &nodes,
-            &BTreeSet::from(["gpu"]),
-            Kind::Cpu,
-            None,
-            &reserved_by,
-        );
+        let cpu = free_nodes(&nodes, &BTreeSet::from(["gpu"]), Kind::Cpu, None, &not_free);
         assert_eq!(
             cpu.iter().map(|e| e.name.as_str()).collect::<Vec<_>>(),
             ["cmp1"]
@@ -1313,7 +1441,7 @@ mod tests {
             &BTreeSet::from(["gpu"]),
             Kind::Gpu,
             Some("a100"),
-            &reserved_by,
+            &not_free,
         );
         assert!(typed.is_empty());
     }

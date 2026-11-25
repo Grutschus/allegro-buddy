@@ -1,6 +1,6 @@
 name: CI
 
-# Only main and pull requests into main (the required checks rust/msrv/macos protect
+# Only main and pull requests into main (the required checks rust/msrv protect
 # main). The paths lists must cover everything the jobs below depend on (sources, tests
 # and their fixtures, presets, manifests, this file); docs-only changes (README, bench/,
 # AGENTS.md, ...) and tools/ (generators whose output is committed under src/) skip CI.
@@ -69,21 +69,6 @@ jobs:
       - uses: dtolnay/rust-toolchain@1.88
       - uses: Swatinem/rust-cache@v2
       - run: cargo build --locked --all-targets --features test-hooks
-  macos:
-    # The release wheels include macOS (pyproject.toml, pypi.yml): the kqueue/pipe
-    # fallbacks of src/signals.rs and src/core/slurm.rs (no pidfd/pipe2 there), tested
-    # on Apple silicon.
-    if: github.event_name != 'pull_request' || github.event.pull_request.draft == false
-    runs-on: macos-15
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - uses: Swatinem/rust-cache@v2
-      - run: cargo clippy --all-targets --locked --features test-hooks -- -D warnings
-      - run: cargo test --locked --no-fail-fast
   publish-script:
     # Dev repo only: the release export and its test stay private (.gitattributes).
     if: github.repository == 'Grutschus/allegro-buddy-dev' && (github.event_name != 'pull_request' || github.event.pull_request.draft == false)

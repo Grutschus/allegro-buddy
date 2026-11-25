@@ -24,7 +24,7 @@ This installs two equal commands, `ab` and `allegro-buddy`. Upgrade with
 | Command | What it does |
 | --- | --- |
 | `ab info` | Partitions you can use, with free CPUs, memory and GPUs |
-| `ab free [--nodes] [-G a5000]` | Free GPUs by type, per partition or per node |
+| `ab free [--nodes] [--all] [-G a5000]` | Free GPUs by type, per partition or per node (`--all`: also down and maintenance nodes) |
 | `ab q [--all] [-w]` | Your queue, with start estimates and what pending jobs lack |
 | `ab why [JOBID] [--fix]` | Why a job waits, and the one change that starts it now |
 | `ab node [NODE]` | Which jobs use a node's GPUs, CPUs and memory, and for how long |

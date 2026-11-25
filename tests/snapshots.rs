@@ -4,7 +4,8 @@
 //!
 //! `tests/snapshots/<scenario>.txt` is stdout followed by stderr at `COLUMNS=160`, the
 //! scratch directory shown as `@TMP@`. They are byte-exact output of the Python reference
-//! (goldens of the `equivalence-harness-3` tag with its `bab` renamed back to `ab`).
+//! (goldens of the `equivalence-harness-3` tag with its `bab` renamed back to `ab`),
+//! except the `hidden-*` ones: behaviour newer than 2.7 (CONTRIBUTING.md).
 //! `UPDATE_SNAPSHOTS=1` rewrites them.
 
 use std::io::Write;
@@ -67,6 +68,11 @@ const CASES: &[Case] = &[
     case("plain-free-nodes", &["free", "--nodes"]),
     case("plain-free-cpu", &["free", "--kind", "cpu", "--nodes"]),
     case("plain-free-a5000", &["free", "-G", "a5000", "--nodes"]),
+    // Not in 2.7, so these snapshots are ab's own output.
+    case("hidden-free", &["free"]),
+    case("hidden-free-nodes", &["free", "--nodes"]),
+    case("hidden-free-all", &["free", "--all"]),
+    case("hidden-info", &["info"]),
 ];
 
 const SLURM_COMMANDS: &[&str] = &[

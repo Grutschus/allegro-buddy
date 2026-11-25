@@ -210,13 +210,14 @@ pub fn dispatch(action: Action, args: &Args) -> Result<()> {
                 "cpu" => resources::Kind::Cpu,
                 _ => resources::Kind::Gpu,
             };
-            let (nodes, partition, gpu_type) = (
+            let (nodes, all, partition, gpu_type) = (
                 args.flag("nodes"),
+                args.flag("all"),
                 args.opt_str("partition"),
                 args.opt_str("gpu_type"),
             );
             watch::run_watched(
-                &mut || resources::cmd_free(kind, nodes, partition, gpu_type),
+                &mut || resources::cmd_free(kind, nodes, all, partition, gpu_type),
                 args.opt_float("watch"),
             )
         }

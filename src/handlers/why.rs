@@ -965,7 +965,7 @@ mod tests {
             [
                 "scontrol --json show job 65177",
                 "scontrol --json show nodes",
-                "scontrol --oneliner show node",
+                "scontrol --oneliner --details show node",
                 "scontrol --oneliner show partition",
             ]
         );
@@ -1027,7 +1027,7 @@ mod tests {
             [
                 "scontrol --json show job",
                 "scontrol --json show nodes",
-                "scontrol --oneliner show node",
+                "scontrol --oneliner --details show node",
                 "scontrol --oneliner show partition",
             ]
         );

@@ -1,0 +1,21 @@
+You
+user      alice                     
+accounts  ml-lab (default), teaching
+qos       long, normal              
+jobs      none                      
+
+                            Resource overview                            
+Partition   Time limit   Idle nodes   Free GPUs   Free CPUs   Free memory
+─────────────────────────────────────────────────────────────────────────
+all         -                   1/7      4+6/28      32/112      176/630G
+                                                                         
+gpumicro    1h                  1/7      4+6/28      32/112      176/630G
+gpushort    4h                  1/7      4+6/28      32/112      176/630G
+gpusmall    1d                  1/7      4+6/28      32/112      176/630G
+gpu         2d                  1/7      4+6/28      32/112      176/630G
+                                                                         
+micro       1h                    -           -           -             -
+amd         2d                    -           -           -             -
+small       2d2h                  -           -           -             -
+big         7d                    -           -           -             -
+free/total · +n idle, but on full or drained nodes

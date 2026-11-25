@@ -8,7 +8,7 @@ build-backend = "maturin"
 
 [project]
 name = "allegro-buddy"
-version = "2.71"
+version = "2.718"
 description = "A friendly Slurm helper, with presets for the Allegro cluster."
 readme = "README.md"
 requires-python = ">=3.8"
@@ -22,7 +22,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
     "Intended Audience :: System Administrators",
-    "Operating System :: MacOS",
     "Operating System :: POSIX :: Linux",
     "Programming Language :: Rust",
     "Topic :: System :: Clustering",

@@ -13,7 +13,7 @@ dependencies = [
 
 [[package]]
 name = "allegro-buddy"
-version = "2.71.0"
+version = "2.718.0"
 dependencies = [
  "allegro-buddy",
  "chrono",

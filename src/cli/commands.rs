@@ -347,6 +347,11 @@ const FREE: Command = Command {
             ..Param::option(&["--kind"], "kind").help("partitions to show")
         },
         Param::flag(&["--nodes"], "nodes", "add a per-node table"),
+        Param::flag(
+            &["--all"],
+            "all",
+            "also list down and maintenance nodes (implies --nodes)",
+        ),
         Param::option(&["-p", "--partition"], "partition")
             .help("limit the node table to one partition"),
         Param {

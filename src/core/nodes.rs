@@ -54,6 +54,9 @@ pub struct Node {
     pub reservation: String,
     /// `SpecMem` (MB)
     pub spec_mem: String,
+    /// `NextState=RESUME`: Slurm puts the node back into service after its pending
+    /// reboot. Not in 2.7 (see [`node_awaits_reboot`]).
+    pub resumes_after_reboot: bool,
 }
 
 impl Node {
@@ -106,9 +109,10 @@ pub fn query_argv() -> Vec<String> {
 }
 
 /// `load_nodes(strict=strict)`: `scontrol --json show nodes` (unchecked); if that fails or
-/// its JSON is unusable, fall back to `scontrol --oneliner show node` (checked iff
-/// `strict`). Always calls [`remember_nodes`]. Sequential: the fallback is conditional.
-/// With [`super::fast::enabled`], [`DETAILS_ARGV`] first (unchecked); it is used when it
+/// its JSON is unusable, fall back to [`DETAILS_ARGV`] (checked iff `strict`). 2.7 fell
+/// back to `scontrol --oneliner show node`, which has no `GresUsed`: on a Slurm without
+/// `--json` (22.05 without its plugins) every GPU looked free. Always calls
+/// [`remember_nodes`]. Sequential: the fallback is conditional. With [`super::fast::enabled`], [`DETAILS_ARGV`] first (unchecked); it is used when it
 /// converts cleanly, else the Python sequence follows.
 pub fn load_nodes(strict: bool) -> Result<Vec<Node>> {
     let nodes = fetch_nodes(strict)?;
@@ -135,7 +139,7 @@ pub fn fetch_nodes(strict: bool) -> Result<Vec<Node>> {
     match parsed {
         Some(nodes) => Ok(nodes),
         None => {
-            let fallback = super::slurm::run(&["scontrol", "--oneliner", "show", "node"], strict)?;
+            let fallback = super::slurm::run(&DETAILS_ARGV, strict)?;
             Ok(if fallback.success() {
                 pyfmt::splitlines(&fallback.stdout)
                     .into_iter()
@@ -273,6 +277,9 @@ fn node_from_details_line(line: &str) -> Option<Node> {
     at = state_at;
     let state = json_state_from_text(text_field(line, &mut at, end, "State")?)?;
     let boot_at = at + line[at..].find(" BootTime=")?;
+    let mut probe = at;
+    let resumes_after_reboot = text_field(line, &mut probe, boot_at, "NextState")
+        .is_some_and(|next| next.split('+').any(|f| f == "RESUME"));
     let partitions = text_list(text_field(line, &mut at, boot_at, "Partitions").unwrap_or(""));
     at = boot_at;
     text_field(line, &mut at, end, "CurrentWatts")?;
@@ -307,6 +314,7 @@ fn node_from_details_line(line: &str) -> Option<Node> {
         features,
         reservation: reservation.to_owned(),
         spec_mem,
+        resumes_after_reboot,
     })
 }
 
@@ -394,6 +402,12 @@ pub fn nodes_from_json(stdout: &str) -> std::result::Result<Vec<Node>, String> {
             features: json_joined(n, "features", ",")?,
             reservation: json_text(n, "reservation").unwrap_or_default(),
             spec_mem: json_text(n, "specialized_memory").unwrap_or_else(|| "0".to_owned()),
+            resumes_after_reboot: {
+                // A flag array; "no next state" (NO_VAL) dumps every flag, DRAIN included.
+                let next = json_joined(n, "next_state_after_reboot", "+").unwrap_or_default();
+                let has = |flag: &str| next.split('+').any(|f| f == flag);
+                has("RESUME") && !has("DRAIN")
+            },
         });
     }
     Ok(result)
@@ -424,6 +438,7 @@ pub fn node_from_props(props: &Record) -> Node {
             .unwrap_or_default(),
         reservation: get("Reservation", ""),
         spec_mem: get("MemSpecLimit", "0"),
+        resumes_after_reboot: get("NextState", "").split('+').any(|f| f == "RESUME"),
     }
 }
 
@@ -493,6 +508,30 @@ pub fn node_is_usable(node: &Node) -> bool {
     !super::BAD_NODE_FLAGS
         .iter()
         .any(|flag| state.contains(flag))
+}
+
+/// Waiting for a reboot after which Slurm resumes it by itself (`scontrol reboot [ASAP]
+/// nextstate=RESUME`), with nothing worse wrong: busy or drained only until then, so it
+/// is counted like any node (2.7 hid it as unusable). A reboot without ASAP leaves the
+/// node schedulable meanwhile, so `NextState` is only needed when Slurm drained it.
+pub fn node_awaits_reboot(node: &Node) -> bool {
+    let state = node.state.to_uppercase();
+    (state.contains("REBOOT_REQUESTED") || state.contains("REBOOT_ISSUED"))
+        && (node.resumes_after_reboot || !state.contains("DRAIN"))
+        && !["DOWN", "FAIL", "INVAL", "MAINT", "NOT_RESPONDING"]
+            .iter()
+            .any(|flag| state.contains(flag))
+}
+
+/// Can take a new job now: IDLE or MIXED, not draining or rebooting, memory left. 2.7
+/// looked at IDLE / MIXED only, so GPUs on a node whose memory is all allocated counted
+/// as free.
+pub fn node_takes_jobs(node: &Node, free: &NodeFree) -> bool {
+    let state = node.state.to_uppercase();
+    (node_is_idle(node) || node_is_mixed(node))
+        && !state.contains("DRAIN")
+        && !state.contains("REBOOT_ISSUED")
+        && free.mem_free_mb > 0
 }
 
 /// `node_is_idle(node)`: `IDLE` in state.
@@ -592,6 +631,7 @@ pub mod testing {
         pub spec_mem: i64,
         pub features: &'static str,
         pub reservation: &'static str,
+        pub resumes_after_reboot: bool,
     }
 
     impl Default for NodeSpec {
@@ -609,6 +649,7 @@ pub mod testing {
                 spec_mem: 0,
                 features: "Intel,X4112,RTX-A5000",
                 reservation: "",
+                resumes_after_reboot: false,
             }
         }
     }
@@ -640,6 +681,7 @@ pub mod testing {
             active_features: spec.features.to_owned(),
             features: spec.features.to_owned(),
             reservation: spec.reservation.to_owned(),
+            resumes_after_reboot: spec.resumes_after_reboot,
         }
     }
 
@@ -677,7 +719,7 @@ mod tests {
     //! Port of the node parts of `tests/test_slurm.py`, `test_gpu.py` and `test_stats.py`.
     use super::testing::with_state;
     use super::*;
-    use crate::core::slurm::fake::{FakeSlurm, ok};
+    use crate::core::slurm::fake::{FakeSlurm, fail, ok};
     use crate::hooks::testing::Ctx;
 
     /// Three Allegro nodes (Slurm 24.11.5): `scontrol --oneliner --details show node` and
@@ -821,6 +863,34 @@ NodeName=gpu074 CoresPerSocket=6  CPUAlloc=0 CPUEfctv=12 CPUTot=12 CPULoad=0.00 
         assert_eq!(nodes[0].cpu_alloc, "0");
     }
 
+    /// Slurm 22.05 without `--json` (seen on a real cluster): the fallback must carry
+    /// `GresUsed`, or every GPU looks free (2.7 asked without `--details`).
+    #[test]
+    fn fallback_sees_used_gpus() {
+        let fake = FakeSlurm::new(|argv| {
+            Some(if argv[1] == "--json" {
+                fail(1, "scontrol: unrecognized option '--json'\n")
+            } else if argv.iter().any(|a| a == "--details") {
+                ok(concat!(
+                    "NodeName=xgpu02 CPUAlloc=16 CPUTot=24 Gres=gpu:A5000:4 GresDrain=N/A ",
+                    "GresUsed=gpu:A5000:4(IDX:0-3) RealMemory=128000 AllocMem=125952 ",
+                    "MemSpecLimit=2048 State=MIXED Partitions=gpu\n",
+                ))
+            } else {
+                ok("NodeName=xgpu02 CPUAlloc=16 CPUTot=24 Gres=gpu:A5000:4 State=MIXED\n")
+            })
+        });
+        let _ctx = Ctx::default().slurm(fake.clone()).install();
+        let nodes = load_nodes(true).unwrap();
+        let free = node_free(&nodes[0]);
+        assert_eq!(free.gpu_total_by_type.values().sum::<i64>(), 4);
+        assert_eq!(free.gpu_free_by_type.values().sum::<i64>(), 0);
+        assert_eq!(
+            fake.calls().last().unwrap(),
+            &DETAILS_ARGV.map(String::from)
+        );
+    }
+
     #[test]
     fn bad_json_is_an_error() {
         for raw in [
@@ -888,6 +958,69 @@ NodeName=gpu074 CoresPerSocket=6  CPUAlloc=0 CPUEfctv=12 CPUTot=12 CPULoad=0.00 
         for state in ["IDLE", "ALLOCATED"] {
             assert!(!node_is_mixed(&with_state(state)));
         }
+    }
+
+    #[test]
+    fn reboot_and_taking_jobs() {
+        let node = |state: &str, resumes: bool| Node {
+            resumes_after_reboot: resumes,
+            ..with_state(state)
+        };
+        for (state, resumes) in [
+            ("ALLOCATED+DRAIN+REBOOT_REQUESTED", true),
+            ("IDLE+DRAIN+REBOOT_ISSUED", true),
+            ("MIXED+REBOOT_REQUESTED", false), // no ASAP: still schedulable meanwhile
+        ] {
+            assert!(node_awaits_reboot(&node(state, resumes)), "{state}");
+        }
+        for (state, resumes) in [
+            ("MIXED+DRAIN+REBOOT_REQUESTED", false), // NextState=DOWN or unknown
+            ("DOWN+DRAIN+REBOOT_REQUESTED+NOT_RESPONDING", true),
+            ("IDLE+MAINTENANCE+REBOOT_REQUESTED", true),
+            ("MIXED+DRAIN", true),
+        ] {
+            assert!(!node_awaits_reboot(&node(state, resumes)), "{state}");
+        }
+
+        let takes = |state: &str, mem_free_mb: i64| {
+            let free = NodeFree {
+                mem_free_mb,
+                ..NodeFree::default()
+            };
+            node_takes_jobs(&with_state(state), &free)
+        };
+        assert!(takes("IDLE", 1) && takes("MIXED+PLANNED", 1));
+        assert!(!takes("MIXED", 0), "all memory allocated");
+        assert!(!takes("ALLOCATED", 1));
+        assert!(!takes("MIXED+DRAIN+REBOOT_REQUESTED", 1));
+        assert!(!takes("IDLE+REBOOT_ISSUED", 1));
+    }
+
+    #[test]
+    fn next_state_from_every_node_query() {
+        let line = DETAILS_TEXT.lines().next().unwrap().replacen(
+            "MCS_label=N/A ",
+            "MCS_label=N/A NextState=RESUME ",
+            1,
+        );
+        let nodes = nodes_from_details_text(&line).unwrap();
+        assert!(nodes[0].resumes_after_reboot);
+        assert!(!nodes_from_details_text(DETAILS_TEXT).unwrap()[0].resumes_after_reboot);
+
+        let props = parse_prop_line(&line);
+        assert!(node_from_props(&props).resumes_after_reboot);
+
+        let json = |next: &str| {
+            let doc =
+                format!(r#"{{"nodes": [{{"name": "n", "next_state_after_reboot": {next}}}]}}"#);
+            nodes_from_json(&doc).unwrap()[0].resumes_after_reboot
+        };
+        assert!(json(r#"["RESUME"]"#));
+        assert!(
+            !json(r#"["DRAIN", "RESUME", "MAINTENANCE"]"#),
+            "NO_VAL dumps every flag"
+        );
+        assert!(!json("[]"));
     }
 
     fn gres_node(gres: &str, features: &str) -> Node {

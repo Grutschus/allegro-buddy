@@ -1,6 +1,6 @@
 [package]
 name = "allegro-buddy"
-version = "2.71.0"  # eVer: pyproject.toml holds the real version (2.71); keep MAJOR.MINOR equal
+version = "2.718.0"  # eVer: pyproject.toml holds the real version (2.718); keep MAJOR.MINOR equal
 edition = "2024"
 rust-version = "1.88"
 description = "A friendly Slurm helper, with presets for the Allegro cluster."

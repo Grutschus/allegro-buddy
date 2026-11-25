@@ -6,7 +6,7 @@
 use super::gpu::GpuCounts;
 use super::gpu::add_gpu_type_counts;
 use super::nodes::Node;
-use super::nodes::{is_gpu_partition, node_free, node_is_idle, node_is_mixed, node_is_usable};
+use super::nodes::{is_gpu_partition, node_free, node_is_idle, node_takes_jobs};
 use super::parse::{is_nullish, parse_prop_line};
 use super::timefmt::parse_slurm_time;
 use super::{Record, RecordExt};
@@ -189,8 +189,18 @@ pub struct PartitionStats {
     pub gpu_usable_by_type: GpuCounts,
 }
 
-/// `_summarize(names, nodes, merged=...)`; the merged bucket is keyed `""`.
-fn summarize(names: &[String], nodes: &[Node], merged: bool) -> HashMap<String, PartitionStats> {
+/// Nodes in the totals but never free (down, drained, in maintenance, reserved for others),
+/// by name, with why (see `handlers::resources::not_free_nodes`).
+pub type NotFree = HashMap<String, &'static str>;
+
+/// `_summarize(names, nodes, merged=...)`; the merged bucket is keyed `""`. Not in 2.7:
+/// `not_free` nodes count in the totals (2.7 left every unusable node out entirely).
+fn summarize(
+    names: &[String],
+    nodes: &[Node],
+    merged: bool,
+    not_free: &NotFree,
+) -> HashMap<String, PartitionStats> {
     let wanted: BTreeSet<&str> = names.iter().map(String::as_str).collect();
     let mut summary: HashMap<String, PartitionStats> = if merged {
         HashMap::from([(String::new(), PartitionStats::default())])
@@ -201,9 +211,6 @@ fn summarize(names: &[String], nodes: &[Node], merged: bool) -> HashMap<String, 
             .collect()
     };
     for node in nodes {
-        if !node_is_usable(node) {
-            continue;
-        }
         let here: Vec<&str> = node
             .partitions
             .split(',')
@@ -215,20 +222,24 @@ fn summarize(names: &[String], nodes: &[Node], merged: bool) -> HashMap<String, 
         let free = node_free(node);
         let gpu_free: i64 = free.gpu_free_by_type.values().sum();
         let gpu_total: i64 = free.gpu_total_by_type.values().sum();
+        let counted = !not_free.contains_key(&node.name);
         let is_idle = node_is_idle(node);
-        let is_schedulable = is_idle || node_is_mixed(node);
+        let is_schedulable = node_takes_jobs(node, &free);
         let buckets: Vec<&str> = if merged { vec![""] } else { here };
         for name in buckets {
             let bucket = summary.get_mut(name).expect("bucket per name");
             bucket.nodes += 1;
-            bucket.idle_nodes += i64::from(is_idle);
             bucket.cpu_total += free.cpu_total;
-            bucket.cpu_free += free.cpu_free;
             bucket.mem_total_gb += pyfmt::round_div(free.mem_total_mb, 1024);
-            bucket.mem_free_gb += pyfmt::round_div(free.mem_free_mb, 1024);
             bucket.gpu_total += gpu_total;
-            bucket.gpu_free += gpu_free;
             add_gpu_type_counts(&mut bucket.gpu_total_by_type, &free.gpu_total_by_type);
+            if !counted {
+                continue;
+            }
+            bucket.idle_nodes += i64::from(is_idle);
+            bucket.cpu_free += free.cpu_free;
+            bucket.mem_free_gb += pyfmt::round_div(free.mem_free_mb, 1024);
+            bucket.gpu_free += gpu_free;
             add_gpu_type_counts(&mut bucket.gpu_free_by_type, &free.gpu_free_by_type);
             if is_schedulable {
                 bucket.gpu_usable += gpu_free;
@@ -242,18 +253,26 @@ fn summarize(names: &[String], nodes: &[Node], merged: bool) -> HashMap<String, 
 /// `summarize_partitions(names, nodes=nodes)`: stats per partition name (every name
 /// present, even without nodes). Memory per node is `round(mb / 1024)` (half to even)
 /// BEFORE summing, like Python. Callers pass `load_nodes()` for Python's `nodes=None`.
-pub fn summarize_partitions(names: &[String], nodes: &[Node]) -> HashMap<String, PartitionStats> {
-    summarize(names, nodes, false)
+pub fn summarize_partitions(
+    names: &[String],
+    nodes: &[Node],
+    not_free: &NotFree,
+) -> HashMap<String, PartitionStats> {
+    summarize(names, nodes, false, not_free)
 }
 
 /// `summarize_selected_partitions(partition_names, nodes=nodes)`: one merged bucket
 /// (each node counted once); empty set -> empty stats.
-pub fn summarize_selected_partitions(names: &BTreeSet<String>, nodes: &[Node]) -> PartitionStats {
+pub fn summarize_selected_partitions(
+    names: &BTreeSet<String>,
+    nodes: &[Node],
+    not_free: &NotFree,
+) -> PartitionStats {
     if names.is_empty() {
         return PartitionStats::default();
     }
     let names: Vec<String> = names.iter().cloned().collect();
-    summarize(&names, nodes, true)
+    summarize(&names, nodes, true, not_free)
         .remove("")
         .unwrap_or_default()
 }
@@ -297,7 +316,7 @@ mod tests {
 
     fn stats(names: &[&str], nodes: &[Node]) -> HashMap<String, PartitionStats> {
         let names: Vec<String> = names.iter().map(|n| n.to_string()).collect();
-        summarize_partitions(&names, nodes)
+        summarize_partitions(&names, nodes, &NotFree::new())
     }
 
     #[test]
@@ -336,11 +355,22 @@ mod tests {
             )],
         )["gpusmall"];
         assert_eq!((s.gpu_free, s.gpu_usable), (0, 0));
-        let s = &stats(
-            &["gpusmall"],
-            &[node("gpu001", "IDLE+DRAIN", A5000, "gpusmall", "")],
-        )["gpusmall"];
-        assert_eq!(s.gpu_total, 0);
+        let names = vec!["gpusmall".to_owned()];
+        let drained = [node("gpu001", "IDLE+DRAIN", A5000, "gpusmall", "")];
+        let not_free = NotFree::from([("gpu001".to_owned(), "drained")]);
+        let s = &summarize_partitions(&names, &drained, &not_free)["gpusmall"];
+        assert_eq!(
+            (
+                s.nodes,
+                s.idle_nodes,
+                s.gpu_total,
+                s.gpu_free,
+                s.cpu_free,
+                s.cpu_total
+            ),
+            (1, 0, 4, 0, 0, 48),
+            "in the totals only"
+        );
         let s = &stats(
             &["gpusmall"],
             &[node(
@@ -368,14 +398,14 @@ mod tests {
     #[test]
     fn selected_partitions() {
         assert_eq!(
-            summarize_selected_partitions(&BTreeSet::new(), &[]),
+            summarize_selected_partitions(&BTreeSet::new(), &[], &NotFree::new()),
             PartitionStats::default()
         );
         let nodes = [
             node("gpu001", "IDLE", A5000, "gpusmall,gpu", ""),
             node("cmp001", "IDLE", "(null)", "small", ""),
         ];
-        let r = summarize_selected_partitions(&groups(&["gpusmall"]), &nodes);
+        let r = summarize_selected_partitions(&groups(&["gpusmall"]), &nodes, &NotFree::new());
         assert_eq!((r.nodes, r.gpu_total), (1, 4));
         let r = summarize_selected_partitions(
             &groups(&["gpusmall"]),
@@ -386,17 +416,20 @@ mod tests {
                 "gpusmall",
                 "gpu:RTX-A5000:1(IDX:0)",
             )],
+            &NotFree::new(),
         );
         assert_eq!((r.gpu_free, r.gpu_usable), (3, 3));
         let nodes = [
             node("gpu001", "IDLE", A5000, "gpusmall", ""),
             node("gpu002", "IDLE", A5000, "gpu", ""),
         ];
-        let r = summarize_selected_partitions(&groups(&["gpusmall", "gpu"]), &nodes);
+        let r =
+            summarize_selected_partitions(&groups(&["gpusmall", "gpu"]), &nodes, &NotFree::new());
         assert_eq!(r.gpu_total, 8);
         let r = summarize_selected_partitions(
             &groups(&["gpusmall", "gpu"]),
             &[node("g", "IDLE", A5000, "gpusmall,gpu", "")],
+            &NotFree::new(),
         );
         assert_eq!(r.nodes, 1);
     }

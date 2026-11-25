@@ -1,6 +1,7 @@
 //! Completion with a broken config: click swallows exceptions from parameter callbacks
 //! during resilient parsing, so `-G` (normalised through the settings' GPU aliases) must
-//! not crash completion. Expected output recorded from the Python reference.
+//! not crash completion. Expected output recorded from the Python reference, plus `--all`
+//! (not in 2.7).
 
 use std::process::Command;
 
@@ -21,7 +22,7 @@ fn gpu_type_completion_survives_an_invalid_config() {
     assert_eq!(String::from_utf8_lossy(&output.stderr), "");
     assert_eq!(
         String::from_utf8_lossy(&output.stdout),
-        "plain,--kind\nplain,--nodes\nplain,--partition\nplain,--watch\nplain,--help\n"
+        "plain,--kind\nplain,--nodes\nplain,--all\nplain,--partition\nplain,--watch\nplain,--help\n"
     );
     assert_eq!(output.status.code(), Some(0));
 }

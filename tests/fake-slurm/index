@@ -40,3 +40,10 @@ plain-* 0 sacctmgr-alice.txt sacctmgr -nP show user alice withassoc cluster=alle
 plain-* 0 - squeue -h --user=alice --format=%F
 plain-* 0 - squeue -h -r --user=alice --format=%A|%i|%T|%S|%e
 plain-* 0 reservations.txt scontrol --oneliner show reservation
+# "hidden": plain's partitions, nodes awaiting a reboot, down, drained, in maintenance or
+# with all memory allocated (behaviour newer than 2.7: its snapshots are ab's own).
+hidden-* 0 hidden-nodes.txt scontrol --oneliner --details show node
+hidden-* 0 reservations.txt scontrol --oneliner show reservation
+hidden-* 0 sacctmgr-alice.txt sacctmgr -nP show user alice withassoc cluster=allegro format=DefaultAccount,Account,QOS
+hidden-* 0 - squeue -h --user=alice --format=%F
+hidden-* 0 - squeue -h -r --user=alice --format=%A|%i|%T|%S|%e

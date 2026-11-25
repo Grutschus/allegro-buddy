@@ -5,7 +5,8 @@ name: PyPI
 # repo. Uses PyPI Trusted Publishing (no token): the PyPI project trusts
 # Grutschus/allegro-buddy, workflow pypi.yml, environment pypi.
 # Builds the `ab` binary (and `allegro-buddy`) as maturin wheels (pyproject.toml) for Linux
-# (manylinux2014: glibc >= 2.17, x86_64/aarch64) and macOS (x86_64/arm64), plus the sdist.
+# (manylinux2014: glibc >= 2.17, x86_64/aarch64), plus the sdist. No macOS wheels: Slurm
+# doesn't run there; a Mac install falls back to the sdist (needs Rust).
 # workflow_dispatch: build and smoke-test only, in either repo.
 on:
   release:
@@ -32,8 +33,6 @@ jobs:
         include:
           - { target: x86_64, runner: ubuntu-24.04, manylinux: '2014' }
           - { target: aarch64, runner: ubuntu-24.04-arm, manylinux: '2014' }
-          - { target: x86_64, runner: macos-15-intel, manylinux: '' }
-          - { target: aarch64, runner: macos-15, manylinux: '' }
     name: build (${{ matrix.runner }})
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
@@ -56,7 +55,6 @@ jobs:
             uvx --from "$wheel" "$name" --version | grep -x "$name, version [0-9.]*"
           done
       - name: Linux binary needs only glibc <= 2.17 symbols and runs on glibc 2.17
-        if: runner.os == 'Linux'
         run: |
           mkdir -p bin
           unzip -o -j dist/*.whl '*.data/scripts/ab' -d bin

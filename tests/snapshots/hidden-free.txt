@@ -1,0 +1,14 @@
+         Free GPUs          
+Partition    A5000   GTX1080
+────────────────────────────
+all         4+6/24       0/4
+                            
+gpumicro    4+6/24       0/4
+gpushort    4+6/24       0/4
+gpusmall    4+6/24       0/4
+gpu         4+6/24       0/4
+free/total · +n idle, but on full or drained nodes
+
+Nodes with free GPUs
+gpu101 (4)
+hidden: 1 down (gpu105), 1 drained (gpu201), 1 in maintenance (gpu106) · show them with --all
